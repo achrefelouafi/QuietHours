@@ -31,7 +31,7 @@
 
     /* ── left wall, far to near ── */
     A.clock('L', 1.9, 6.4, 0.6, t);
-    A.wallCabinet('L', 1.3, 3.7, 1.2, 1.2, { depth: 0.9 });
+    A.wallCabinet('L', 1.3, 3.7, 1.2, 1.2, { depth: 0.9, bare: true });
     A.pottedPlant(0.45, 1.5, 4.9, { r: 0.2, size: 0.7, seed: 41 });
     A.poster('L', 4.1, 4.0, 1.5, 2.3, { art: 'mountain' });
     A.door('L', 10.4, { w: 2.5, h: 5.3 });
