@@ -1,10 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════
-   main.js — the canvas, the frame loop, and the one input: the
-   lamp. Paints the scene into a small offscreen buffer, snaps it
-   to the inks, and blits it up pixelated.
+   main.js — the canvas, the frame loop, the camera and the one
+   thing you can touch: the lamp. Paints the scene into a small
+   offscreen buffer, snaps it to the inks, and blits it up
+   pixelated.
+
+   The page never scrolls. The canvas is the whole viewport and
+   the camera does the moving: drag to pan (with a fling), wheel
+   or pinch to zoom about the pointer, arrows / WASD / + - 0 on
+   the keyboard, double-click to lean in and back out.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
+  const { clamp, lerp } = QH;
   const { cam, fit } = QH.cam;
   const draw = QH.draw, light = QH.light;
   const scene = QH.scenes.roomOne;
@@ -12,21 +19,65 @@
   const view = document.getElementById('stage');
   const stateEl = document.getElementById('state');
   const PIXEL = 3;                                   // css px per rendered px — the chunkiness dial
+  const MIN = 0.35, MAX = 6;                         // zoom, relative to the fitted room
   const buf = document.createElement('canvas');
   const bctx = buf.getContext('2d', { willReadFrequently: true });
   const vctx = view.getContext('2d');
-  let iw = 0, ih = 0, hot = false, lampOn = true;
+  let iw = 0, ih = 0, w = 0, h = 0, hot = false, lampOn = true;
+
+  /* ── camera ──────────────────────────────────────────────────
+     `eye` is the scene point (projection at s = 1) sitting at the
+     centre of the screen, and how far in we are over the fitted
+     scale `s0`. look() turns that into the engine's cam each frame. */
+  const eye = { x: 0, y: 0, zoom: 1 };
+  const home = { x: 0, y: 0 };
+  let s0 = 12, tween = null, velocity = { x: 0, y: 0 }, lastMove = -1e9, placed = false;
+
+  function look() {
+    cam.s = s0 * eye.zoom;
+    cam.x = iw / 2 - eye.x * cam.s;
+    cam.y = ih / 2 - eye.y * cam.s;
+  }
+  /** css px on the canvas → buffer px. */
+  const toBuf = (cx, cy) => [cx * iw / (w || 1), cy * ih / (h || 1)];
+  /** css px on the canvas → scene units. */
+  function toScene(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    return { x: (bx - cam.x) / cam.s, y: (by - cam.y) / cam.s };
+  }
+  /** Zoom so that scene point `a` stays under css px (cx, cy). */
+  function zoomAbout(zoom, a, cx, cy) {
+    eye.zoom = clamp(zoom, MIN, MAX);
+    const s = s0 * eye.zoom, [bx, by] = toBuf(cx, cy);
+    eye.x = a.x - (bx - iw / 2) / s;
+    eye.y = a.y - (by - ih / 2) / s;
+  }
+  function moveCamera(to, ms) {
+    to.zoom = clamp(to.zoom, MIN, MAX);
+    velocity = { x: 0, y: 0 };
+    if (ms <= 0) { Object.assign(eye, to); tween = null; look(); return; }
+    tween = { from: { ...eye }, to, start: performance.now(), ms };
+  }
+  const interrupt = () => { tween = null; lastMove = performance.now(); };
+  const moving = now => tween !== null || pointers.size > 0 || now - lastMove < 200
+    || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5;
 
   function size() {
-    const w = view.clientWidth || 800, h = view.clientHeight || 600;
+    w = Math.max(1, view.clientWidth || 800); h = Math.max(1, view.clientHeight || 600);
     iw = Math.max(160, Math.round(w / PIXEL));
     ih = Math.max(120, Math.round(h / PIXEL));
     buf.width = iw; buf.height = ih;
     view.width = iw; view.height = ih;
     view.style.width = w + 'px'; view.style.height = h + 'px';
-    home();
+    // fit the whole room, then remember that as "home" — the eye keeps its place across resizes
+    fit(scene.room.W, scene.room.D, scene.room.H, iw, ih, 8);
+    s0 = cam.s;
+    home.x = (iw / 2 - cam.x) / s0;
+    home.y = (ih / 2 - cam.y) / s0;
+    if (!placed) { placed = true; Object.assign(eye, { x: home.x, y: home.y, zoom: 1 }); }
+    look();
   }
-  function home() { fit(scene.room.W, scene.room.D, scene.room.H, iw, ih, 8); }
+  const goHome = ms => moveCamera({ x: home.x, y: home.y, zoom: 1 }, ms);
 
   function frame(ms) {
     const t = ms / 1000;
@@ -42,15 +93,15 @@
     vctx.putImageData(snap, 0, 0);
   }
 
-  /* input — the lamp is the only thing in the room you can touch */
+  /* ── the lamp ─────────────────────────────────────────────── */
   function overLamp(cx, cy) {
     const L = scene.lamp();
     if (!L) return false;
-    const bx = cx * iw / (view.clientWidth || iw * PIXEL), by = cy * ih / (view.clientHeight || ih * PIXEL);
+    const [bx, by] = toBuf(cx, cy);
     if ((bx - L.head[0]) ** 2 + (by - L.head[1]) ** 2 < L.r * L.r) return true;
     const [a, b] = L.stem;
     const len = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) || 1;
-    const t = QH.clamp(((bx - a[0]) * (b[0] - a[0]) + (by - a[1]) * (b[1] - a[1])) / len, 0, 1);
+    const t = clamp(((bx - a[0]) * (b[0] - a[0]) + (by - a[1]) * (b[1] - a[1])) / len, 0, 1);
     const qx = a[0] + (b[0] - a[0]) * t, qy = a[1] + (b[1] - a[1]) * t;
     return (bx - qx) ** 2 + (by - qy) ** 2 < L.stemR * L.stemR;
   }
@@ -60,31 +111,128 @@
     stateEl.textContent = on ? 'lamp on' : 'lamp off';
   }
 
-  view.addEventListener('pointermove', e => {
-    const r = view.getBoundingClientRect();
-    const h = overLamp(e.clientX - r.left, e.clientY - r.top);
-    if (h !== hot) { hot = h; view.classList.toggle('hot', hot); }
-  });
-  view.addEventListener('pointerleave', () => { hot = false; view.classList.remove('hot'); });
+  /* ── pointer: drag to pan, pinch to zoom, a still tap hits the lamp ── */
+  const pointers = new Map();
+  let drag = null, pinch = null, press = null;
+
   view.addEventListener('pointerdown', e => {
-    const r = view.getBoundingClientRect();
-    if (overLamp(e.clientX - r.left, e.clientY - r.top)) setLamp(!lampOn);
+    interrupt(); e.preventDefault();
+    view.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    velocity = { x: 0, y: 0 };
+    drag = { x: e.clientX, y: e.clientY, t: performance.now() };
+    press = pointers.size === 1 ? { x: e.clientX, y: e.clientY, t: performance.now(), far: false } : null;
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom: eye.zoom, anchor: toScene((a.x + b.x) / 2, (a.y + b.y) / 2) };
+    }
+    hot = false; view.classList.remove('hot'); view.classList.add('drag');
   });
-  view.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ' || e.key.toLowerCase() === 'l') { setLamp(!lampOn); e.preventDefault(); }
+  view.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) {
+      const on = overLamp(e.clientX, e.clientY);
+      if (on !== hot) { hot = on; view.classList.toggle('hot', hot); }
+      return;
+    }
+    interrupt();
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 4) press.far = true;
+    if (pointers.size >= 2 && pinch) {
+      const [a, b] = [...pointers.values()];
+      zoomAbout(pinch.zoom * Math.hypot(a.x - b.x, a.y - b.y) / Math.max(1, pinch.d), pinch.anchor, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      return;
+    }
+    if (!drag) return;
+    const now = performance.now(), dx = e.clientX - drag.x, dy = e.clientY - drag.y, dt = Math.max(8, now - drag.t);
+    const k = 1 / (PIXEL * cam.s);                   // css px → scene units
+    eye.x -= dx * k; eye.y -= dy * k;
+    velocity.x = lerp(velocity.x, -dx * k / dt, 0.6);
+    velocity.y = lerp(velocity.y, -dy * k / dt, 0.6);
+    drag = { x: e.clientX, y: e.clientY, t: now };
+  });
+  const up = e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.delete(e.pointerId);
+    if (pointers.size) {
+      pinch = null; press = null;
+      const p = [...pointers.values()][0];
+      drag = { x: p.x, y: p.y, t: performance.now() };
+      return;
+    }
+    if (press && !press.far && performance.now() - press.t < 400 && overLamp(e.clientX, e.clientY)) setLamp(!lampOn);
+    if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
+    drag = null; pinch = null; press = null;
+    view.classList.remove('drag');
+    interrupt();
+  };
+  view.addEventListener('pointerup', up);
+  view.addEventListener('pointercancel', up);
+  view.addEventListener('pointerleave', () => { hot = false; view.classList.remove('hot'); });
+
+  /* ── wheel: zoom about the pointer ────────────────────────── */
+  view.addEventListener('wheel', e => {
+    e.preventDefault(); interrupt();
+    velocity = { x: 0, y: 0 };
+    const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? h : 1);
+    zoomAbout(eye.zoom * Math.exp(-clamp(d, -600, 600) * 0.0015), toScene(e.clientX, e.clientY), e.clientX, e.clientY);
+  }, { passive: false });
+
+  /* ── double-click: lean in on that spot, or back out to the whole room ── */
+  view.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if (eye.zoom > 1.5) return goHome(1100);
+    const a = toScene(e.clientX, e.clientY);
+    moveCamera({ x: a.x, y: a.y, zoom: 2.6 }, 1100);
   });
 
-  /* loop — capped, and honest about reduced motion */
-  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let last = 0;
-  function loop(ms) {
-    if (ms - last > 33) { frame(still ? 4200 : ms); last = ms; }
-    requestAnimationFrame(loop);
-  }
+  /* ── keys ─────────────────────────────────────────────────── */
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase(), step = 120 / (PIXEL * cam.s);
+    if (k === 'arrowleft' || k === 'a') { interrupt(); eye.x -= step; }
+    else if (k === 'arrowright' || k === 'd') { interrupt(); eye.x += step; }
+    else if (k === 'arrowup' || k === 'w') { interrupt(); eye.y -= step; }
+    else if (k === 'arrowdown' || k === 's') { interrupt(); eye.y += step; }
+    else if (k === '+' || k === '=') { interrupt(); zoomAbout(eye.zoom * 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
+    else if (k === '-' || k === '_') { interrupt(); zoomAbout(eye.zoom / 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
+    else if (k === '0') goHome(900);
+    else if (k === 'enter' || k === ' ' || k === 'l') setLamp(!lampOn);
+    else return;
+    e.preventDefault();
+  });
   addEventListener('resize', size);
+
+  /* ── loop: every frame while the camera moves, otherwise ~30fps
+     for the ambient animation; honest about reduced motion ──── */
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let last = 0, lastNow = 0;
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (innerWidth !== w || innerHeight !== h) size();
+    const dt = lastNow ? Math.min(64, now - lastNow) : 16.7;
+    lastNow = now;
+    if (tween) {
+      const u = clamp((now - tween.start) / tween.ms, 0, 1);
+      const e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+      // a small lift on the way — the camera pulls back a touch mid-flight, more for longer trips
+      const lift = Math.sin(u * Math.PI) * Math.min(0.35, Math.hypot(tween.to.x - tween.from.x, tween.to.y - tween.from.y) / 60);
+      eye.x = lerp(tween.from.x, tween.to.x, e);
+      eye.y = lerp(tween.from.y, tween.to.y, e);
+      eye.zoom = lerp(tween.from.zoom, tween.to.zoom, e) * (1 - lift);
+      if (u >= 1) tween = null;
+    } else if (!pointers.size) {
+      eye.x += velocity.x * dt; eye.y += velocity.y * dt;
+      const decay = Math.exp(-dt / 200);
+      velocity.x *= decay; velocity.y *= decay;
+      if (Math.abs(velocity.x) + Math.abs(velocity.y) < 1e-5) velocity.x = velocity.y = 0;
+    }
+    eye.zoom = clamp(eye.zoom, MIN, MAX);
+    look();
+    if (moving(now) || now - last > 33) { frame(still ? 4200 : now); last = now; }
+  }
   size();
   requestAnimationFrame(loop);
 
   /* exposed so tools/preview.js can render a frame outside the browser */
-  QH.app = { frame, size, home, cam, setLamp: on => { setLamp(on); light.lamp = light.target; } };
+  QH.app = { frame, size, home: () => goHome(0), look, eye, cam, setLamp: on => { setLamp(on); light.lamp = light.target; } };
 })(QH);

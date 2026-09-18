@@ -49,6 +49,8 @@ const sandbox = {
   requestAnimationFrame: () => 0,     // we drive frames by hand
   addEventListener: () => {},
   matchMedia: () => ({ matches: false }),
+  innerWidth: W, innerHeight: H,
+  performance: { now: () => 0 },
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;

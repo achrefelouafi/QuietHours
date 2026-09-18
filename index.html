@@ -7,29 +7,28 @@
 <style>
   :root{ --bg:#050b14; --ink:#8ea0b8; --dim:#3f5170; --amber:#e6a24a; }
   *{box-sizing:border-box}
-  html,body{height:100%}
+  html,body{ margin:0; padding:0; background:var(--bg); height:100%; overflow:hidden; overscroll-behavior:none; }
   body{
-    margin:0; background:var(--bg); color:var(--ink);
+    color:var(--ink);
     font:400 12px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-    -webkit-font-smoothing:antialiased; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
   }
-  main{position:relative; width:100%; height:100%}
-  canvas{ display:block; width:100%; height:100%; image-rendering:pixelated; touch-action:none; }
-  canvas.hot{cursor:pointer}
-  canvas:focus-visible{outline:2px solid var(--amber); outline-offset:-4px}
-  .slate{ position:absolute; left:18px; top:16px; pointer-events:none; letter-spacing:.06em; color:var(--dim); }
+  /* the page never scrolls — the canvas is the whole viewport and the camera does the moving */
+  #stage{ position:fixed; left:0; top:0; width:100%; height:100%; display:block; image-rendering:pixelated; touch-action:none; cursor:grab; outline:none; }
+  #stage.drag{cursor:grabbing}
+  #stage.hot{cursor:pointer}
+  #stage:focus-visible{outline:2px solid var(--amber); outline-offset:-4px}
+  .slate{ position:fixed; left:18px; top:16px; pointer-events:none; letter-spacing:.06em; color:var(--dim); }
   .slate b{display:block; color:var(--ink); font-weight:400; font-size:13px}
-  .hint{ position:absolute; right:18px; bottom:14px; margin:0; color:var(--dim); letter-spacing:.04em; text-align:right; pointer-events:none; }
+  .hint{ position:fixed; right:18px; bottom:14px; margin:0; color:var(--dim); letter-spacing:.04em; text-align:right; pointer-events:none; }
   @media (max-width:640px){ .slate{left:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
 </style>
 </head>
 <body>
-<main>
-  <canvas id="stage" tabindex="0"
-          aria-label="An isometric pixel-art bedroom at night: a desk lamp lights a desk under a rain-streaked window. Click the lamp to switch it off and on."></canvas>
-  <div class="slate"><b>quiet hours</b><span id="state">lamp on</span></div>
-  <p class="hint">click the lamp</p>
-</main>
+<canvas id="stage" tabindex="0"
+        aria-label="An isometric pixel-art bedroom at night: a desk lamp lights a desk under a rain-streaked window. Drag to look around, scroll to zoom, click the lamp to switch it off and on."></canvas>
+<div class="slate"><b>quiet hours</b><span id="state">lamp on</span></div>
+<p class="hint">drag to look around · scroll to zoom · click the lamp</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>
