@@ -52,9 +52,9 @@
     A.bed(0.15, 2.3, { w: 2.0, d: 3.4 });
 
     A.desk(2.4, 0.4, { w: 7.0, d: 1.9 });
-    A.book(2.65, 1.55, T, 0.7, 0.5, M.cream, { h: 0.1 });
-    A.journal(2.7, 1.55, T + 0.1, { w: 0.6, d: 0.45, col: light.warm(M.rustLt, M.orange) });
     A.deskLamp(LAMP.x, LAMP.y, T, { head: LAMP.head });
+    A.book(2.65, 1.55, T, 0.7, 0.5, M.cream, { h: 0.1 });               // in front of the lamp base
+    A.journal(2.7, 1.55, T + 0.1, { w: 0.6, d: 0.45, col: light.warm(M.rustLt, M.orange) });
     A.monitor(3.9, 0.75, T, t, { w: 2.0, h: 1.45 });
     A.keyboard(4.1, 1.45, T, { w: 1.9, d: 0.6 });
     A.mouse(6.3, 1.7, T);
