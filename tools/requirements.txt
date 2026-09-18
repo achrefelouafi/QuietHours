@@ -1,0 +1,4 @@
+numpy>=1.26
+Pillow>=10
+opencv-python>=4.9
+scikit-learn>=1.4
