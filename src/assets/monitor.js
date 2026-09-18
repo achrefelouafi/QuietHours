@@ -13,8 +13,10 @@
 
   QH.assets.monitor = (x, y, z, t = 0, o = {}) => {
     const w = o.w || 2.0, h = o.h || 1.45, lift = 0.5;
-    box(x + w / 2 - 0.35, y + 0.05, z, 0.7, 0.4, 0.06, M.navyDk, { colTop: M.navy });
-    box(x + w / 2 - 0.08, y + 0.18, z + 0.06, 0.16, 0.12, lift - 0.06, M.navyDk, { edge: false });
+    // base straddles the panel's back edge; the neck sits under the panel
+    // (not in front of it) so its top disappears into the panel's underside
+    box(x + w / 2 - 0.35, y - 0.1, z, 0.7, 0.5, 0.06, M.navyDk, { colTop: M.navy });
+    box(x + w / 2 - 0.08, y - 0.06, z + 0.06, 0.16, 0.12, lift - 0.06, M.navyDk, { edge: false });
     box(x, y, z + lift, w, 0.08, h, M.navyDk, { colTop: M.navy, left: 0.85 });
 
     const sy = y + 0.085, z0 = z + lift + 0.06, z1 = z + lift + h - 0.06;

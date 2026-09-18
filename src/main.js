@@ -42,6 +42,7 @@
   const toBuf = (cx, cy) => [cx * iw / (w || 1), cy * ih / (h || 1)];
   /** css px on the canvas → scene units. */
   function toScene(cx, cy) {
+    look();                                          // the eye may have moved since the last frame
     const [bx, by] = toBuf(cx, cy);
     return { x: (bx - cam.x) / cam.s, y: (by - cam.y) / cam.s };
   }
@@ -63,7 +64,7 @@
     || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5;
 
   function size() {
-    w = Math.max(1, view.clientWidth || 800); h = Math.max(1, view.clientHeight || 600);
+    w = Math.max(1, innerWidth); h = Math.max(1, innerHeight);
     iw = Math.max(160, Math.round(w / PIXEL));
     ih = Math.max(120, Math.round(h / PIXEL));
     buf.width = iw; buf.height = ih;
