@@ -40,12 +40,12 @@
     A.window('B', 1.05, 2.3, 6.65, 4.3, t);
     A.stripLight('B', 8.8, 6.4, 3.0);
     A.poster('B', 9.25, 3.0, 1.45, 2.75, { art: 'sun' });
-    A.wallShelf('B', 11.05, 4.6, 2.45);                         // upper: a little speaker and a trailing plant
-    A.speaker(11.2, 0.15, 4.7, { w: 0.45, d: 0.4, h: 0.75, rim: false });
-    A.pottedPlant(12.5, 0.4, 4.7, { r: 0.22, kind: 'leafy', size: 0.6, seed: 43 });
     A.wallShelf('B', 11.05, 3.6, 2.45);                         // lower: books and a box
     A.bookRow(11.2, 0.12, 3.7, 1.0, { along: 'x', depth: 0.55, seed: 45, hMin: 0.5, hMax: 0.7 });
     A.smallBox(12.45, 0.15, 3.7, 0.7, 0.5, 0.35, M.navy);
+    A.wallShelf('B', 11.05, 4.6, 2.45);                         // upper (drawn over the books): a little speaker and a trailing plant
+    A.speaker(11.2, 0.15, 4.7, { w: 0.45, d: 0.4, h: 0.75, rim: false });
+    A.pottedPlant(12.5, 0.4, 4.7, { r: 0.22, kind: 'leafy', size: 0.6, seed: 43 });
     A.vines(12.5, 0.75, 4.75, 1.3, 5, 44);
 
     /* ── the floor, far corner outward ── */
