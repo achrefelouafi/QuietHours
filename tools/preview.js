@@ -1,10 +1,11 @@
 /**
- * tools/preview.js — render a frame of index.html to a PNG, no browser.
+ * tools/preview.js — render a frame of the room to a PNG, no browser.
  *
  *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY]
  *
- * Pulls the <script> straight out of index.html and runs it against a
- * minimal DOM backed by node-canvas. Handy for eyeballing changes fast.
+ * Reads the <script src> list out of index.html, runs those files in
+ * order against a minimal DOM backed by node-canvas, and writes the
+ * frame out at 2× nearest-neighbour so detail is judgeable.
  */
 const fs = require('fs');
 const path = require('path');
@@ -22,20 +23,21 @@ const PANX = parseFloat(process.argv[8] || '0');
 const PANY = parseFloat(process.argv[9] || '0');
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const code = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+const code = files.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
 
 function mkCanvas(w, h) {
   const c = createCanvas(w || 300, h || 150);
   c.clientWidth = W; c.clientHeight = H;
   c.style = {};
+  c.classList = { toggle() {}, remove() {}, add() {} };
   c.addEventListener = () => {};
-  c.setPointerCapture = () => {};
   c.getBoundingClientRect = () => ({ left: 0, top: 0, width: W, height: H });
   return c;
 }
 
 const stage = mkCanvas(W, H);
-const stubEl = { textContent: '', innerHTML: '', style: {}, addEventListener: () => {} };
+const stubEl = { textContent: '', style: {}, addEventListener: () => {} };
 
 const sandbox = {
   console,
@@ -52,16 +54,13 @@ sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
 
 vm.createContext(sandbox);
-vm.runInContext(code, sandbox);
+vm.runInContext(code, sandbox, { filename: 'quiet-hours.js' });
 
-const QH = sandbox.QH;
-if (LIT !== 1) QH.setLights(false);
-if (ZOOM !== 1 || PANX || PANY) { QH.cam.z *= ZOOM; QH.cam.x += PANX; QH.cam.y += PANY; }
-QH.frame(time * 1000);
-// settle the lamp easing (it lerps toward target over several frames)
-for (let i = 0; i < 40; i++) QH.frame(time * 1000);
+const app = sandbox.QH.app;
+if (LIT < 1) app.setLamp(false);
+if (ZOOM !== 1 || PANX || PANY) { app.cam.s *= ZOOM; app.cam.x += PANX; app.cam.y += PANY; }
+app.frame(time * 1000);
 
-// blow it up nearest-neighbour, the way the browser does, so detail is judgeable
 const up = createCanvas(stage.width * 2, stage.height * 2);
 const uc = up.getContext('2d');
 uc.imageSmoothingEnabled = false;

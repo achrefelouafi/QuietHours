@@ -1,14 +1,12 @@
 {
   "name": "quiet-hours",
   "version": "0.1.0",
-  "description": "An isometric room drawn in 2D canvas and reduced to twelve inks.",
+  "description": "An isometric room drawn in 2D canvas, one asset per file, snapped to thirty-two inks.",
   "private": true,
   "scripts": {
     "dev": "node tools/dev.js",
     "preview": "node tools/preview.js docs/preview.png 4.2 1100 760 1",
-    "preview:dark": "node tools/preview.js docs/lights-out.png 4.2 1100 760 0.3",
-    "analyze": "python tools/analyze.py docs/reference.png --out docs/analysis",
-    "compare": "node tools/preview.js docs/analysis/render.png 4.2 1100 760 1 && python tools/compare.py docs/analysis/render.png docs/reference.png --spec docs/analysis/reference.spec.json --diff docs/analysis/diff.png --out docs/analysis/compare.json"
+    "preview:dark": "node tools/preview.js docs/lights-out.png 4.2 1100 760 0"
   },
   "devDependencies": {
     "canvas": "^3.0.0"
