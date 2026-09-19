@@ -11,6 +11,7 @@ Open `index.html`. No build step, no dependencies, no server.
 
 - drag to look around, scroll to zoom, `1` / `2` fly to a room, `0` comes home
 - click a lamp to switch it off and on (`L`, `Enter` or `Space` do the one in view)
+- click the strip light over the poster downstairs to switch it off and on (`T`)
 - click the neon in the bedroom to switch it off and on (`N`)
 - click the bedroom blind to run it down over the window and back up (`B`)
 - that's it. Those are the only things in the rooms you can touch.
@@ -84,7 +85,7 @@ Room one:
 | `window.js` | night sky, city, rain, frame; a crescent, a lower skyline and a blind on request | `window(wall, u, z, w, h, t, {moon, skyline, blind, drops})` |
 | `clock.js` | wall clock, second hand ticking | `clock(wall, u, z, r, t)` |
 | `poster.js` | framed print | `poster(wall, u, z, w, h, {art: 'mountain'│'sun'│'moon'│'stars'})` |
-| `stripLight.js` | bar of light on the wall | `stripLight(wall, u, z, w)` |
+| `stripLight.js` | bar of light on the wall, lit by `on` (0..1); returns its screen line for hit-testing; `stripLight.halo(k)` adds its glow in the lighting pass | `stripLight(wall, u, z, w, {on})` |
 | `wallShelf.js` | one mounted board on brackets; put things on it at `z + wallShelf.T` | `wallShelf(wall, u, z, w, {depth})` |
 | `wallCabinet.js` | small open cabinet with a radio in it | `wallCabinet(wall, u, z, w, h, {depth})` |
 | `plantShelf.js` | narrow shelf with a trailing plant *(built, not placed)* | `plantShelf(x, y, {w, d, h})` |
@@ -193,12 +194,13 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two      # framed on room two
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two 0    # …with the neon off
+node tools/preview.js one.png 4.2 1100 760 1 1 0 0 one 1 0  # room one with the strip light off
 node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the desk
 ```
 

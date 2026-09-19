@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    main.js — the canvas, the frame loop, the camera and the few
-   things you can touch: each room's lamp, the neon sign and the
-   blind over the window in room two. Paints the scene
+   things you can touch: each room's lamp, the strip light in room
+   one, the neon sign and the blind over the window in room two. Paints the scene
    into a small offscreen buffer, snaps it to the inks, and blits
    it up pixelated.
 
@@ -139,26 +139,27 @@
     for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
     return null;
   }
-  /** The slate: each room's lamp, and the neon where there is one. */
+  /** The slate: each room's lamp, and the strip or neon where there is one. */
   function showState() {
-    const neonOf = Object.fromEntries(scene.neons().map(n => [n.id, n.sw]));
     stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')
-      + (neonOf[r.id] ? ' · neon ' + (light.isOn(neonOf[r.id]) ? 'on' : 'off') : '')).join(String.fromCharCode(10));
+      + wallLights().filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')).join(String.fromCharCode(10));
   }
   function setLamp(id, on) { light.set(id, on); showState(); }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
 
-  /* ── the neon ─────────────────────────────────────────────── */
-  /** The neon sign under this css point, or null. */
+  /* ── the wall lights: the neon and the strip ──────────────── */
+  /** Every light on a wall, each { id, name, kind, geo, sw } — both are a line you can click. */
+  const wallLights = () => [...scene.neons(), ...scene.strips()];
+  /** The neon sign or strip light under this css point, or null. */
   function overNeon(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
-    for (const n of scene.neons()) if (n.geo && nearLine(n.geo.line, n.geo.r, bx, by)) return n;
+    for (const n of wallLights()) if (n.geo && nearLine(n.geo.line, n.geo.r, bx, by)) return n;
     return null;
   }
   function setNeon(sw, on) { light.set(sw, on); showState(); }
   const toggleNeon = sw => setNeon(sw, !light.isOn(sw));
-  /** Switch the neon in this room, if it has one. */
-  const toggleNeonIn = id => { const n = scene.neons().find(n => n.id === id); if (n) toggleNeon(n.sw); };
+  /** Switch the neon (or strip, as asked) in this room, if it has one. */
+  const toggleNeonIn = (id, kind = 'neon') => { const n = wallLights().find(n => n.id === id && n.kind === kind); if (n) toggleNeon(n.sw); };
 
   /* ── the blinds ───────────────────────────────────────────── */
   /** Is (bx, by) inside this convex quad of screen points? */
@@ -276,6 +277,7 @@
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
     else if (k === 'b') toggleBlind(roomInView().id);
     else if (k === 'n') toggleNeonIn(roomInView().id);
+    else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
     else return;
     e.preventDefault();
   });
@@ -318,6 +320,7 @@
     frame, size, home: () => goHome(0), room: id => goRoom(id, 0), look, eye, cam,
     setLamp: (on, id) => { for (const r of scene.rooms) if (!id || r.id === id) { setLamp(r.id, on); light.switch(r.id).v = on ? 1 : 0; } },
     setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
+    setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     toggleBlind,
   };
 })(QH);

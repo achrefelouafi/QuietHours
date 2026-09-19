@@ -1,7 +1,7 @@
 /**
  * tools/preview.js — render a frame of the room to a PNG, no browser.
  *
- *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon]
+ *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip]
  *
  * `lamp` 0 switches every lamp off; `room` (one | two) frames that
  * room instead of the whole house, before zoom and pan apply.
@@ -26,6 +26,7 @@ const PANX = parseFloat(process.argv[8] || '0');
 const PANY = parseFloat(process.argv[9] || '0');
 const ROOM = process.argv[10] || '';
 const NEON = parseFloat(process.argv[11] || '1');
+const STRIP = parseFloat(process.argv[12] || '1');
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
@@ -66,6 +67,7 @@ vm.runInContext(code, sandbox, { filename: 'quiet-hours.js' });
 const app = sandbox.QH.app;
 if (LIT < 1) app.setLamp(false);
 if (NEON < 1) app.setNeon(false);
+if (STRIP < 1) app.setStrip(false);
 if (ROOM) { app.room(ROOM); app.look(); }
 if (ZOOM !== 1 || PANX || PANY) { app.cam.s *= ZOOM; app.cam.x += PANX; app.cam.y += PANY; }
 app.frame(time * 1000);

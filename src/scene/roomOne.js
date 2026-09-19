@@ -1,12 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
    scene/roomOne.js — room one: a small flat at night, rain on the
-   window, lit by one desk lamp.
+   window, lit by one desk lamp and a strip light over the poster.
 
    Everything is placed here and nowhere else. Positions are world
    units with the origin at the far corner: the room is 14 × 14,
    walls 8 high; +x runs along the back wall, +y along the left.
    Things are drawn back to front — the order below is the painter
    order, so keep it when moving furniture.
+
+   Two things here you can touch: the lamp, and the strip light on
+   the back wall, each on its own switch.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -17,14 +20,17 @@
   const T = A.desk.H;                                          // the desk top
   const LAMP = { x: 3.3, y: 1.2, head: [0.25, 0.55, 1.55] };
   const HEAD = [LAMP.x + LAMP.head[0], LAMP.y + LAMP.head[1], T + LAMP.head[2]];
+  const STRIP = { u: 8.8, z: 6.4, w: 3.0, sw: 'one-strip' };          // sw: its switch in light.switches
+  /** How lit the strip light is right now, 0..1, easing after a click. */
+  const stripOn = () => light.switch(STRIP.sw).v;
 
   // what shades the faces: the lamp, and a little from the strip light
   const sources = [
     { x: HEAD[0], y: HEAD[1], z: HEAD[2] - 0.2, range: 11, k: 0.6, on: () => light.lamp },
-    { x: 10.3, y: 0.1, z: 6.4, range: 6, k: 0.2, on: () => 1 },
+    { x: STRIP.u + STRIP.w / 2, y: 0.1, z: STRIP.z, range: 6, k: 0.2, on: stripOn },
   ];
   light.sources = sources;
-  let lamp = null;                                                    // the lamp's screen geometry, for the click
+  let lamp = null, strip = null;                                      // screen geometry of the lamp and the strip, for the click
 
   function draw(t) {
     room.floor();
@@ -40,7 +46,7 @@
 
     /* ── back wall, far to near ── */
     A.window('B', 1.05, 2.3, 6.65, 4.3, t);
-    A.stripLight('B', 8.8, 6.4, 3.0);
+    strip = A.stripLight('B', STRIP.u, STRIP.z, STRIP.w, { on: stripOn() });
     A.poster('B', 9.25, 3.0, 1.45, 2.75, { art: 'sun' });
     A.wallShelf('B', 11.05, 3.6, 2.45);                         // lower: books and a box
     A.bookRow(11.2, 0.12, 3.7, 1.0, { along: 'x', depth: 0.55, seed: 45, hMin: 0.5, hMax: 0.7 });
@@ -92,8 +98,7 @@
     light.glow(hx + 0.3, hy + 0.4, T, 2.6, [255, 170, 80], 0.26 * f);           // pool on the desk
     light.glow(hx + 0.8, hy + 1.2, T - 0.5, 6.0, [220, 130, 50], 0.07 * f);     // warm wash over the room
 
-    for (let i = 0; i < 3; i++) light.glow(9.3 + i, 0, 6.4, 1.6, [240, 150, 60], 0.14);   // strip light
-    light.glow(10.3, 0, 6.4, 3.2, [230, 140, 50], 0.07);
+    A.stripLight.halo(stripOn());                                                // the strip light
 
     light.glow(4.9, 0.8, T + 1.2, 1.5, [70, 120, 190], 0.09);                    // monitor
     light.glow(4.4, 0, 4.5, 4.5, [60, 90, 140], 0.03 + 0.05 * (1 - light.lamp)); // the city, more of it with the lamp off
@@ -101,5 +106,9 @@
     light.end();
   }
 
-  QH.scenes.roomOne = { room, sources, draw, lights, lamp: () => lamp };
+  QH.scenes.roomOne = {
+    room, sources, draw, lights,
+    lamp: () => lamp,
+    strip: () => strip, stripSwitch: STRIP.sw,
+  };
 })(QH);
