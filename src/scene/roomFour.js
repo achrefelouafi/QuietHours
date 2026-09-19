@@ -109,13 +109,12 @@
     tubes[1] = A.neonTube('L', 10.2, 1.2, 5.0, { on: neonOn() });
     A.galleryFrame('L', 11.5, 4.4, 2.2, 1.4, { on: light.lamp });
     A.posterFrame('L', 11.9, 0.95, 1.6, 2.6, { print: true });
-    A.edgeLight('L', 10.9, 13.9, H + 0.02, { on: light.lamp });
 
     /* ── back wall, far to near — a unit longer than the left one, the frames at its end ── */
     tubes[2] = A.neonTube('B', 6.0, 1.2, 5.0, { on: neonOn() });
     A.banner('B', 6.8, 2.3, 2.6, 3.4, { glow: 0.6 + 0.4 * neonOn() });
     tubes[3] = A.neonTube('B', 10.2, 1.2, 5.0, { on: neonOn() });
-    A.galleryFrame('B', 12.5, 4.4, 2.2, 1.4, { on: light.lamp, seed: 73 });
+    A.galleryFrame('B', 12.5, 4.4, 2.2, 1.4, { on: light.lamp });
     A.posterFrame('B', 12.9, 0.95, 1.6, 2.6, { print: true });
     A.edgeLight('B', 10.9, 14.9, H + 0.02, { on: light.lamp });
 
