@@ -76,6 +76,7 @@
 
     /* ── back wall, far to near ── */
     blindGeo = A.window('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { moon: WINDOW.moon, skyline: 0.32, blind: blind.v, drops: 22, seed: 9 });
+    A.wardrobe(6.5, 0.1, { w: 3.6, d: 1.4, h: 6.6 });          // over the window's edge, but the shelf's end is nearer than its side
     neon = A.neonSign('B', NEON.u, NEON.z, NEON.w, { h: 0.9, on: neonOn() });
     A.wallShelf('B', 10.5, 3.6, 3.9, { depth: 0.9 });
     A.snakePlant(11.15, 0.45, 3.7, { r: 0.3, ph: 0.55, size: 1.35, n: 10, seed: 85 });
@@ -87,7 +88,6 @@
     lamp = A.deskLamp(LAMP.x, LAMP.y, TABLE.h, { head: LAMP.head });
     A.openBook(1.35, 4.95, TABLE.h, { w: 0.95, d: 0.65 });
 
-    A.wardrobe(6.5, 0.1, { w: 3.6, d: 1.4, h: 6.6 });
     A.platformBed(0.3, 5.9, { w: 6.9, d: 6.3 });
     A.dresser(11.2, 0.35, { w: 3.7, d: 1.4, h: 2.3 });
     A.bedsideTable(0.3, 12.35, { kind: 'drawer', w: 1.4, d: 1.4, h: 1.7 });
