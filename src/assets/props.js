@@ -12,6 +12,7 @@
   const M = QH.M;
   const { box, cyl, disc, discX, discY, ring, beam, dot, rectX, rectY, poly, stroke, rgb, sh } = QH.draw;
   const { TAU, rnd, mix } = QH;
+  const { P, cam } = QH.cam;
   const light = QH.light;
   const A = QH.assets;
 
@@ -221,11 +222,18 @@
     }
   };
 
-  /** A ball — a sphere reads as a disc with a highlight. */
+  /** A ball resting on a surface. A sphere is a circle on screen from any
+      angle, so it is drawn there: dark underneath, lit up toward the light,
+      a contour, and a soft shadow on whatever it sits on. */
   A.ball = (x, y, z, r, col = M.greyDk) => {
-    disc(x, y, z + r, r, rgb(col), 12);
-    stroke([[x - r, y, z + r], [x, y - r, z + r]], rgb(mix(col, M.silver, 0.5)));
-    dot(x - r * 0.3, y - r * 0.3, z + r + 0.02, 1, M.silver);
+    const g = QH.draw.g, p = P(x, y, z + r), R = Math.max(2, Math.round(r * cam.s));
+    // the contact shadow: a thin sliver under the ball, drifting a little to the side away from the light
+    g.beginPath(); g.ellipse(p[0] + R * 0.12, p[1] + R * 0.92, R * 0.95, R * 0.26, 0, 0, TAU); g.fillStyle = 'rgba(8,16,26,0.5)'; g.fill();
+    const round = (dx, dy, k, c) => { g.beginPath(); g.arc(p[0] + dx * R, p[1] + dy * R, R * k, 0, TAU); g.fillStyle = rgb(c); g.fill(); };
+    round(0, 0, 1, mix(col, M.ink, 0.45));
+    round(-0.14, -0.16, 0.8, col);
+    round(-0.32, -0.36, 0.42, mix(col, M.cream, 0.4));
+    g.beginPath(); g.arc(p[0], p[1], R, 0, TAU); g.strokeStyle = rgb(M.ink); g.lineWidth = 1; g.stroke();
   };
 
   /** Small potted plant. o.kind = 'spiky' (default) | 'leafy'; o.pot recolours the pot. */

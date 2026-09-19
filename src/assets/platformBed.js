@@ -105,7 +105,7 @@
     if (!o.bare) {
       A.bookRow(x + 0.28, y + POST + 0.1, zc, 1.2, { along: 'y', depth: 0.42, seed: o.seed || 71, hMin: 0.6, hMax: 0.82,
                                                     cols: [M.navy, M.greyDk, light.warm(M.rustLt, M.orange), M.slate] });
-      A.ball(x + 0.45, y + 2.1, zc, 0.27, M.greyLt);
+      A.ball(x + 0.5, y + 2.1, zc, 0.28, M.greyLt);
       A.book(x + 0.32, y + d - 1.45, zc, 0.42, 0.6, light.warm(M.rustLt, M.orange), { h: 0.09 });         // a book lying on the ledge
       A.book(x + 0.35, y + d - 1.42, zc + 0.09, 0.38, 0.55, M.navy, { h: 0.08 });
       box(x + 0.3, y + d - 0.6, zc, 0.42, 0.2, 0.8, M.greyDk, { colTop: M.grey, top: 0.9, left: 0.85, right: 0.7, edge: false });   // two standing at the near end
