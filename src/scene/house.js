@@ -13,7 +13,7 @@
    (cam.at), its own light sources and its own lamp switch made
    current — so the rooms never need to know about each other.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, shows, busy, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
@@ -66,6 +66,10 @@
   const strips = () => rooms.filter(r => r.scene.strip).map(r => ({ id: r.id, name: r.name, kind: 'strip', geo: r.scene.strip(), sw: r.scene.stripSwitch }));
   /** The blinds' screen geometry from the last draw, in the rooms that have one. */
   const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind }));
+  /** The duvets' screen geometry from the last draw, in the rooms with a bed you can turn down. */
+  const duvets = () => rooms.filter(r => r.scene.duvet).map(r => ({ id: r.id, name: r.name, geo: r.scene.duvet(), toggle: r.scene.toggleDuvet, set: r.scene.setDuvet }));
+  /** The desk chairs' screen geometry from the last draw, in the rooms with one you can roll under the desk. */
+  const chairs = () => rooms.filter(r => r.scene.chair).map(r => ({ id: r.id, name: r.name, geo: r.scene.chair(), toggle: r.scene.toggleChair, set: r.scene.setChair }));
   /** The rain windows' screen geometry from the last draw, in the rooms where a click brings the lightning. */
   const storms = () => rooms.filter(r => r.scene.storm).map(r => ({ id: r.id, name: r.name, geo: r.scene.storm(), strike: r.scene.strike }));
   /** The tubs' screen geometry from the last draw — the tub and the shower over it — in the rooms with one, while a click can still run it. */
@@ -75,5 +79,5 @@
   /** Is anything in a room mid-animation and wanting every frame? */
   const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, shows, busy, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf };
 })(QH);

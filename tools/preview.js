@@ -36,6 +36,8 @@ const STRIP = parseFloat(process.argv[12] || '1');
 const FLASH = process.argv[13];
 const BATH = process.argv[14];
 const SHOW = process.argv[15];
+const DUVET = process.argv[16];
+const CHAIR = process.argv[17];
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
@@ -80,6 +82,8 @@ if (STRIP < 1) app.setStrip(false);
 if (FLASH !== undefined) app.strike(ROOM, parseFloat(FLASH));
 if (BATH !== undefined) app.fillTub('', parseFloat(BATH));
 if (SHOW !== undefined) app.playShow('', parseFloat(SHOW));
+if (DUVET !== undefined) app.setDuvet(parseFloat(DUVET));
+if (CHAIR !== undefined) app.setChair(parseFloat(CHAIR));
 if (ROOM) { app.room(ROOM); app.look(); }
 if (ZOOM !== 1 || PANX || PANY) { app.cam.s *= ZOOM; app.cam.x += PANX; app.cam.y += PANY; }
 app.frame(time * 1000);

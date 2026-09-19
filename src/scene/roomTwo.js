@@ -9,18 +9,20 @@
    origin at its far corner — and the scene that holds both rooms
    puts it where it goes. Painter order, as in room one.
 
-   Four things here you can touch: the lamp, the neon over the
+   Five things here you can touch: the lamp, the neon over the
    shelf (its own switch, off and on like the lamp), the blind
    over the window — a click runs it all the way down over the
-   glass, another runs it back up to where it hangs — and the
-   glass itself, for lightning over the city and thunder a beat
-   after; the blind keeps most of the flash out of the room.
+   glass, another runs it back up to where it hangs — the glass
+   itself, for lightning over the city and thunder a beat after;
+   the blind keeps most of the flash out of the room — and the
+   duvet on the bed, turned down toward the foot for the night
+   and made again with the next click.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const A = QH.assets;
   const light = QH.light;
-  const { clamp, lerp } = QH;
+  const { clamp, slider } = QH;
 
   const room = QH.scenes.room(15, 14, 8, 0.4, 0.4);
   const TABLE = { x: 0.3, y: 3.9, w: 2.1, d: 2.0, h: 2.1 };            // the lamp table
@@ -31,30 +33,21 @@
   const neonOn = () => light.switch(NEON.sw).v;
   const WINDOW = { u: 1.3, z: 2.0, w: 4.7, h: 4.55, moon: [0.7, 0.44] };
 
-  /* ── the blind ────────────────────────────────────────────────
-     `v` is how much of the glass it covers, 0..1. It rests part-way
-     down and a click runs it between there and all the way, eased
-     like the camera. Under reduced motion it just jumps. */
-  const BLIND = { rest: 0.4, ms: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900 };
-  const blind = { v: BLIND.rest, from: BLIND.rest, to: BLIND.rest, start: -1e9 };
-  let blindGeo = null;
-  const now = () => performance.now();
-  function toggleBlind() {
-    blind.from = blind.v;
-    blind.to = blind.to === 1 ? BLIND.rest : 1;
-    blind.start = now();
-  }
-  const blindDown = () => blind.to === 1;
-  const blindBusy = () => now() - blind.start < BLIND.ms + 50;
-  function easeBlind() {
-    const u = BLIND.ms ? clamp((now() - blind.start) / BLIND.ms, 0, 1) : 1;
-    const e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-    blind.v = lerp(blind.from, blind.to, e);
-  }
+  /* ── the blind and the duvet, each a slider (core.js) ─────────
+     The blind's `v` is how much of the glass it covers, 0..1: it
+     rests part-way down and a click runs it between there and all
+     the way. The duvet's is how far it's turned down: made, or
+     pulled toward the foot ready for bed — a touch slower, cloth
+     drags. Under reduced motion both just jump. */
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const blind = slider(still ? 0 : 900, 0.4);
+  const duvet = slider(still ? 0 : 1100);
+  let blindGeo = null, duvetGeo = null;
+
   /** How much of the moon still shows past the hem, 0..1. */
   const moonOut = () => clamp(((1 - WINDOW.moon[1] + 0.06) - blind.v) / 0.12, 0, 1);
   /** How much of the city still shows, 0..1. */
-  const cityOut = () => clamp((1 - blind.v) / (1 - BLIND.rest), 0, 1);
+  const cityOut = () => clamp((1 - blind.v) / 0.6, 0, 1);
 
   // the storm outside the window: a click on the glass strikes it (see engine/storm.js)
   const storm = QH.storm();
@@ -70,7 +63,7 @@
   let lamp = null, neon = null;
 
   function draw(t) {
-    easeBlind();
+    blind.step(); duvet.step();
     const flash = storm.flash();
     lightning = flash * (0.2 + 0.8 * cityOut());                     // the blind keeps most of it out
     room.floor();
@@ -98,7 +91,7 @@
     lamp = A.deskLamp(LAMP.x, LAMP.y, TABLE.h, { head: LAMP.head });
     A.openBook(1.35, 4.95, TABLE.h, { w: 0.95, d: 0.65 });
 
-    A.platformBed(0.3, 5.9, { w: 6.9, d: 6.3 });
+    duvetGeo = A.platformBed(0.3, 5.9, { w: 6.9, d: 6.3, open: duvet.v });
     A.dresser(11.2, 0.35, { w: 3.7, d: 1.4, h: 2.3 });
     A.bedsideTable(0.3, 12.35, { kind: 'drawer', w: 1.4, d: 1.4, h: 1.7 });
 
@@ -138,8 +131,9 @@
   QH.scenes.roomTwo = {
     room, sources, draw, lights, lamp: () => lamp,
     neon: () => neon, neonSwitch: NEON.sw,
-    blind: () => blindGeo, toggleBlind, blindDown,
+    blind: () => blindGeo, toggleBlind: blind.toggle, blindDown: blind.open,
+    duvet: () => duvetGeo, toggleDuvet: duvet.toggle, duvetOpen: duvet.open, setDuvet: duvet.set,
     storm: () => windowGeo, strike: storm.strike,
-    busy: () => blindBusy() || storm.busy(),
+    busy: () => blind.busy() || duvet.busy() || storm.busy(),
   };
 })(QH);

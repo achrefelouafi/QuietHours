@@ -1,6 +1,6 @@
 # quiet hours
 
-Four isometric rooms, drawn pixel by pixel in a 2D canvas and snapped to thirty-nine inks.
+Four isometric rooms, drawn pixel by pixel in a 2D canvas and snapped to forty-three inks.
 **Room one** is a small flat at night, rain on the window, lit by one desk lamp.
 **Room two** is the bedroom upstairs — a bedside lamp, a neon line of hills, the moon
 in a half-blinded window. It sits on room one's left wall, the way a flat upstairs would.
@@ -11,8 +11,8 @@ pool across the tiles.
 of LEDs across its far corner with the sponsor's mark and name on it, a lattice truss
 of spotlights throwing crossed orange and blue beams down the screen, blue neon tubes
 flanking a banner on each side, a round stage ringed in the same blue, circuit traces
-of it laid into the tiles, an arcade cabinet, a mixing desk, beanbags, palms peering
-over the walls.
+of it laid into the tiles, an arcade cabinet, a mixing desk, a lounge of armchairs
+looking out over the rails, palms peering over the walls.
 
 ![the house, lamps on](docs/preview.png)
 
@@ -27,6 +27,10 @@ Open `index.html`. No build step, no dependencies, no server.
   (`N`) — in the booth that's the tubes, the ring round the stage, the traces in the
   floor and the strip under the truss, on one switch
 - click the bedroom blind to run it down over the window and back up (`B`)
+- click the duvet on the bedroom bed, or the blanket on the daybed downstairs, to turn it
+  down toward the foot, ready for the night, and again to make the bed (`U`)
+- click the desk chair downstairs to roll it in under the desk, and again to pull it
+  back out (`C`)
 - click a window for lightning over the city, and thunder a beat after (`F` does the
   one in view) — in the bedroom the blind keeps most of the flash out of the room
 - click the bathtub, or the shower over it, to run the bath: rain falls from the
@@ -42,7 +46,7 @@ Open `index.html`. No build step, no dependencies, no server.
 Each room is built from two pictures in `docs/`: `reference.png` / `reference2.jpg` /
 `reference3.jpg` / `reference4.jpg` is the whole scene, `assets.png` / `assets2.png` /
 `assets3.png` / `assets4.jpg` is every piece of furniture on its own. Each piece became
-one file.
+one file. The booth's lounge came later, from a third picture, `sofas.jpg`.
 
 ![room two](docs/room-two.png)
 
@@ -67,7 +71,7 @@ src/
     sound.js            thunder, shaped out of noise in Web Audio — the one sound
     storm.js            the lightning outside a window: a strike, its keyframed flash, the thunder after
     sway.js             every leaf a small spring: the pointer parts, sweeps and shakes them
-  assets/               one file per thing in docs/assets.png, assets2.png, assets3.png and assets4.jpg
+  assets/               one file per thing in docs/assets.png, assets2.png, assets3.png, assets4.jpg and sofas.jpg
   scene/
     room.js             floor slab and the two walls
     booth.js            the same with the far corner cut off by a third wall, facing the camera — the booth's shell
@@ -76,7 +80,7 @@ src/
     roomThree.js        the same for room three
     roomFour.js         the same for room four, plus its show
     house.js            the rooms in one scene: where each sits, its lamp switch, its lights
-  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, windows, the tub, the stage — the pointer over the plants
+  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, windows, the tub, the stage — the pointer over the plants
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
@@ -99,7 +103,7 @@ Room one:
 
 | file | what | signature |
 |---|---|---|
-| `bed.js` | daybed: rail, headboard, pillow, blanket | `bed(x, y, {w, d, rail})` |
+| `bed.js` | daybed: rail, headboard, pillow, blanket; `open` turns the blanket down toward the foot. Returns the blanket's screen polygons for the click | `bed(x, y, {w, d, rail, open})` |
 | `sofa.js` | two-seater with a throw over one arm | `sofa(x, y, {w, d, face: '-y'│'+y', seats, throw})` |
 | `desk.js` | the desk body; `desk.H` is the top height | `desk(x, y, {w, d, pedestal})` |
 | `deskLamp.js` | the lamp. Stores its screen geometry in `deskLamp.last` for hit-testing | `deskLamp(x, y, z, {head: [dx, dy, dz]})` |
@@ -132,7 +136,7 @@ Room two:
 
 | file | what | signature |
 |---|---|---|
-| `platformBed.js` | the double bed: platform, bookcase headboard with a plant on its low end, four pillows, sheet and duvet | `platformBed(x, y, {w, d, bare})` |
+| `platformBed.js` | the double bed: platform, bookcase headboard, four pillows, sheet and duvet; `open` turns the duvet down toward the foot, the fold at the head widening. Returns the duvet's screen polygons for the click | `platformBed(x, y, {w, d, bare, open})` |
 | `bedsideTable.js` | the two wooden tables: a cube with a drawer, books and a mug, or the open one the lamp stands on | `bedsideTable(x, y, {kind: 'drawer'│'open', w, d, h, bare})` |
 | `wardrobe.js` | tall wardrobe: two panelled doors, handles, a drawer, the grain showing | `wardrobe(x, y, {w, d, h})` |
 | `dresser.js` | low dark dresser, six drawers with orange handles | `dresser(x, y, {w, d, h, cols, rows})` |
@@ -191,13 +195,20 @@ far corner is cut off by a third wall that faces the camera square on:
 | `arcadeCabinet.js` | upright cabinet in blue: plinth, coin door, control panel, screen with something scrolling, lit marquee; a stripe and an orange creature down its side | `arcadeCabinet(x, y, t, {face: '+x'│'+y', w, d, h})` |
 | `mixerDesk.js` | teal cabinet on posts with frosted panels, a wood lip, knobs in rows, faders, orange buttons, a bottle, a boom arm; a few lights blink | `mixerDesk(x, y, t, {w, d, h})` |
 | `waterCooler.js` | pale cabinet, tap panel, the blue bottle upended on top | `waterCooler(x, y, {face, w, h})` |
-| `beanbag.js` | slumped on the floor, drawn on screen like the ball: lumpy orange or rust, or the olive pear | `beanbag(x, y, {kind: 'orange'│'rust'│'olive', size, seed})` |
+| `beanbag.js` | slumped on the floor, drawn on screen like the ball: lumpy orange or rust, or the olive pear — no longer placed, the lounge took its floor | `beanbag(x, y, {kind: 'orange'│'rust'│'olive', size, seed})` |
 | `glassRail.js` | balustrade along an open edge: wood plinth, dark posts, see-through panes with a slant of light, a slim rail | `glassRail(x, y, len, {along: 'x'│'y', h, gap, base})` |
 | `galleryFrame.js` | the lit shadow-box: deep frame, orange edge light, a cat's face in the same orange, a wood ledge under, a pothos spilling out of a planter on top | `galleryFrame(wall, u, z, w, h, {depth, on, seed})` |
 | `posterFrame.js` | a tall print in a pale frame — a hooded figure, three pale chevrons — and a small print leaning at its foot | `posterFrame(wall, u, z, w, h, {print})` |
 | `roadCase.js` | orange flight case: stitched lid, a teal gauge in the top, a vent grille, a handle | `roadCase(x, y, {w, d, h})` |
 | `miniTv.js` | a small portable set in orange: a picture on the screen, controls beside it, a handle, an aerial | `miniTv(x, y, t, {face, w, d, h})` |
 | `datePalm.js` | a tall ringed trunk leaning a little, a crown of feathered fronds, dates under it; the booth's two stand behind its walls | `datePalm(x, y, z, {h, n, size, lean, seed})` |
+
+The lounge is from `sofas.jpg`, the sheet's two chairs as they are, each turnable to look down-left or down-right and scalable — the room places two of each:
+
+| file | what | signature |
+|---|---|---|
+| `clubChair.js` | the cream armchair: fat square arms round a narrow seat, a tall back the full width, a loose pillow against it, dark stub feet; beige in the light, tan on the side, brown in shadow | `clubChair(x, y, {face: '+y'│'+x', size})` |
+| `frameChair.js` | the green armchair: a square wooden frame — posts, arm rails, a stretcher low round it — holding a thick sage seat cushion and a tall back cushion | `frameChair(x, y, {face: '+y'│'+x', size})` |
 | `boothPlants.js` | `tallPot` (a snake plant in a tall orange pot), `bushPot` (a bush in a squat pot with a dark rim), `cactusPot` (a small cactus, two arms, a flower) | each `(x, y, z, o)` |
 | `boothProps.js` | `gamer` (someone sat cross-legged with a controller), `orangeDrawers`, `edgeLight` (an amber LED strip along a wall top) | `gamer(x, y, {face})` · `orangeDrawers(x, y, {w, d, h})` · `edgeLight(wall, u0, u1, z, {on})` |
 
@@ -253,9 +264,10 @@ full colour — that's the pixel, three css px on a side. Zoomed out, the pixel
 shrinks with the house, to two css px and then one, and the buffer grows to match,
 so the house keeps its home-zoom detail small instead of dissolving into blocks;
 zoomed in, the pixel stays at three and the detail grows. Then every pixel is
-pushed to the nearest of the thirty-nine colours in
+pushed to the nearest of the forty-three colours in
 `palette.js` — a ramp of navies for the room, a ramp of oranges for whatever the lamp
-touches, a few greys and greens, and a ramp of blues for the booth's neon. A 32k-entry lookup table maps 15-bit RGB to an ink,
+touches, a few greys and greens, a ramp of blues for the booth's neon, and a beige and
+three sages for its lounge. A 32k-entry lookup table maps 15-bit RGB to an ink,
 so the pass is one table read per pixel.
 
 Before the lookup each pixel gets a light Bayer nudge (so the lamp's falloff breaks
@@ -332,13 +344,15 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two      # framed on room two
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two 0    # …with the neon off
+node tools/preview.js bed.png 4.2 1100 760 1 1 0 0 two 1 1 "" "" "" 1   # …the duvet turned down (last arg: how far, 0..1)
 node tools/preview.js one.png 4.2 1100 760 1 1 0 0 one 1 0  # room one with the strip light off
+node tools/preview.js desk.png 4.2 1100 760 1 1 0 0 one 1 1 "" "" "" "" 1   # …the chair rolled in under the desk (last arg: how far, 0..1)
 node tools/preview.js three.png 4.2 1100 760 1 1 0 0 three  # framed on room three
 node tools/preview.js bolt.png 4.2 1100 760 1 1 0 0 three 1 1 0   # …at the peak of the lightning (last arg: seconds since the strike)
 node tools/preview.js storm.png 4.2 1100 760 1 1 0 0 "" 1 1 0.22  # every window struck, at the return stroke

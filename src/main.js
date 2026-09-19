@@ -2,9 +2,10 @@
    main.js — the canvas, the frame loop, the camera and the few
    things you can touch: each room's lamp (in room three, the bar
    light over the mirror; in room four, the rig of spots on the
-   truss), the strip light in room one, the neon sign and the
-   blind over the window in room two, the neon tubes in room
-   four, every window for the lightning, the tub in room three
+   truss), the strip light in room one, the neon sign, the
+   blind over the window and the duvet on the bed in room two,
+   the desk chair in room one, which rolls in under the desk,
+   the neon tubes in room four, every window for the lightning, the tub in room three
    (or the shower over it) to run the bath, once, the stage or
    the screen in room four to run the show — and every plant,
    whose leaves part and sway under the pointer and shake at a
@@ -211,6 +212,26 @@
   }
   const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
 
+  /* ── the duvets ───────────────────────────────────────────── */
+  /** Which room's duvet is under this css point, or null. It's several faces on screen, each convex. */
+  function overDuvet(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const d of scene.duvets()) for (const q of (d.geo && d.geo.polys) || []) if (inPoly(q, bx, by)) return d;
+    return null;
+  }
+  /** Turn the duvet down in this room, or make the bed again. */
+  const toggleDuvet = id => { const d = scene.duvets().find(d => d.id === id); if (d) d.toggle(); };
+
+  /* ── the chairs ───────────────────────────────────────────── */
+  /** Which room's desk chair is under this css point, or null. Its seat and its back, each convex on screen. */
+  function overChair(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const c of scene.chairs()) for (const q of (c.geo && c.geo.polys) || []) if (inPoly(q, bx, by)) return c;
+    return null;
+  }
+  /** Roll the chair in under the desk in this room, or pull it back out. */
+  const toggleChair = id => { const c = scene.chairs().find(c => c.id === id); if (c) c.toggle(); };
+
   /* ── the storm ────────────────────────────────────────────── */
   /** Which room's window is under this css point, or null. */
   function overStorm(cx, cy) {
@@ -246,8 +267,8 @@
   /** Run the show in this room — every room's, with no id. `at` is when it began (now). */
   const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm', 'tub', 'show' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -309,10 +330,12 @@
     if (press && !press.far && performance.now() - press.t < 400) {
       const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY);
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
-      const s = id || n || b ? null : overStorm(e.clientX, e.clientY);
-      const bt = id || n || b || s ? null : overTub(e.clientX, e.clientY);
-      const sh = id || n || b || s || bt ? null : overShow(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else shake(e.clientX, e.clientY);
+      const dv = id || n || b ? null : overDuvet(e.clientX, e.clientY);
+      const ch = id || n || b || dv ? null : overChair(e.clientX, e.clientY);
+      const s = id || n || b || dv || ch ? null : overStorm(e.clientX, e.clientY);
+      const bt = id || n || b || dv || ch || s ? null : overTub(e.clientX, e.clientY);
+      const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -353,6 +376,8 @@
     else if (k === '1' || k === '2' || k === '3' || k === '4') goRoom({ 1: 'one', 2: 'two', 3: 'three', 4: 'four' }[k], 1100);
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
     else if (k === 'b') toggleBlind(roomInView().id);
+    else if (k === 'u') toggleDuvet(roomInView().id);
+    else if (k === 'c') toggleChair(roomInView().id);
     else if (k === 'n') toggleNeonIn(roomInView().id);
     else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
     else if (k === 'f') strike(roomInView().id);
@@ -399,7 +424,9 @@
     setLamp: (on, id) => { for (const r of scene.rooms) if (!id || r.id === id) { setLamp(r.id, on); light.switch(r.id).v = on ? 1 : 0; } },
     setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
-    toggleBlind,
+    toggleBlind, toggleDuvet, toggleChair,
+    setDuvet: (v, id) => { for (const d of scene.duvets()) if (!id || d.id === id) d.set(v); },   // the duvet turned down this far, 0..1, in one room or every room's
+    setChair: (v, id) => { for (const c of scene.chairs()) if (!id || c.id === id) c.set(v); },   // the chair rolled this far under the desk, 0..1, in one room or every room's
     strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
     fillTub: (id, ago = 0) => fillTub(id, performance.now() - ago * 1000), // run the bath in one room, or every room's; `ago` seconds since the shower went on
     playShow: (id, ago = 0) => playShow(id, performance.now() - ago * 1000), // run the show in one room, or every room's; `ago` seconds since it began

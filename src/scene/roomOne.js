@@ -8,14 +8,17 @@
    Things are drawn back to front — the order below is the painter
    order, so keep it when moving furniture.
 
-   Three things here you can touch: the lamp, the strip light on
-   the back wall, each on its own switch, and the window — a click
-   brings lightning over the city, and thunder a beat after.
+   Four things here you can touch: the lamp, the strip light on
+   the back wall, each on its own switch, the window — a click
+   brings lightning over the city, and thunder a beat after — and
+   the blanket on the daybed, turned down toward the foot and
+   back with a click.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const A = QH.assets;
   const light = QH.light;
+  const { slider, lerp } = QH;
 
   const room = QH.scenes.room(14, 14, 8);
   const T = A.desk.H;                                          // the desk top
@@ -38,9 +41,19 @@
   ];
   light.sources = sources;
   let lamp = null, strip = null;                                      // screen geometry of the lamp and the strip, for the click
+  // the blanket: a slider (core.js) from made to turned down; its screen geometry from the last draw
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const duvet = slider(still ? 0 : 900);
+  let duvetGeo = null;
+  // the desk chair: a slider from pulled out (where it sits) to tucked in under the desk,
+  // the seat half under the top and the back left standing in front of its edge
+  const CHAIR = { x: 4.9, out: 3.1, in: 2.2 };
+  const chair = slider(still ? 0 : 700);
+  let chairGeo = null;
 
   function draw(t) {
     lightning = storm.flash();
+    duvet.step(); chair.step();
     room.floor();
     A.rug(2.2, 3.9, 7.1, 4.0);
     room.walls();
@@ -65,7 +78,7 @@
     A.vines(12.5, 0.55, 4.97, 1.6, 5, 44);                     // from the pot's front rim, down past the lower board
 
     /* ── the floor, far corner outward ── */
-    A.bed(0.15, 2.3, { w: 2.0, d: 3.4 });
+    duvetGeo = A.bed(0.15, 2.3, { w: 2.0, d: 3.4, open: duvet.v });
 
     A.desk(2.4, 0.4, { w: 7.0, d: 1.9 });
     lamp = A.deskLamp(LAMP.x, LAMP.y, T, { head: LAMP.head });
@@ -80,7 +93,7 @@
     A.speaker(8.1, 0.85, T, { w: 0.35, d: 0.35, h: 0.6, rim: false });
 
     A.nightstand(0.15, 5.85, { face: '+x' });
-    A.chair(4.9, 3.1);
+    chairGeo = A.chair(CHAIR.x, lerp(CHAIR.out, CHAIR.in, chair.v));
 
     A.speaker(9.75, 0.2, 0, { w: 0.85, d: 0.8, h: 2.9 });
     A.hifiConsole(10.6, 0.4, { w: 3.0, d: 1.5 });
@@ -124,6 +137,9 @@
     room, sources, draw, lights,
     lamp: () => lamp,
     strip: () => strip, stripSwitch: STRIP.sw,
-    storm: () => windowGeo, strike: storm.strike, busy: storm.busy,
+    duvet: () => duvetGeo, toggleDuvet: duvet.toggle, duvetOpen: duvet.open, setDuvet: duvet.set,
+    chair: () => chairGeo, toggleChair: chair.toggle, chairIn: chair.open, setChair: chair.set,
+    storm: () => windowGeo, strike: storm.strike,
+    busy: () => duvet.busy() || chair.busy() || storm.busy(),
   };
 })(QH);

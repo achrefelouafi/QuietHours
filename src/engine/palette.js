@@ -3,7 +3,8 @@
    These ARE the inks: the quantiser snaps each rendered pixel to
    the nearest one, so a new colour has to be added here to exist.
    Values were sampled from docs/reference.png; the blues and the
-   olive came later, from docs/reference4.jpg, for the booth.
+   olive came later, from docs/reference4.jpg, for the booth, and
+   the beige and the sages from docs/sofas.jpg, for its lounge.
    ═══════════════════════════════════════════════════════════════ */
 QH.M = {
   // ── navies: the room and nearly all the furniture ──
@@ -25,6 +26,7 @@ QH.M = {
   greyLt:   [111, 124, 131],
   silver:   [160, 167, 163],
   cream:    [231, 229, 203],
+  beige:    [198, 166, 124],  // the lounge's cream armchair, where the light is on it
 
   // ── oranges: everything the lamp touches ──
   rustDk:   [59, 36, 31],
@@ -41,8 +43,11 @@ QH.M = {
   leafDk:   [24, 60, 60],
   leaf:     [32, 82, 78],
   leafLt:   [48, 104, 90],
-  olive:    [90, 92, 46],     // the beanbag in the booth
+  olive:    [90, 92, 46],     // the booth's olive things
   oliveLt:  [126, 122, 62],
+  sageDk:   [46, 66, 48],     // the lounge's green armchair
+  sage:     [64, 90, 66],
+  sageLt:   [82, 118, 76],
 
   // ── blues: the booth's neon, its screen, its arcade ──
   blueDk:   [26, 56, 122],    // the neon's wash on the walls

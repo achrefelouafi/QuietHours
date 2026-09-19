@@ -11,13 +11,16 @@
    platformBed(x, y, o)
      footprint x..x+w (6.9) by y..y+d (6.3); the headboard runs
      down the x side (against the left wall), the foot is at +x.
-     o.bare leaves the shelves empty.
-     platformBed.H is the mattress top.
+     o.bare leaves the shelves empty. o.open (0..1) turns the
+     duvet down: it slides toward the foot, the fold at the head
+     growing wider, and the sheet shows behind it.
+     Returns the duvet's screen polygons, for the click (also
+     kept in platformBed.last). platformBed.H is the mattress top.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { box, poly, stroke, beam, rgb, sh } = QH.draw;
-  const { rnd, mix } = QH;
+  const { rnd, mix, clamp } = QH;
   const { P } = QH.cam;
   const light = QH.light, A = QH.assets;
 
@@ -121,9 +124,11 @@
     const lip = rgb(light.warm(M.orange, M.orangeLt));                   // the ledge's outer edges catching the light
     stroke([[px0 + 0.1, py0 + pd - 0.1, PH + 0.01], [px0 + pw - 0.1, py0 + pd - 0.1, PH + 0.01], [px0 + pw - 0.1, py0 + 0.1, PH + 0.01]], lip);
 
-    /* ── the sheet: the mattress shows only at the head ── */
+    /* ── the sheet: the mattress shows only at the head — more of it
+          with the duvet turned down ── */
+    const open = clamp(o.open || 0, 0, 1), PULL = 1.3;                  // how far the duvet has been pulled toward the foot
     const mx = px0, my = y + 0.3, mw = pw - 0.7, md = d - 0.8;
-    const split = mx + 1.85;                                             // where the duvet starts
+    const split = mx + 1.85 + PULL * open;                               // where the duvet starts
     box(mx, my, PH, split - mx + 0.25, md, MH, M.silver, { colTop: M.silver, top: 0.95, left: 0.75, right: 0.62 });
 
     /* ── pillows: orange leaning on the headboard under the ledge, charcoal
@@ -136,9 +141,12 @@
     }
 
     /* ── the duvet: folded back at the head, hanging over the sides and
-          the foot, its near corner rounded off ── */
+          the foot, its near corner rounded off. Turned down, the fold at
+          the head is wider — the pulled part folded over — and the body
+          past it shorter; it stays as thick as it was ── */
     const dx0 = split, dx1 = mx + mw + 0.15, dy0 = my - 0.12, dy1 = my + md + 0.14;
     const zT = H + 0.12, zB = PH + 0.04, c = 0.18;
+    const fx = dx0 + 0.55 + PULL * open * 0.5, zf = zT + 0.01;         // the fold: to fx, a hair over the body
     const dvL = sh(light.warm(M.rust, M.orangeDk), 0.85), dvR = sh(light.warm(M.rustLt, M.orange), 0.82);
     poly([[dx0, dy1, zB], [dx1 - c, dy1, zB], [dx1 - c, dy1, zT], [dx0, dy1, zT]], dvL);
     poly([[dx1, dy0, zB], [dx1, dy1 - c, zB], [dx1, dy1 - c, zT], [dx1, dy0, zT]], dvR);
@@ -151,25 +159,28 @@
     grd.addColorStop(0,    rgb(light.warm(M.orangeDk, M.orangeLt)));
     grd.addColorStop(0.5,  rgb(light.warm(M.rustLt, M.orange)));
     grd.addColorStop(1,    rgb(light.warm(M.rustDk, M.orangeDk)));
-    poly([[dx0, dy0, zT], [dx1, dy0, zT], [dx1, dy1 - c, zT], [dx1 - c, dy1, zT], [dx0, dy1, zT]], grd);
+    const body = [[fx, dy0, zT], [dx1, dy0, zT], [dx1, dy1 - c, zT], [dx1 - c, dy1, zT], [fx, dy1, zT]];
+    poly(body, grd);
 
     // the fold at the head: a roll a step lighter than the body, a crease where it meets it
-    const zf = zT + 0.01, fx = dx0 + 0.55;
+    const rollTop = [[dx0, dy0, zf], [fx, dy0, zf], [fx, dy1, zf], [dx0, dy1, zf]];
     const roll = g.createLinearGradient(a[0], a[1], b[0], b[1]);
     roll.addColorStop(0,   rgb(light.warm(M.orange, M.orangeLt)));
     roll.addColorStop(0.5, rgb(light.warm(M.orangeDk, M.orangeLt)));
     roll.addColorStop(1,   rgb(light.warm(M.rustLt, M.orange)));
-    poly([[dx0, dy0, zf], [fx, dy0, zf], [fx, dy1, zf], [dx0, dy1, zf]], roll);
+    poly(rollTop, roll);
     stroke([[fx, dy0 + 0.03, zf], [fx, dy1 - 0.03, zf]], rgb(light.warm(M.rustDk, M.rust)));
     // wrinkles: short creases running toward the foot, each a dark line with a lit ridge beside it
     const R = rnd(o.seed || 73), dark = light.warm(M.rustDk, M.rust), sheen = light.warm(M.orange, M.orangeLt);
     for (let i = 0; i < 6; i++) {
-      const cx = fx + 0.35 + R() * (dx1 - fx - 1.0), cy = dy0 + 0.4 + R() * (dy1 - dy0 - 0.8), len = 0.3 + R() * 0.35, dy = len * (R() - 0.4) * 0.35;
+      const cx = fx + 0.35 + R() * Math.max(0.1, dx1 - fx - 1.0), cy = dy0 + 0.4 + R() * (dy1 - dy0 - 0.8);
+      const len = Math.min(0.3 + R() * 0.35, dx1 - cx - 0.15), dy = len * (R() - 0.4) * 0.35;
+      if (len < 0.12) continue;
       beam([cx, cy, zf], [cx + len, cy + dy, zf], 0.03, dark, 1);
       beam([cx + 0.05, cy - 0.07, zf], [cx + len - 0.05, cy + dy - 0.07, zf], 0.03, sheen, 1);
     }
     // folds down the hanging faces, deeper near the corner
-    for (const u of [dx1 - 0.45, dx1 - 1.05, dx1 - 2.0]) beam([u, dy1 + 0.01, zT - 0.06], [u - 0.03, dy1 + 0.01, zT - 0.32], 0.03, dark, 1);
+    for (const u of [dx1 - 0.45, dx1 - 1.05, dx1 - 2.0]) if (u > dx0 + 0.1) beam([u, dy1 + 0.01, zT - 0.06], [u - 0.03, dy1 + 0.01, zT - 0.32], 0.03, dark, 1);
     for (const u of [dy1 - 0.5, dy1 - 1.2, dy0 + 0.9]) beam([dx1 + 0.01, u, zT - 0.06], [dx1 + 0.01, u - 0.03, zT - 0.3], 0.03, dark, 1);
 
     // the contour: ink on the near edges and where it lies on the platform, light along the far edge
@@ -178,6 +189,13 @@
     for (const [ex, ey] of [[dx0, dy1], [dx1, dy0]]) stroke([[ex, ey, zT], [ex, ey, zB]], ink);
     stroke([[dx0, dy1, zB], [dx1 - c, dy1, zB], [dx1, dy1 - c, zB], [dx1, dy0, zB]], ink);
     stroke([[dx0 + 0.02, dy0, zT], [dx1, dy0, zT]], rgb(light.warm(M.orange, M.bright)));
+
+    // where the duvet is on screen, for the click: its top, the fold, and the hanging faces — each one convex
+    const scr = pts => pts.map(p => P(p[0], p[1], p[2]));
+    const hangL = [[dx0, dy1, zB], [dx1 - c, dy1, zB], [dx1 - c, dy1, zT], [dx0, dy1, zT]];
+    const hangC = [[dx1 - c, dy1, zB], [dx1, dy1 - c, zB], [dx1, dy1 - c, zT], [dx1 - c, dy1, zT]];
+    const hangR = [[dx1, dy1 - c, zB], [dx1, dy0, zB], [dx1, dy0, zT], [dx1, dy1 - c, zT]];
+    return (platformBed.last = { polys: [body, rollTop, hangL, hangC, hangR].map(scr) });
   };
   platformBed.H = H;
   QH.assets.platformBed = platformBed;

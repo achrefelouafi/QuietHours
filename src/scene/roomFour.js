@@ -141,13 +141,12 @@
     A.tallPot(14.0, 1.0, 0, { seed: 133, size: 1.6, r: 0.38 });
     A.cactusPot(13.7, 2.3, 0, { seed: 137 });
 
-    // the beanbags
-    A.beanbag(10.9, 7.6, { kind: 'olive', seed: 9 });
-    A.beanbag(11.6, 5.9, { kind: 'rust', seed: 11 });
-    A.beanbag(4.9, 12.5, { kind: 'orange', seed: 7 });
-    A.beanbag(6.4, 12.3, { kind: 'orange', seed: 13 });
-    A.beanbag(9.7, 10.2, { kind: 'orange', seed: 15 });
-    A.beanbag(8.4, 11.7, { kind: 'rust', seed: 17 });
+    // the lounge, from docs/sofas.jpg: a green chair looking out over each rail — one by the left rail, one by
+    // the right — and the two cream chairs turned in toward each other over the room's diagonal, a corner between them
+    A.frameChair(2.35, 10.1, { face: '+y', size: 0.65 });
+    A.frameChair(10.4, 2.95, { face: '+x', size: 0.65 });
+    A.clubChair(8.8, 10.4, { face: '+x', size: 0.65, w: 2.9 });
+    A.clubChair(10.4, 8.8, { face: '+y', size: 0.65, w: 2.9 });
     A.waterCooler(13.5, 12.5, { face: '+y' });
 
     // the rails along the open edges, the corner post shared

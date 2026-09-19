@@ -5,12 +5,18 @@
    chair(x, y, o)
      (x, y) is the seat centre. Faces -y by default (back toward
      the viewer, seat toward the desk); o.face = '+y' flips it.
+     Returns the seat's and the back's screen silhouettes, for
+     the click that rolls it under the desk and out again.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { box, cyl, beam } = QH.draw;
   const { TAU } = QH;
+  const { P } = QH.cam;
   const light = QH.light;
+
+  /** A box's outline on screen: the six corners you see of it, a convex hexagon. */
+  const sil = (x, y, z, w, d, h) => [[x, y, z + h], [x + w, y, z + h], [x + w, y, z], [x + w, y + d, z], [x, y + d, z], [x, y + d, z + h]].map(p => P(...p));
 
   QH.assets.chair = (x, y, o = {}) => {
     const dir = o.face === '+y' ? -1 : 1;
@@ -32,5 +38,8 @@
     box(x - 0.72, y - 0.35, 1.25, 0.12, 0.7, 0.32, M.navy, { colTop: M.navyLt });
     box(x + 0.6, y - 0.35, 1.25, 0.12, 0.7, 0.32, M.navy, { colTop: M.navyLt });
     if (dir > 0) back();
+
+    // where it is on screen, for the click: the seat with its arms, and the back with the headrest
+    return { polys: [sil(x - 0.72, y - 0.55, 0.95, 1.44, 1.1, 0.62), sil(x - 0.55, by, 1.2, 1.1, 0.18, 1.9)] };
   };
 })(QH);
