@@ -18,6 +18,8 @@ Open `index.html`. No build step, no dependencies, no server.
 - click the strip light over the poster downstairs to switch it off and on (`T`)
 - click the neon in the bedroom to switch it off and on (`N`)
 - click the bedroom blind to run it down over the window and back up (`B`)
+- brush a plant: the leaves under the pointer part around it, a swipe sweeps them
+  along, and they spring back when you go. A tap shakes the whole plant.
 - that's it. Those are the only things in the rooms you can touch.
 
 Each room is built from two pictures in `docs/`: `reference.png` / `reference2.jpg` /
@@ -42,6 +44,7 @@ src/
     camera.js           2:1 isometric projection, and a movable world origin
     draw.js             primitives: box, cyl, beam, disc, wall helpers …
     light.js            per-face shading from point lights, screen-space glow, one switch per lamp
+    sway.js             every leaf a small spring: the pointer parts, sweeps and shakes them
   assets/               one file per thing in docs/assets.png, assets2.png and assets3.png
   scene/
     room.js             floor slab and the two walls
@@ -49,7 +52,7 @@ src/
     roomTwo.js          the same for room two
     roomThree.js        the same for room three
     house.js            the rooms in one scene: where each sits, its lamp switch, its lights
-  main.js               canvas, frame loop, the camera, the lamp clicks
+  main.js               canvas, frame loop, the camera, the lamp clicks, the pointer over the plants
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
@@ -225,6 +228,24 @@ room is painted, `house.js` makes its switch the current `light.lamp`, which is 
 can be lit independently.
 
 ![the house, lamps off](docs/lights-out.png)
+
+### 5. The plants
+
+Every leaf is drawn as a few segments from a base point out to a tip, so bending
+one is a matter of moving the points near the tip and leaving the base put.
+`sway.js` keeps a small damped spring per leaf — a displacement and a velocity in
+screen-oriented units of the plant's reach, so a pot on a shelf and a palm on the
+floor answer the same hand at any zoom. As a plant is drawn it registers where it
+stands (`sway.plant(name, x, y, z, reach)`) and passes each leaf's points through
+`at(i, p, f)`, which shifts point `p` by `f²` of leaf `i`'s displacement — the tip
+moves most — and notes where the tip landed on screen. Before the next paint,
+`step()` finds the leaves near the pointer by those tips: a still pointer holds the
+nearest ones leaned away from it and trembling a little, a moving one drags them
+along with its own velocity, and a tap gives every leaf a kick away from the spot.
+The springs are underdamped and each has its own stiffness, so when the pointer
+goes the leaves overshoot and settle at slightly different rates, the way a
+brushed plant does. Nothing moves until you touch it, and with reduced motion on
+the pointer is never handed over.
 
 ---
 

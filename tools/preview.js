@@ -1,10 +1,12 @@
 /**
  * tools/preview.js — render a frame of the room to a PNG, no browser.
  *
- *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip]
+ *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash]
  *
  * `lamp` 0 switches every lamp off; `room` (one | two | three) frames that
- * room instead of the whole house, before zoom and pan apply.
+ * room instead of the whole house, before zoom and pan apply; `flash` is
+ * how many seconds ago the lightning struck the bathroom window (0 is the
+ * peak; leave it out for no lightning).
  *
  * Reads the <script src> list out of index.html, runs those files in
  * order against a minimal DOM backed by node-canvas, and writes the
@@ -27,6 +29,7 @@ const PANY = parseFloat(process.argv[9] || '0');
 const ROOM = process.argv[10] || '';
 const NEON = parseFloat(process.argv[11] || '1');
 const STRIP = parseFloat(process.argv[12] || '1');
+const FLASH = process.argv[13];
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
@@ -68,6 +71,7 @@ const app = sandbox.QH.app;
 if (LIT < 1) app.setLamp(false);
 if (NEON < 1) app.setNeon(false);
 if (STRIP < 1) app.setStrip(false);
+if (FLASH !== undefined) app.strike('three', parseFloat(FLASH));
 if (ROOM) { app.room(ROOM); app.look(); }
 if (ZOOM !== 1 || PANX || PANY) { app.cam.s *= ZOOM; app.cam.x += PANX; app.cam.y += PANY; }
 app.frame(time * 1000);

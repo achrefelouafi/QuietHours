@@ -2,22 +2,28 @@
    assets/rainWindow.js — the bathroom window: two big panes in a
    deep steel frame, a city of towers and spires standing tall
    across the glass with most of their windows lit, rain falling
-   past in broken streaks.
+   past in broken streaks. And, when asked, lightning: the sky
+   goes white behind the towers and a bolt forks down it.
 
    rainWindow(wall, u, z, w, h, t, o)
      glass from (u, z) to (u+w, z+h); t moves the rain. o.skyline
      is how high the towers reach as a fraction of h (0.72),
-     o.seed changes the city.
+     o.seed changes the city. o.flash (0..1) is how bright the
+     lightning is right now; past half, a bolt shows, its shape
+     from o.bolt (any integer — change it for a new one).
+   Returns the screen geometry of the glass — its quad — for
+   hit-testing (also kept in rainWindow.last).
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { wall: W, rgb, beam, dot, poly, clip, unclip } = QH.draw;
-  const { rnd } = QH;
+  const { rnd, mix } = QH;
+  const { P } = QH.cam;
 
-  QH.assets.rainWindow = (wall, u, z, w, h, t = 0, o = {}) => {
-    const Wl = W[wall], sky = o.skyline ?? 0.72;
-    Wl.rect(u, z, u + w, z + h, rgb(M.navyLt), 0.02);
-    Wl.rect(u, z + h * 0.55, u + w, z + h, rgb(M.slate), 0.025);                    // the sky, paler high up
+  const rainWindow = (wall, u, z, w, h, t = 0, o = {}) => {
+    const Wl = W[wall], sky = o.skyline ?? 0.72, f = o.flash || 0;
+    Wl.rect(u, z, u + w, z + h, rgb(mix(M.navyLt, M.greyLt, f)), 0.02);
+    Wl.rect(u, z + h * 0.55, u + w, z + h, rgb(mix(M.slate, M.silver, f)), 0.025);   // the sky, paler high up — white in the lightning
     clip([Wl.pt(u, z, 0.02), Wl.pt(u + w, z, 0.02), Wl.pt(u + w, z + h, 0.02), Wl.pt(u, z + h, 0.02)]);
 
     // a far row of towers, dark and low, then the near row over it
@@ -42,6 +48,29 @@
       }
     };
     city(z, 0.35, sky, [M.wallB, M.navyDk], 0.25, 0.03);
+
+    // the bolt: down from over the glass into the far city, in one
+    // pane or the other, forking once or twice on the way — a dark
+    // halo round a bright core, and the near towers still in front
+    if (f > 0.5) {
+      const B = rnd(1000 + (o.bolt | 0)), runs = [];
+      const fork = (pu, pz, step, lean, n) => {
+        const pts = [[pu, pz]];
+        for (let k = 0; k < n && pz > z + h * 0.15; k++) {
+          pu += lean + (B() - 0.5) * 0.6; pz -= step * (0.6 + B() * 0.8);
+          pts.push([pu, pz]);
+        }
+        runs.push(pts);
+        return pts;
+      };
+      const pane = B() > 0.5 ? 0.6 : 0.12;
+      const main = fork(u + w * (pane + B() * 0.28), z + h + 0.2, 0.4, 0, 14);
+      for (const i of [2 + ((B() * 3) | 0), 5 + ((B() * 3) | 0)]) if (main[i]) fork(main[i][0], main[i][1], 0.3, B() > 0.5 ? 0.3 : -0.3, 3 + ((B() * 3) | 0));
+      for (const [wd, col] of [[0.22, M.navy], [0.08, M.cream]]) for (const pts of runs) for (let k = 1; k < pts.length; k++) {
+        beam(Wl.pt(pts[k - 1][0], pts[k - 1][1], 0.035), Wl.pt(pts[k][0], pts[k][1], 0.035), wd, col, 1);
+      }
+    }
+
     city(z, 0.2, sky * 0.72, [M.navyDk, M.ink, M.navy], 0.45, 0.04);
 
     // rain: each streak a run of short dashes down a slant
@@ -63,5 +92,10 @@
     Wl.box(u + w, z, F, h, D, M.slate, fo);
     Wl.box(u + w / 2 - 0.08, z, 0.16, h, D * 0.85, M.slate, fo);
     Wl.box(u - F, z + h, w + 2 * F, F, D, M.slate, fo);
+
+    const q = [[u, z], [u + w, z], [u + w, z + h], [u, z + h]];
+    return (rainWindow.last = { quad: q.map(([a, b]) => P(...Wl.pt(a, b, 0.02))) });
   };
+  rainWindow.last = null;
+  QH.assets.rainWindow = rainWindow;
 })(QH);

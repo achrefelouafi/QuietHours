@@ -12,7 +12,7 @@
   const M = QH.M;
   const { cyl, poly, stroke, beam, rgb } = QH.draw;
   const { TAU, rnd, lerp } = QH;
-  const light = QH.light;
+  const light = QH.light, sway = QH.sway;
 
   QH.assets.broadleaf = (x, y, z, o = {}) => {
     const r = o.r || 0.42, ph = o.ph || 0.7, size = o.size || 1.5, n = o.n || 9, R = rnd(o.seed || 59);
@@ -20,22 +20,23 @@
     cyl(x, y, z, r * 0.74, ph - 0.16, pot, { n: 14, rt: r * 0.94, top: false });
     cyl(x, y, z + ph - 0.16, r, 0.16, lip, { n: 14, colTop: M.woodDk, topK: 1 });
 
-    const zb = z + ph - 0.04, leaves = [];
+    const zb = z + ph - 0.04, leaves = [], S = sway.plant('broadleaf', x, y, zb, size, 0.6);
     for (let i = 0; i < n; i++) {
       const low = i % 2 === 0;                                       // alternate: a low leaf leaning out, a tall one standing
-      leaves.push({ a: (i + R() * 0.5) / n * TAU, l: size * (low ? 0.75 + R() * 0.25 : 0.55 + R() * 0.3),
+      leaves.push({ i, a: (i + R() * 0.5) / n * TAU, l: size * (low ? 0.75 + R() * 0.25 : 0.55 + R() * 0.3),
                     rise: low ? 0.35 + R() * 0.2 : 0.9 + R() * 0.3, lt: R() > 0.5, w: 0.22 + R() * 0.1 });
     }
     leaves.sort((p, q) => (Math.cos(p.a) + Math.sin(p.a)) - (Math.cos(q.a) + Math.sin(q.a)));   // far leaves first
     for (const L of leaves) {
       const ux = Math.cos(L.a), uy = Math.sin(L.a), vx = -uy, vy = ux, col = L.lt ? M.leafLt : M.leaf;
       const stem = [x + ux * 0.08, y + uy * 0.08, zb + 0.3];
-      beam([x + ux * 0.04, y + uy * 0.04, zb], stem, 0.05, M.leafDk, 1);
-      // the leaf: from the stem up and out to its widest, then on to a pointed tip that nods over
+      beam([x + ux * 0.04, y + uy * 0.04, zb], S.at(L.i, stem, 0.2), 0.05, M.leafDk, 1);
+      // the leaf: from the stem up and out to its widest, then on to a pointed tip that nods over —
+      // every point of it swaying by how far along the leaf it is, so the blade bends rather than slides
       const at = (f, side) => {
         const out = L.l * f, up = L.l * L.rise * (f < 0.6 ? f / 0.6 : 1 - (f - 0.6) * 1.1);
         const wd = L.w * Math.sin(Math.min(1, f / 0.9) * Math.PI) * side;
-        return [stem[0] + ux * out + vx * wd, stem[1] + uy * out + vy * wd, stem[2] + up];
+        return S.at(L.i, [stem[0] + ux * out + vx * wd, stem[1] + uy * out + vy * wd, stem[2] + up], 0.2 + 0.8 * f);
       };
       const edge = [at(0, 0), at(0.2, 0.7), at(0.45, 1), at(0.7, 0.85), at(0.9, 0.45), at(1, 0), at(0.9, -0.45), at(0.7, -0.85), at(0.45, -1), at(0.2, -0.7)];
       poly(edge, rgb(col));

@@ -2,9 +2,10 @@
    main.js — the canvas, the frame loop, the camera and the few
    things you can touch: each room's lamp (in room three, the bar
    light over the mirror), the strip light in room one, the neon
-   sign and the blind over the window in room two. Paints the scene
-   into a small offscreen buffer, snaps it to the inks, and blits
-   it up pixelated.
+   sign and the blind over the window in room two — and every
+   plant, whose leaves part and sway under the pointer and shake
+   at a tap. Paints the scene into a small offscreen buffer, snaps
+   it to the inks, and blits it up pixelated.
 
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
@@ -16,8 +17,9 @@
   const M = QH.M;
   const { clamp, lerp } = QH;
   const { cam, fitBox } = QH.cam;
-  const draw = QH.draw, light = QH.light;
+  const draw = QH.draw, light = QH.light, sway = QH.sway;
   const scene = QH.scenes.house;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;   // honest about reduced motion: nothing moves on its own
 
   const view = document.getElementById('stage');
   const stateEl = document.getElementById('state');
@@ -64,7 +66,7 @@
   }
   const interrupt = () => { tween = null; lastMove = performance.now(); };
   const moving = now => tween !== null || pointers.size > 0 || now - lastMove < 200
-    || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5 || scene.busy();
+    || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5 || scene.busy() || sway.busy();
 
   function size() {
     w = Math.max(1, innerWidth); h = Math.max(1, innerHeight);
@@ -102,6 +104,7 @@
   function frame(ms) {
     const t = ms / 1000;
     light.ease();
+    sway.step(t);                                     // the leaves catch up with the pointer before they're drawn
     draw.use(bctx);
     bctx.globalCompositeOperation = 'source-over';
     bctx.fillStyle = draw.rgb(M.outside);
@@ -181,9 +184,27 @@
     for (const b of scene.blinds()) if (inQuad(b.geo && b.geo.quad, bx, by)) return b;
     return null;
   }
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : null;
   const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
+
+  /* ── the storm ────────────────────────────────────────────── */
+  /** Which room's rain window is under this css point, or null. */
+  function overStorm(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const s of scene.storms()) if (inQuad(s.geo && s.geo.quad, bx, by)) return s;
+    return null;
+  }
+  /** Lightning over this room's window, if it has one. `at` is when the strike began (now). */
+  const strike = (id, at) => { const s = scene.storms().find(s => s.id === id); if (s) s.strike(at); };
+
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : null;
+
+  /* ── the plants ───────────────────────────────────────────────
+     Nothing to hit-test here: sway.js knows where every leaf was
+     drawn. The pointer is handed over while it hovers — a drag is
+     the camera's, so it lets go — and a still tap shakes a plant. */
+  const brush = (cx, cy) => { if (!still) sway.move(...toBuf(cx, cy), performance.now()); };
+  const shake = (cx, cy) => !still && sway.shake(...toBuf(cx, cy));
 
   /* ── pointer: drag to pan, pinch to zoom, a still tap hits the lamp ── */
   const pointers = new Map();
@@ -201,11 +222,13 @@
       pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom: eye.zoom, anchor: toScene((a.x + b.x) / 2, (a.y + b.y) / 2) };
     }
     hot = null; view.classList.remove('hot'); view.classList.add('drag');
+    sway.leave();
   });
   view.addEventListener('pointermove', e => {
     if (!pointers.has(e.pointerId)) {
       const on = overThing(e.clientX, e.clientY);
       if (on !== hot) { hot = on; view.classList.toggle('hot', !!hot); }
+      brush(e.clientX, e.clientY);
       return;
     }
     interrupt();
@@ -236,7 +259,8 @@
     if (press && !press.far && performance.now() - press.t < 400) {
       const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY);
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle();
+      const s = id || n || b ? null : overStorm(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (s) s.strike(); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -245,7 +269,7 @@
   };
   view.addEventListener('pointerup', up);
   view.addEventListener('pointercancel', up);
-  view.addEventListener('pointerleave', () => { hot = null; view.classList.remove('hot'); });
+  view.addEventListener('pointerleave', () => { hot = null; view.classList.remove('hot'); sway.leave(); });
 
   /* ── wheel: zoom about the pointer ────────────────────────── */
   view.addEventListener('wheel', e => {
@@ -279,14 +303,14 @@
     else if (k === 'b') toggleBlind(roomInView().id);
     else if (k === 'n') toggleNeonIn(roomInView().id);
     else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
+    else if (k === 'f') strike(roomInView().id);
     else return;
     e.preventDefault();
   });
   addEventListener('resize', size);
 
-  /* ── loop: every frame while the camera moves, otherwise ~30fps
-     for the ambient animation; honest about reduced motion ──── */
-  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* ── loop: every frame while the camera or a plant moves,
+     otherwise ~30fps for the ambient animation ─────────────── */
   let last = 0, lastNow = 0;
   function loop(now) {
     requestAnimationFrame(loop);
@@ -323,5 +347,6 @@
     setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     toggleBlind,
+    strike: (id = 'three', ago = 0) => strike(id, performance.now() - ago * 1000),   // `ago` seconds into the flash
   };
 })(QH);

@@ -14,7 +14,7 @@
   const M = QH.M;
   const { cyl, beam } = QH.draw;
   const { TAU, rnd, lerp } = QH;
-  const light = QH.light;
+  const light = QH.light, sway = QH.sway;
 
   QH.assets.aloe = (x, y, z, o = {}) => {
     const r = o.r || 0.3, ph = o.ph || r * 1.3, size = o.size || 1.2, n = o.n || 9, spread = o.spread ?? 0.45;
@@ -23,8 +23,9 @@
     cyl(x, y, z + ph - 0.12, r, 0.12, lip, { n: 12, colTop: M.woodDk, topK: 1 });
 
     const R = rnd(o.seed || 53), zb = z + ph - 0.04, blades = [];
+    const S = sway.plant('aloe', x, y, zb, size, lerp(0.45, 0.15, spread));
     for (let i = 0; i < n; i++) {
-      blades.push({ a: (i + R() * 0.6) / n * TAU, l: size * (0.55 + R() * 0.45), lt: R() > 0.5,
+      blades.push({ i, a: (i + R() * 0.6) / n * TAU, l: size * (0.55 + R() * 0.45), lt: R() > 0.5,
                     out: spread * (0.7 + R() * 0.6), w: 0.1 + R() * 0.05 });
     }
     blades.sort((p, q) => (Math.cos(p.a) + Math.sin(p.a)) - (Math.cos(q.a) + Math.sin(q.a)));   // far blades first
@@ -32,8 +33,9 @@
       const ux = Math.cos(b.a), uy = Math.sin(b.a), col = b.lt ? M.leafLt : M.leaf;
       const rise = lerp(1.0, 0.35, b.out), droop = b.out > 0.6 ? b.l * 0.25 : 0;
       const p0 = [x + ux * 0.06, y + uy * 0.06, zb];
-      const p1 = [x + ux * b.l * b.out * 0.55, y + uy * b.l * b.out * 0.55, zb + b.l * rise * 0.6];
-      const p2 = [x + ux * b.l * b.out, y + uy * b.l * b.out, zb + b.l * rise - droop];
+      // thick blades barely give — the tip only goes as far as a softer leaf's middle would
+      const p1 = S.at(b.i, [x + ux * b.l * b.out * 0.55, y + uy * b.l * b.out * 0.55, zb + b.l * rise * 0.6], 0.4);
+      const p2 = S.at(b.i, [x + ux * b.l * b.out, y + uy * b.l * b.out, zb + b.l * rise - droop], 0.7);
       beam(p0, p1, b.w, col, 1);                                       // thick at the base
       beam(p1, p2, b.w * 0.55, col, 1.04);                             // tapering to the tip
       beam([p0[0], p0[1], p0[2] + 0.04], p1, b.w * 0.3, M.leafDk, 1);  // the keel

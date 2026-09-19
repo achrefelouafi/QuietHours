@@ -11,12 +11,15 @@
    corner — and the scene that holds the rooms puts it where it
    goes. Painter order, as in the other rooms.
 
-   One thing here you can touch: the light over the mirror.
+   Two things here you can touch: the light over the mirror, and
+   the window — a click brings lightning over the city, and
+   thunder a beat after.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const A = QH.assets;
   const light = QH.light;
+  const { lerp } = QH;
 
   const room = QH.scenes.room(14, 14, 8, 0.4, 0.4);
   const MIRROR = { u: 8.85, z: 3.0, w: 2.15, h: 3.3 };
@@ -26,10 +29,39 @@
   const SINK = { x: 8.75, y: 0.1, z: 1.5, w: 2.3, d: 1.7 };
   const VANITY = { x: 4.4, y: 0.15, w: 3.0, d: 1.7 };
 
-  // what shades the faces: the bar light, and the city through the window a little
+  /* ── the storm ────────────────────────────────────────────────
+     A click on the window brings the lightning. `flash()` is how
+     bright it is right now, 0..1, read off a few keyframes from
+     the moment of the strike: the first stroke, a dip, the return
+     stroke, the fade. Thunder follows a beat later. Under reduced
+     motion it is one soft swell instead of the flicker. */
+  const STILL = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const FLASH = STILL ? [[0, 0], [0.2, 0.7], [1.0, 0]] : [[0, 1], [0.08, 1], [0.16, 0.2], [0.22, 0.9], [0.3, 0.45], [0.75, 0]];
+  const storm = { start: -1e9, seed: 0 };
+  let windowGeo = null, lightning = 0;                                // the glass's screen geometry, for the click; how bright the lightning is this frame
+  const now = () => performance.now();
+  function strike(at = now()) {
+    storm.start = at;
+    storm.seed++;                                                     // a new bolt each time
+    QH.sound.thunder(0.5 + Math.random() * 0.7);
+  }
+  const stormBusy = () => now() - storm.start < FLASH[FLASH.length - 1][0] * 1000 + 50;
+  /** How bright the lightning is right now, 0..1. */
+  function flash() {
+    const s = (now() - storm.start) / 1000;
+    if (s < 0) return 0;
+    for (let i = 1; i < FLASH.length; i++) {
+      const [t0, v0] = FLASH[i - 1], [t1, v1] = FLASH[i];
+      if (s <= t1) return lerp(v0, v1, (s - t0) / (t1 - t0));
+    }
+    return 0;
+  }
+
+  // what shades the faces: the bar light, the city through the window a little — and the lightning, hard and cold, while it lasts
   const sources = [
     { x: BARC[0], y: BARC[1], z: BARC[2] - 0.1, range: 11.5, k: 0.62, on: () => light.lamp },
     { x: WINDOW.u + WINDOW.w / 2, y: 0.05, z: WINDOW.z + WINDOW.h / 2, range: 5, k: 0.08, on: () => 1 },
+    { x: WINDOW.u + WINDOW.w / 2, y: 0.05, z: WINDOW.z + WINDOW.h / 2, range: 13, k: 0.7, on: () => lightning },
   ];
   let lamp = null;                                                    // the bar's screen geometry, for the click
 
@@ -65,6 +97,7 @@
   }
 
   function draw(t) {
+    lightning = flash();
     room.floor();
     pool(BARC[0] + 0.5, 3.3, 4.4);
     A.bathMat(3.9, 8.6, 2.7, 1.7);
@@ -78,7 +111,7 @@
 
     /* ── back wall, far to near ── */
     A.paperHolder('B', 2.3, 2.45);
-    A.rainWindow('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t);
+    windowGeo = A.rainWindow('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { flash: lightning, bolt: storm.seed });
     lamp = A.vanityMirror('B', MIRROR.u, MIRROR.z, MIRROR.w, MIRROR.h);
     A.towelRing('B', 8.15, 3.65);
     A.bathShelves('B', 11.5, 3.9, 2.0);
@@ -112,8 +145,17 @@
     light.glow(BARC[0] + 0.3, 2.6, 0.05, 3.4, [240, 150, 60], 0.1 * f);                         // a little bloom where the pool is hottest
     light.glow(VANITY.x + VANITY.w * 0.6, 1.0, A.vanity.H, 2.8, [230, 140, 50], 0.07 * f);      // the vanity top
     light.glow(WINDOW.u + WINDOW.w / 2, 0, WINDOW.z + WINDOW.h * 0.4, 4.5, [60, 90, 140], 0.04 + 0.05 * (1 - light.lamp));   // the city, more of it with the light off
+
+    // the lightning: a cold wash from the window, hardest on the glass, out over the vanity and across the tiles
+    const wu = WINDOW.u + WINDOW.w / 2, wz = WINDOW.z + WINDOW.h / 2;
+    light.glow(wu, 0.1, wz, 4.5, [200, 215, 240], 0.3 * lightning);
+    light.glow(wu, 1.5, WINDOW.z, 9, [150, 175, 220], 0.32 * lightning);
+    light.glow(wu + 1, 5, 1.0, 11, [110, 140, 200], 0.14 * lightning);
     light.end();
   }
 
-  QH.scenes.roomThree = { room, sources, draw, lights, lamp: () => lamp };
+  QH.scenes.roomThree = {
+    room, sources, draw, lights, lamp: () => lamp,
+    storm: () => windowGeo, strike, busy: stormBusy,
+  };
 })(QH);

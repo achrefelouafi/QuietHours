@@ -13,7 +13,7 @@
   const { box, cyl, disc, discX, discY, ring, beam, dot, rectX, rectY, poly, stroke, rgb, sh } = QH.draw;
   const { TAU, rnd, mix } = QH;
   const { P, cam } = QH.cam;
-  const light = QH.light;
+  const light = QH.light, sway = QH.sway;
   const A = QH.assets;
 
   /** Mug, handle on the +x side. */
@@ -164,39 +164,42 @@
 
   /** A fan of stiff blades — the snake-plant look, small. */
   A.spikes = (x, y, z, size, n, seed) => {
-    const R = rnd(seed), blades = [];
-    for (let i = 0; i < n; i++) blades.push({ a: R() * TAU, l: size * (0.55 + R() * 0.5), o: 0.03 + R() * 0.05, w: 0.05 + R() * 0.03, lt: R() > 0.6 });
+    const R = rnd(seed), blades = [], S = sway.plant('spikes', x, y, z, size);
+    for (let i = 0; i < n; i++) blades.push({ i, a: R() * TAU, l: size * (0.55 + R() * 0.5), o: 0.03 + R() * 0.05, w: 0.05 + R() * 0.03, lt: R() > 0.6 });
     blades.sort((p, q) => (Math.cos(p.a) + Math.sin(p.a)) - (Math.cos(q.a) + Math.sin(q.a)));
     for (const b of blades) {
       const ux = Math.cos(b.a), uy = Math.sin(b.a), c = b.lt ? M.leafLt : M.leaf;
-      beam([x + ux * b.o, y + uy * b.o, z], [x + ux * b.l * 0.3, y + uy * b.l * 0.3, z + b.l * 0.65], b.w, c, 1);
-      beam([x + ux * b.l * 0.3, y + uy * b.l * 0.3, z + b.l * 0.65], [x + ux * b.l * 0.42, y + uy * b.l * 0.42, z + b.l], b.w * 0.6, c, 1);
+      const m = S.at(b.i, [x + ux * b.l * 0.3, y + uy * b.l * 0.3, z + b.l * 0.65], 0.65);
+      beam([x + ux * b.o, y + uy * b.o, z], m, b.w, c, 1);
+      beam(m, S.at(b.i, [x + ux * b.l * 0.42, y + uy * b.l * 0.42, z + b.l], 1), b.w * 0.6, c, 1);
     }
   };
 
   /** Rounder leaves on short stems — the pothos look. */
   A.leaves = (x, y, z, size, n, seed) => {
-    const R = rnd(seed), ls = [];
-    for (let i = 0; i < n; i++) ls.push({ a: R() * TAU, l: size * (0.5 + R() * 0.5), lt: R() > 0.5 });
+    const R = rnd(seed), ls = [], S = sway.plant('leaves', x, y, z, size);
+    for (let i = 0; i < n; i++) ls.push({ i, a: R() * TAU, l: size * (0.5 + R() * 0.5), lt: R() > 0.5 });
     ls.sort((p, q) => (Math.cos(p.a) + Math.sin(p.a)) - (Math.cos(q.a) + Math.sin(q.a)));
     for (const L of ls) {
       const ux = Math.cos(L.a), uy = Math.sin(L.a), c = L.lt ? M.leafLt : M.leaf;
-      beam([x, y, z], [x + ux * L.l * 0.6, y + uy * L.l * 0.6, z + L.l * 0.45], 0.04, M.leafDk, 1);
-      beam([x + ux * L.l * 0.55, y + uy * L.l * 0.55, z + L.l * 0.42], [x + ux * L.l * 0.75, y + uy * L.l * 0.75, z + L.l * 0.5], 0.14, c, 1);
+      beam([x, y, z], S.at(L.i, [x + ux * L.l * 0.6, y + uy * L.l * 0.6, z + L.l * 0.45], 0.8), 0.04, M.leafDk, 1);
+      beam(S.at(L.i, [x + ux * L.l * 0.55, y + uy * L.l * 0.55, z + L.l * 0.42], 0.8), S.at(L.i, [x + ux * L.l * 0.75, y + uy * L.l * 0.75, z + L.l * 0.5], 1), 0.14, c, 1);
     }
   };
 
   /** Trailing vines hanging down from a point, leaves along them. */
   A.vines = (x, y, z, drop, n, seed) => {
-    const R = rnd(seed);
+    const R = rnd(seed), S = sway.plant('vines', x, y, z, drop, -0.5);   // hanging, so its middle is below the anchor
     for (let i = 0; i < n; i++) {
       const sx = x + (R() - 0.5) * 0.5, sy = y + R() * 0.2, len = drop * (0.5 + R() * 0.5);
-      const ex = sx + (R() - 0.5) * 0.25;
-      beam([sx, sy, z], [ex, sy + 0.05, z - len], 0.035, M.leafDk, 1);
-      const k = 2 + ((len / 0.35) | 0);
+      const ex = sx + (R() - 0.5) * 0.25, fl = len / drop;              // a short vine swings less than a long one
+      // the stem in a few pieces, so it can curve as it swings, with a leaf at each joint
+      const k = 2 + ((len / 0.35) | 0), K = k + 1, pts = [[sx, sy, z]];
+      for (let j = 1; j <= K; j++) { const f = j / K; pts.push(S.at(i, [sx + (ex - sx) * f, sy + 0.05 * f, z - len * f], f * fl)); }
+      for (let j = 1; j <= K; j++) beam(pts[j - 1], pts[j], 0.035, M.leafDk, 1);
       for (let j = 1; j <= k; j++) {
-        const f = j / (k + 1), px = sx + (ex - sx) * f, pz = z - len * f;
-        beam([px - 0.06, sy + 0.05, pz], [px + 0.07, sy + 0.05, pz - 0.08], 0.1, j % 2 ? M.leaf : M.leafLt, 1);
+        const p = pts[j], ly = p[1] + 0.05 * (1 - j / K);               // the leaves hang just off the stem
+        beam([p[0] - 0.06, ly, p[2]], [p[0] + 0.07, ly, p[2] - 0.08], 0.1, j % 2 ? M.leaf : M.leafLt, 1);
       }
     }
   };
