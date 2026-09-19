@@ -1,14 +1,16 @@
 /**
  * tools/preview.js — render a frame of the room to a PNG, no browser.
  *
- *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath]
+ *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show]
  *
- * `lamp` 0 switches every lamp off; `room` (one | two | three) frames that
- * room instead of the whole house, before zoom and pan apply; `flash` is
- * how many seconds ago the lightning struck — that room's window, or every
- * window with no room (0 is the peak; leave it out for no lightning).
- * `bath` is how many seconds ago the bathroom shower went on (the tub
- * fills over twelve; leave it out for a dry tub).
+ * `lamp` 0 switches every lamp off; `room` (one | two | three | four)
+ * frames that room instead of the whole house, before zoom and pan apply;
+ * `flash` is how many seconds ago the lightning struck — that room's
+ * window, or every window with no room (0 is the peak; leave it out for no
+ * lightning). `bath` is how many seconds ago the bathroom shower went on
+ * (the tub fills over twelve; leave it out for a dry tub). `show` is how
+ * many seconds ago the booth's show began (it runs seven; leave it out
+ * for the booth at rest).
  *
  * Reads the <script src> list out of index.html, runs those files in
  * order against a minimal DOM backed by node-canvas, and writes the
@@ -33,6 +35,7 @@ const NEON = parseFloat(process.argv[11] || '1');
 const STRIP = parseFloat(process.argv[12] || '1');
 const FLASH = process.argv[13];
 const BATH = process.argv[14];
+const SHOW = process.argv[15];
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
@@ -76,6 +79,7 @@ if (NEON < 1) app.setNeon(false);
 if (STRIP < 1) app.setStrip(false);
 if (FLASH !== undefined) app.strike(ROOM, parseFloat(FLASH));
 if (BATH !== undefined) app.fillTub('', parseFloat(BATH));
+if (SHOW !== undefined) app.playShow('', parseFloat(SHOW));
 if (ROOM) { app.room(ROOM); app.look(); }
 if (ZOOM !== 1 || PANX || PANY) { app.cam.s *= ZOOM; app.cam.x += PANX; app.cam.y += PANY; }
 app.frame(time * 1000);

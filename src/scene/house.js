@@ -4,31 +4,35 @@
    three on top of its back wall, each set back so its floor rests
    on the wall's top and nothing in one room hides anything in
    another. The two upstairs rooms meet at a corner over room
-   one's far corner.
+   one's far corner — and room four, the booth, sits up over that
+   corner in turn, its floor on the tops of their back walls.
 
    Each room is drawn in its own coordinates with the origin moved
    (cam.at), its own light sources and its own lamp switch made
    current — so the rooms never need to know about each other.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, busy, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, shows, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
   const light = QH.light;
-  const { roomOne, roomTwo, roomThree } = QH.scenes;
+  const { roomOne, roomTwo, roomThree, roomFour } = QH.scenes;
   const up = roomOne.room.H;                                          // the upstairs rooms stand on room one's walls
+  const top = up + roomTwo.room.FT + roomTwo.room.H;                  // and the booth on theirs
 
   const rooms = [
     { id: 'one',   name: 'room one',   scene: roomOne,   at: [0, 0, 0] },
     { id: 'two',   name: 'room two',   scene: roomTwo,   at: [-roomTwo.room.W, 0, up + roomTwo.room.FT] },
     { id: 'three', name: 'room three', scene: roomThree, at: [0, -roomThree.room.D, up + roomThree.room.FT] },
+    { id: 'four',  name: 'room four',  scene: roomFour,  at: [-roomFour.room.W, -roomFour.room.D, top + roomFour.room.FT] },
   ];
-  /* Painter order. Room one first: the others' floors lie over its
-     wall tops. Then room three, then room two — where the two meet,
-     the end of room two's back wall closes the corner over room
-     three's left wall, and it's the darker of the two, so it goes
-     on last. */
-  const painted = [rooms[0], rooms[2], rooms[1]];
+  /* Painter order. Room four first: it's behind everything, its
+     floor over the tops of the upstairs back walls. Then room one:
+     the others' floors lie over its wall tops. Then room three,
+     then room two — where the two meet, the end of room two's back
+     wall closes the corner over room three's left wall, and it's
+     the darker of the two, so it goes on last. */
+  const painted = [rooms[3], rooms[0], rooms[2], rooms[1]];
 
   /** A room's shell in projected units, moved to where the room is. */
   function boundsOf(r) {
@@ -64,8 +68,10 @@
   const storms = () => rooms.filter(r => r.scene.storm).map(r => ({ id: r.id, name: r.name, geo: r.scene.storm(), strike: r.scene.strike }));
   /** The tubs' screen geometry from the last draw — the tub and the shower over it — in the rooms with one, while a click can still run it. */
   const tubs   = () => rooms.filter(r => r.scene.tub).map(r => ({ id: r.id, name: r.name, geo: r.scene.tub(), fill: r.scene.fillTub }));
+  /** The stages' screen geometry from the last draw, in the rooms where a click runs a show. */
+  const shows  = () => rooms.filter(r => r.scene.show).map(r => ({ id: r.id, name: r.name, geo: r.scene.show(), play: r.scene.play }));
   /** Is anything in a room mid-animation and wanting every frame? */
   const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, busy, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, shows, busy, boundsOf };
 })(QH);

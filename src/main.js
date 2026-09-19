@@ -1,11 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════
    main.js — the canvas, the frame loop, the camera and the few
    things you can touch: each room's lamp (in room three, the bar
-   light over the mirror), the strip light in room one, the neon
-   sign and the blind over the window in room two, every window
-   for the lightning, the tub in room three (or the shower over
-   it) to run the bath, once — and every plant, whose leaves part and sway
-   under the pointer and shake at a tap. Paints the scene into a
+   light over the mirror; in room four, the rig of spots on the
+   truss), the strip light in room one, the neon sign and the
+   blind over the window in room two, the neon tubes in room
+   four, every window for the lightning, the tub in room three
+   (or the shower over it) to run the bath, once, the stage or
+   the screen in room four to run the show — and every plant,
+   whose leaves part and sway under the pointer and shake at a
+   tap. Paints the scene into a
    small offscreen buffer, snaps it to the inks, and blits it up
    pixelated — three css px to the pixel at home and closer; zoomed
    out the pixels shrink to two, then one, so the house keeps its
@@ -14,7 +17,7 @@
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
    or pinch to zoom about the pointer, arrows / WASD / + - 0 on
-   the keyboard, 1, 2 and 3 to fly to a room, double-click to
+   the keyboard, 1, 2, 3 and 4 to fly to a room, double-click to
    lean in and back out.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
@@ -173,10 +176,13 @@
   /* ── the wall lights: the neon and the strip ──────────────── */
   /** Every light on a wall, each { id, name, kind, geo, sw } — both are a line you can click. */
   const wallLights = () => [...scene.neons(), ...scene.strips()];
-  /** The neon sign or strip light under this css point, or null. */
+  /** The neon sign or strip light under this css point, or null. A room's neon may be several lines — the booth's four tubes. */
   function overNeon(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
-    for (const n of wallLights()) if (n.geo && nearLine(n.geo.line, n.geo.r, bx, by)) return n;
+    for (const n of wallLights()) {
+      if (!n.geo) continue;
+      for (const line of n.geo.lines || [n.geo.line]) if (nearLine(line, n.geo.r, bx, by)) return n;
+    }
     return null;
   }
   function setNeon(sw, on) { light.set(sw, on); showState(); }
@@ -230,8 +236,18 @@
   /** Run the bath in this room — every room's, with no id. `at` is when the shower went on (now). */
   const fillTub = (id, at) => { for (const b of scene.tubs()) if (!id || b.id === id) b.fill(at); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm', 'tub' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : null;
+  /* ── the show ─────────────────────────────────────────────── */
+  /** Which room's stage or screen is under this css point, or null. */
+  function overShow(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const s of scene.shows()) for (const q of (s.geo && s.geo.polys) || []) if (inPoly(q, bx, by)) return s;
+    return null;
+  }
+  /** Run the show in this room — every room's, with no id. `at` is when it began (now). */
+  const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
+
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm', 'tub', 'show' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -295,7 +311,8 @@
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
       const s = id || n || b ? null : overStorm(e.clientX, e.clientY);
       const bt = id || n || b || s ? null : overTub(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else shake(e.clientX, e.clientY);
+      const sh = id || n || b || s || bt ? null : overShow(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -333,12 +350,13 @@
     else if (k === '+' || k === '=') { interrupt(); zoomAbout(eye.zoom * 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
     else if (k === '-' || k === '_') { interrupt(); zoomAbout(eye.zoom / 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
     else if (k === '0') goHome(900);
-    else if (k === '1' || k === '2' || k === '3') goRoom({ 1: 'one', 2: 'two', 3: 'three' }[k], 1100);
+    else if (k === '1' || k === '2' || k === '3' || k === '4') goRoom({ 1: 'one', 2: 'two', 3: 'three', 4: 'four' }[k], 1100);
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
     else if (k === 'b') toggleBlind(roomInView().id);
     else if (k === 'n') toggleNeonIn(roomInView().id);
     else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
     else if (k === 'f') strike(roomInView().id);
+    else if (k === 'p') playShow(roomInView().id);
     else return;
     e.preventDefault();
   });
@@ -384,5 +402,6 @@
     toggleBlind,
     strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
     fillTub: (id, ago = 0) => fillTub(id, performance.now() - ago * 1000), // run the bath in one room, or every room's; `ago` seconds since the shower went on
+    playShow: (id, ago = 0) => playShow(id, performance.now() - ago * 1000), // run the show in one room, or every room's; `ago` seconds since it began
   };
 })(QH);

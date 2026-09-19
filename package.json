@@ -1,7 +1,7 @@
 {
   "name": "quiet-hours",
   "version": "0.1.0",
-  "description": "An isometric room drawn in 2D canvas, one asset per file, snapped to thirty-two inks.",
+  "description": "An isometric room drawn in 2D canvas, one asset per file, snapped to thirty-nine inks.",
   "private": true,
   "scripts": {
     "dev": "node tools/dev.js",

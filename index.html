@@ -27,11 +27,12 @@
 </head>
 <body>
 <canvas id="stage" tabindex="0"
-        aria-label="Three isometric pixel-art rooms at night, two stacked on the first: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom, and beside it a bar light over a mirror lights a bathroom with a clawfoot tub. Drag to look around, scroll to zoom, press 1, 2 or 3 to fly to a room, click a lamp, the strip light, the neon sign or the bathroom's mirror light to switch it off and on, click the bedroom blind to run it down over the window and back up, click a window for lightning and thunder, click the bathtub or the shower over it once to run the bath until it is full, brush the plants to stir their leaves."></canvas>
+        aria-label="Four isometric pixel-art rooms at night, stacked: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom, and beside it a bar light over a mirror lights a bathroom with a clawfoot tub; over them both a sponsor's booth, a wall of LEDs with the sponsor's mark and name under a truss of spotlights, blue neon, a round stage. Drag to look around, scroll to zoom, press 1, 2, 3 or 4 to fly to a room, click a lamp, the strip light, the neon sign, the bathroom's mirror light, the booth's spotlights or its neon tubes to switch them off and on, click the bedroom blind to run it down over the window and back up, click a window for lightning and thunder, click the bathtub or the shower over it once to run the bath until it is full, click the booth's stage or its screen to run a light show, brush the plants to stir their leaves."></canvas>
 <div class="slate"><b>quiet hours</b><span id="state">room one · lamp on · strip on
 room two · lamp on · neon on
-room three · lamp on</span></div>
-<p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 fly to a room · click a lamp · click the strip · click the neon · click the blind · click a window · click the tub · brush the plants</p>
+room three · lamp on
+room four · lamp on · neon on</span></div>
+<p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 / 4 fly to a room · click a lamp · click the strip · click the neon · click the blind · click a window · click the tub · click the stage · brush the plants</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>
@@ -44,7 +45,7 @@ room three · lamp on</span></div>
 <script src="src/engine/storm.js"></script>
 <script src="src/engine/sway.js"></script>
 
-<!-- assets: one file per thing in docs/assets.png (room one), docs/assets2.png (room two) and docs/assets3.png (room three) -->
+<!-- assets: one file per thing in docs/assets.png (room one), docs/assets2.png (room two), docs/assets3.png (room three) and docs/assets4.jpg (room four) -->
 <script src="src/assets/props.js"></script>
 <script src="src/assets/bed.js"></script>
 <script src="src/assets/sofa.js"></script>
@@ -104,12 +105,32 @@ room three · lamp on</span></div>
 <script src="src/assets/vanity.js"></script>
 <script src="src/assets/sink.js"></script>
 <script src="src/assets/bathMat.js"></script>
+<script src="src/assets/ledScreen.js"></script>
+<script src="src/assets/truss.js"></script>
+<script src="src/assets/neonTube.js"></script>
+<script src="src/assets/banner.js"></script>
+<script src="src/assets/podium.js"></script>
+<script src="src/assets/neonFloor.js"></script>
+<script src="src/assets/arcadeCabinet.js"></script>
+<script src="src/assets/mixerDesk.js"></script>
+<script src="src/assets/waterCooler.js"></script>
+<script src="src/assets/beanbag.js"></script>
+<script src="src/assets/glassRail.js"></script>
+<script src="src/assets/galleryFrame.js"></script>
+<script src="src/assets/posterFrame.js"></script>
+<script src="src/assets/roadCase.js"></script>
+<script src="src/assets/miniTv.js"></script>
+<script src="src/assets/datePalm.js"></script>
+<script src="src/assets/boothPlants.js"></script>
+<script src="src/assets/boothProps.js"></script>
 
 <!-- the rooms, and the house that holds them -->
 <script src="src/scene/room.js"></script>
+<script src="src/scene/booth.js"></script>
 <script src="src/scene/roomOne.js"></script>
 <script src="src/scene/roomTwo.js"></script>
 <script src="src/scene/roomThree.js"></script>
+<script src="src/scene/roomFour.js"></script>
 <script src="src/scene/house.js"></script>
 <script src="src/main.js"></script>
 </body>

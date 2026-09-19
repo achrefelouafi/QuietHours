@@ -2,7 +2,8 @@
    engine/palette.js — every colour the room is allowed to use.
    These ARE the inks: the quantiser snaps each rendered pixel to
    the nearest one, so a new colour has to be added here to exist.
-   Values were sampled from docs/reference.png.
+   Values were sampled from docs/reference.png; the blues and the
+   olive came later, from docs/reference4.jpg, for the booth.
    ═══════════════════════════════════════════════════════════════ */
 QH.M = {
   // ── navies: the room and nearly all the furniture ──
@@ -40,6 +41,15 @@ QH.M = {
   leafDk:   [24, 60, 60],
   leaf:     [32, 82, 78],
   leafLt:   [48, 104, 90],
+  olive:    [90, 92, 46],     // the beanbag in the booth
+  oliveLt:  [126, 122, 62],
+
+  // ── blues: the booth's neon, its screen, its arcade ──
+  blueDk:   [26, 56, 122],    // the neon's wash on the walls
+  blue:     [40, 98, 200],
+  blueLt:   [88, 154, 255],   // the tubes
+  cyan:     [156, 208, 255],  // their cores
+  ice:      [228, 238, 250],  // the sponsor's mark
 
   // ── wood ──
   woodDk:   [45, 34, 38],
