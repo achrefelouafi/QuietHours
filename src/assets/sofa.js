@@ -8,7 +8,7 @@
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
-  const { box, poly, sh, beam } = QH.draw;
+  const { box, poly, stroke, sh, rgb, beam } = QH.draw;
   const light = QH.light;
 
   QH.assets.sofa = (x, y, o = {}) => {
@@ -29,13 +29,18 @@
     if (face === '-y') { seats(); back(); } else { back(); seats(); }
     box(x + w - 0.5, y, 0.7, 0.5, d, 0.7, M.navy, { colTop: M.navyLt, rim });     // near arm
 
-    // the throw, folded over the near arm and hanging down its end
+    // the throw: a flat fold lying on the front half of the near arm,
+    // the same width as the panel hanging down the arm's end
     if (o.throw !== false) {
-      const ty = face === '-y' ? y + d - 1.3 : y + 0.1, tc = light.warm(M.rustLt, M.orange);
-      box(x + w - 0.55, ty, 1.4, 0.6, 1.2, 0.1, tc, { colTop: light.warm(M.orangeDk, M.orangeLt), rim: M.orangeDk });
-      poly([[x + w + 0.01, ty + 0.1, 1.45], [x + w + 0.01, ty + 1.1, 1.45], [x + w + 0.01, ty + 1.1, 0.45], [x + w + 0.01, ty + 0.1, 0.45]], sh(tc, 0.72));
-      for (let i = 0; i < 4; i++) beam([x + w + 0.02, ty + 0.25 + i * 0.25, 1.35], [x + w + 0.02, ty + 0.25 + i * 0.25, 0.5], 0.03, M.rustDk, 1);
-      for (let i = 0; i < 5; i++) beam([x + w + 0.02, ty + 0.15 + i * 0.22, 0.45], [x + w + 0.02, ty + 0.15 + i * 0.22, 0.3], 0.03, tc, 0.7);
+      const tw = 1.0, ty = face === '-y' ? y + 0.3 : y + d - 1.3, tc = light.warm(M.rustLt, M.orange);
+      const ax = x + w - 0.55, ex = x + w + 0.01, zt = 1.41, zb = 0.45;
+      const top = [[ax, ty, zt], [x + w, ty, zt], [x + w, ty + tw, zt], [ax, ty + tw, zt]];
+      poly(top, sh(light.warm(M.orangeDk, M.orangeLt), light.shade(x + w - 0.25, ty + tw / 2, zt, 0, 0, 1, 1)));
+      stroke(top, rgb(M.ink), 1, true);
+      stroke([[ax, ty, zt], [x + w, ty, zt], [x + w, ty + tw, zt]], rgb(M.orangeDk));
+      poly([[ex, ty, zt], [ex, ty + tw, zt], [ex, ty + tw, zb], [ex, ty, zb]], sh(tc, 0.72));
+      for (let i = 0; i < 4; i++) beam([ex + 0.01, ty + 0.2 + i * 0.2, zt - 0.06], [ex + 0.01, ty + 0.2 + i * 0.2, zb + 0.05], 0.03, M.rustDk, 1);
+      for (let i = 0; i < 5; i++) beam([ex + 0.01, ty + 0.1 + i * 0.2, zb], [ex + 0.01, ty + 0.1 + i * 0.2, zb - 0.15], 0.03, tc, 0.7);
     }
   };
 })(QH);

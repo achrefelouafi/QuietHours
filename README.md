@@ -199,7 +199,11 @@ origin moved (`cam.at`), so `roomTwo.js` never has to know where it lives.
 ### 3. Ink quantisation
 
 The scene paints into an offscreen buffer at a third of the display resolution, in
-full colour. Then every pixel is pushed to the nearest of the thirty-two colours in
+full colour — that's the pixel, three css px on a side. Zoomed out, the pixel
+shrinks with the house, to two css px and then one, and the buffer grows to match,
+so the house keeps its home-zoom detail small instead of dissolving into blocks;
+zoomed in, the pixel stays at three and the detail grows. Then every pixel is
+pushed to the nearest of the thirty-two colours in
 `palette.js` — a ramp of navies for the room, a ramp of oranges for whatever the lamp
 touches, a few greys and greens. A 32k-entry lookup table maps 15-bit RGB to an ink,
 so the pass is one table read per pixel.

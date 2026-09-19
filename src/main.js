@@ -6,7 +6,9 @@
    for the lightning — and every plant, whose leaves part and sway
    under the pointer and shake at a tap. Paints the scene into a
    small offscreen buffer, snaps it to the inks, and blits it up
-   pixelated.
+   pixelated — three css px to the pixel at home and closer; zoomed
+   out the pixels shrink to two, then one, so the house keeps its
+   detail small instead of dissolving into blocks.
 
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
@@ -24,12 +26,17 @@
 
   const view = document.getElementById('stage');
   const stateEl = document.getElementById('state');
-  const PIXEL = 3;                                   // css px per rendered px — the chunkiness dial
+  const PIXEL = 3;                                   // css px per rendered px, at home and closer — the chunkiness dial
   const MIN = 0.35, MAX = 6;                         // zoom, relative to the fitted room
   const buf = document.createElement('canvas');
   const bctx = buf.getContext('2d', { willReadFrequently: true });
   const vctx = view.getContext('2d');
   let iw = 0, ih = 0, w = 0, h = 0, hot = null;
+  // Zoomed out, the pixels shrink with the house — 3 css px, then 2, then 1 —
+  // so it keeps its detail instead of dissolving into blocks; the buffer grows to match.
+  let pixel = 0;                                     // css px per rendered px right now
+  const fit = { w: 0, h: 0 };                        // the buffer at PIXEL: what the house is fitted into
+  const pixelAt = zoom => clamp(Math.round(PIXEL * zoom), 1, PIXEL);
 
   /* ── camera ──────────────────────────────────────────────────
      `eye` is the scene point (projection at s = 1) sitting at the
@@ -40,12 +47,22 @@
   let s0 = 12, tween = null, velocity = { x: 0, y: 0 }, lastMove = -1e9, placed = false;
 
   function look() {
-    cam.s = s0 * eye.zoom;
+    const p = pixelAt(eye.zoom);
+    if (p !== pixel) {                               // a new pixel size: size the buffer (and the canvas showing it) to suit
+      pixel = p;
+      iw = Math.max(160, Math.round(w / p));
+      ih = Math.max(120, Math.round(h / p));
+      buf.width = iw; buf.height = ih;
+      view.width = iw; view.height = ih;
+    }
+    cam.s = s0 * eye.zoom * PIXEL / pixel;           // the screen scale is s0 · zoom · PIXEL css px per unit whatever the pixel
     cam.x = iw / 2 - eye.x * cam.s;
     cam.y = ih / 2 - eye.y * cam.s;
   }
   /** css px on the canvas → buffer px. */
   const toBuf = (cx, cy) => [cx * iw / (w || 1), cy * ih / (h || 1)];
+  /** scene units per css px, at the current zoom. */
+  const unitsPerCss = () => iw / ((w || 1) * cam.s);
   /** css px on the canvas → scene units. */
   function toScene(cx, cy) {
     look();                                          // the eye may have moved since the last frame
@@ -55,9 +72,10 @@
   /** Zoom so that scene point `a` stays under css px (cx, cy). */
   function zoomAbout(zoom, a, cx, cy) {
     eye.zoom = clamp(zoom, MIN, MAX);
-    const s = s0 * eye.zoom, [bx, by] = toBuf(cx, cy);
-    eye.x = a.x - (bx - iw / 2) / s;
-    eye.y = a.y - (by - ih / 2) / s;
+    look();                                          // the pixel may have changed with the zoom, and the buffer with it
+    const [bx, by] = toBuf(cx, cy);
+    eye.x = a.x - (bx - iw / 2) / cam.s;
+    eye.y = a.y - (by - ih / 2) / cam.s;
   }
   function moveCamera(to, ms) {
     to.zoom = clamp(to.zoom, MIN, MAX);
@@ -71,17 +89,16 @@
 
   function size() {
     w = Math.max(1, innerWidth); h = Math.max(1, innerHeight);
-    iw = Math.max(160, Math.round(w / PIXEL));
-    ih = Math.max(120, Math.round(h / PIXEL));
-    buf.width = iw; buf.height = ih;
-    view.width = iw; view.height = ih;
     view.style.width = w + 'px'; view.style.height = h + 'px';
-    // fit the whole house, then remember that as "home" — the eye keeps its place across resizes
-    fitBox(scene.bounds, iw, ih, 8);
+    // fit the whole house into the buffer at PIXEL, then remember that as "home" — the eye keeps its place across resizes
+    fit.w = Math.max(160, Math.round(w / PIXEL));
+    fit.h = Math.max(120, Math.round(h / PIXEL));
+    fitBox(scene.bounds, fit.w, fit.h, 8);
     s0 = cam.s;
-    home.x = (iw / 2 - cam.x) / s0;
-    home.y = (ih / 2 - cam.y) / s0;
+    home.x = (fit.w / 2 - cam.x) / s0;
+    home.y = (fit.h / 2 - cam.y) / s0;
     if (!placed) { placed = true; Object.assign(eye, { x: home.x, y: home.y, zoom: 1 }); }
+    pixel = 0;                                       // the buffer is sized afresh by look()
     look();
   }
   const goHome = ms => moveCamera({ x: home.x, y: home.y, zoom: 1 }, ms);
@@ -89,7 +106,7 @@
   function goRoom(id, ms) {
     const r = scene.rooms.find(r => r.id === id); if (!r) return;
     const b = scene.boundsOf(r);
-    const zoom = Math.min((iw - 16) / (b.x1 - b.x0), (ih - 16) / (b.y1 - b.y0)) / s0;
+    const zoom = Math.min((fit.w - 16) / (b.x1 - b.x0), (fit.h - 16) / (b.y1 - b.y0)) / s0;
     moveCamera({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, zoom }, ms);
   }
   /** The room whose centre is nearest the eye — the one you're looking at. */
@@ -242,7 +259,7 @@
     }
     if (!drag) return;
     const now = performance.now(), dx = e.clientX - drag.x, dy = e.clientY - drag.y, dt = Math.max(8, now - drag.t);
-    const k = 1 / (PIXEL * cam.s);                   // css px → scene units
+    const k = unitsPerCss();                         // css px → scene units
     eye.x -= dx * k; eye.y -= dy * k;
     velocity.x = lerp(velocity.x, -dx * k / dt, 0.6);
     velocity.y = lerp(velocity.y, -dy * k / dt, 0.6);
@@ -291,7 +308,7 @@
   /* ── keys ─────────────────────────────────────────────────── */
   addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const k = e.key.toLowerCase(), step = 120 / (PIXEL * cam.s);
+    const k = e.key.toLowerCase(), step = 120 * unitsPerCss();
     if (k === 'arrowleft' || k === 'a') { interrupt(); eye.x -= step; }
     else if (k === 'arrowright' || k === 'd') { interrupt(); eye.x += step; }
     else if (k === 'arrowup' || k === 'w') { interrupt(); eye.y -= step; }
