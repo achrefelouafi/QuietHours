@@ -95,7 +95,7 @@
     A.dresser(11.2, 0.35, { w: 3.7, d: 1.4, h: 2.3 });
     A.bedsideTable(0.3, 12.35, { kind: 'drawer', w: 1.4, d: 1.4, h: 1.7 });
 
-    A.pottedPlant(10.6, 8.7, 0, { r: 0.3, ph: 0.45, kind: 'leafy', size: 1.0, n: 8, seed: 63, pot: M.rustLt, rim: M.orange });
+    A.pottedPlant(7.3, 13.1, 0, { r: 0.3, ph: 0.45, kind: 'leafy', size: 1.0, n: 8, seed: 63, pot: M.rustLt, rim: M.orange });
     A.palm(14.15, 4.7, 0, { r: 0.42, size: 2.3, seed: 101 });
     A.tvStand(12.5, 7.1, { w: 2.3, d: 2.5, h: 1.3 });
     A.monstera(13.4, 10.4, 0, { r: 0.5, size: 2.4, seed: 97 });

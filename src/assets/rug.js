@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    assets/rug.js — woven rug: dark cells in a lighter grid, a
-   border, flecks. Goes warm when the lamp is on.
+   border, a few dark flecks. Goes warm when the lamp is on.
 
    rug(x, y, w, d, o)
      o.weave = true for the plain one: no cells, a diagonal weave
@@ -43,7 +43,6 @@
     for (let i = 0; i <= nx; i++) stroke([[x + 0.25 + i * cw, y + 0.25, z], [x + 0.25 + i * cw, y + d - 0.25, z]], rgb(line));
     for (let j = 0; j <= ny; j++) stroke([[x + 0.25, y + 0.25 + j * cd, z], [x + w - 0.25, y + 0.25 + j * cd, z]], rgb(line));
     stroke([[x + 0.1, y + 0.1, z], [x + w - 0.1, y + 0.1, z], [x + w - 0.1, y + d - 0.1, z], [x + 0.1, y + d - 0.1, z]], rgb(edge), 1, true);
-    grain(Math.round(w * d * 9), edge, 5, 1, R => [x + R() * w, y + R() * d, z]);
     grain(Math.round(w * d * 5), M.woodDk, 6, 1, R => [x + R() * w, y + R() * d, z]);
   };
 })(QH);
