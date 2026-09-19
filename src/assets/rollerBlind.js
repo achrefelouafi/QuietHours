@@ -6,12 +6,16 @@
    rollerBlind(wall, u, zTop, w, drop)
      housing from u to u+w at height zTop; the fabric hangs `drop`
      below it. window() calls this itself when given o.blind.
+   Returns the screen geometry of the draw — the quad from the top
+   of the housing to the hem — for hit-testing (also kept in
+   rollerBlind.last).
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { wall: W, rgb, sh, beam } = QH.draw;
+  const { P } = QH.cam;
 
-  QH.assets.rollerBlind = (wall, u, zTop, w, drop) => {
+  const rollerBlind = (wall, u, zTop, w, drop) => {
     const Wl = W[wall], R = 0.22;
     // the fabric first — it hangs just off the wall — then the roll over it
     Wl.rect(u + 0.06, zTop - drop, u + w - 0.06, zTop, sh(M.navyLt, 0.9), 0.09);
@@ -23,5 +27,10 @@
     const cu = wall === 'L' ? u + w - 0.02 : u + w - 0.02;
     beam(Wl.pt(cu, zTop - R, R), Wl.pt(cu, zTop - drop - 0.5, R), 0.025, M.greyLt, 1);
     beam(Wl.pt(cu, zTop - drop - 0.5, R), Wl.pt(cu, zTop - drop - 0.6, R), 0.06, M.greyLt, 1);
+
+    const q = [[u - 0.06, zTop + R], [u + w + 0.06, zTop + R], [u + w + 0.06, zTop - drop], [u - 0.06, zTop - drop]];
+    return (rollerBlind.last = { quad: q.map(([a, b]) => P(...Wl.pt(a, b, R))) });
   };
+  rollerBlind.last = null;
+  QH.assets.rollerBlind = rollerBlind;
 })(QH);

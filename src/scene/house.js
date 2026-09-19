@@ -8,7 +8,7 @@
    (cam.at), its own light sources and its own lamp switch made
    current — so the rooms never need to know about each other.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, blinds, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
@@ -43,6 +43,10 @@
   const lights = t => each(r => r.scene.lights(t));
   /** The lamps' screen geometry from the last draw, one per room. */
   const lamps  = () => rooms.map(r => ({ id: r.id, name: r.name, geo: r.scene.lamp() }));
+  /** The blinds' screen geometry from the last draw, in the rooms that have one. */
+  const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind }));
+  /** Is anything in a room mid-animation and wanting every frame? */
+  const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, blinds, busy, boundsOf };
 })(QH);

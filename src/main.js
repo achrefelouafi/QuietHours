@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   main.js — the canvas, the frame loop, the camera and the one
-   thing in each room you can touch: its lamp. Paints the scene
+   main.js — the canvas, the frame loop, the camera and the few
+   things you can touch: each room's lamp, and the blind over
+   room two's window. Paints the scene
    into a small offscreen buffer, snaps it to the inks, and blits
    it up pixelated.
 
@@ -62,7 +63,7 @@
   }
   const interrupt = () => { tween = null; lastMove = performance.now(); };
   const moving = now => tween !== null || pointers.size > 0 || now - lastMove < 200
-    || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5;
+    || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5 || scene.busy();
 
   function size() {
     w = Math.max(1, innerWidth); h = Math.max(1, innerHeight);
@@ -133,6 +134,29 @@
   }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
 
+  /* ── the blinds ───────────────────────────────────────────── */
+  /** Is (bx, by) inside this convex quad of screen points? */
+  function inQuad(q, bx, by) {
+    if (!q) return false;
+    let sign = 0;
+    for (let i = 0; i < 4; i++) {
+      const [ax, ay] = q[i], [cx, cy] = q[(i + 1) % 4];
+      const cross = (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
+      if (cross === 0) continue;
+      if (sign === 0) sign = Math.sign(cross); else if (Math.sign(cross) !== sign) return false;
+    }
+    return true;
+  }
+  /** Which room's blind is under this css point, or null. */
+  function overBlind(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const b of scene.blinds()) if (inQuad(b.geo && b.geo.quad, bx, by)) return b;
+    return null;
+  }
+  /** What's under this css point that you can touch: 'lamp', 'blind' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overBlind(cx, cy) ? 'blind' : null;
+  const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
+
   /* ── pointer: drag to pan, pinch to zoom, a still tap hits the lamp ── */
   const pointers = new Map();
   let drag = null, pinch = null, press = null;
@@ -152,7 +176,7 @@
   });
   view.addEventListener('pointermove', e => {
     if (!pointers.has(e.pointerId)) {
-      const on = overLamp(e.clientX, e.clientY);
+      const on = overThing(e.clientX, e.clientY);
       if (on !== hot) { hot = on; view.classList.toggle('hot', !!hot); }
       return;
     }
@@ -181,7 +205,10 @@
       drag = { x: p.x, y: p.y, t: performance.now() };
       return;
     }
-    if (press && !press.far && performance.now() - press.t < 400) { const id = overLamp(e.clientX, e.clientY); if (id) toggleLamp(id); }
+    if (press && !press.far && performance.now() - press.t < 400) {
+      const id = overLamp(e.clientX, e.clientY), b = id ? null : overBlind(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (b) b.toggle();
+    }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
     view.classList.remove('drag');
@@ -220,6 +247,7 @@
     else if (k === '0') goHome(900);
     else if (k === '1' || k === '2') goRoom(k === '1' ? 'one' : 'two', 1100);
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
+    else if (k === 'b') toggleBlind(roomInView().id);
     else return;
     e.preventDefault();
   });
@@ -261,5 +289,6 @@
   QH.app = {
     frame, size, home: () => goHome(0), room: id => goRoom(id, 0), look, eye, cam,
     setLamp: (on, id) => { for (const r of scene.rooms) if (!id || r.id === id) { setLamp(r.id, on); light.switch(r.id).v = on ? 1 : 0; } },
+    toggleBlind,
   };
 })(QH);

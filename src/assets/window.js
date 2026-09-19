@@ -9,6 +9,8 @@
      glass; o.skyline caps the buildings at that fraction of h
      (0.5); o.drops thins the rain; o.blind = 0..1 pulls a roller
      blind down over that much of the glass (see rollerBlind.js).
+   Returns the blind's screen geometry when there is one, so the
+   scene can make it something you can touch.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -63,6 +65,7 @@
     Wl.box(u + w / 2 - 0.07, z, 0.14, h, D * 0.8, M.slate, fo);
     Wl.box(u - F, z + h, w + 2 * F, F, D, M.slate, fo);
 
-    if (o.blind && A.rollerBlind) A.rollerBlind(wall, u - F, z + h + F, w + 2 * F, h * o.blind + F);
+    if (o.blind && A.rollerBlind) return A.rollerBlind(wall, u - F, z + h + F, w + 2 * F, h * o.blind + F);
+    return null;
   };
 })(QH);
