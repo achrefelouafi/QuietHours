@@ -90,7 +90,7 @@ and every file can be read on its own.
 ## The assets
 
 Every function takes a position in **world units** (room one is 14 × 14, room two
-15 × 14, rooms three and four 14 × 14, walls 8 high — 7 in the booth — origin at each room's far corner; +x runs along the back wall,
+15 × 14, room three 14 × 14, room four 15 × 14 — as wide as room two and as deep as room three, whose walls it stands on — walls 8 high — 7 in the booth — origin at each room's far corner; +x runs along the back wall,
 +y along the left wall, +z up) and an options object for size and variants. Floor
 pieces take the far corner of their footprint; wall pieces take a wall (`'L'` or `'B'` —
 or `'S'`, the booth's screen wall) and a position along it.

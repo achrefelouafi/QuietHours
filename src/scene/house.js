@@ -5,7 +5,9 @@
    on the wall's top and nothing in one room hides anything in
    another. The two upstairs rooms meet at a corner over room
    one's far corner — and room four, the booth, sits up over that
-   corner in turn, its floor on the tops of their back walls.
+   corner in turn, its floor on the tops of room two's back wall
+   and room three's left, so it's as wide as the one and as deep
+   as the other.
 
    Each room is drawn in its own coordinates with the origin moved
    (cam.at), its own light sources and its own lamp switch made

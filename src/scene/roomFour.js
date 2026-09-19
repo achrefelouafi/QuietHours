@@ -11,10 +11,12 @@
    along the open sides.
 
    Everything is placed here and nowhere else. Positions are in
-   this room's own units — 14 × 14, walls 7 high, origin at the
-   far corner, the screen wall cutting that corner from (0, 5.3)
-   to (5.3, 0) — and the scene that holds the rooms puts it where
-   it goes. Painter order, as in the other rooms.
+   this room's own units — 15 × 14 (as wide as room two, whose
+   back wall it stands on, as deep as room three, whose left wall
+   it stands on), walls 7 high, origin at the far corner, the
+   screen wall cutting that corner from (0, 5.3) to (5.3, 0) —
+   and the scene that holds the rooms puts it where it goes.
+   Painter order, as in the other rooms.
 
    Three things here you can touch: the rig — the truss with its
    spots is this room's lamp; the neon — the tubes, the ring, the
@@ -29,7 +31,7 @@
   const light = QH.light;
   const { clamp } = QH;
 
-  const room = QH.scenes.booth(14, 14, 7, 5.3, 0.4, 0.4);
+  const room = QH.scenes.booth(15, 14, 7, 5.3, 0.4, 0.4);
   const { W, D, H, C, S } = room;
   const NEON = { sw: 'four-neon' };                                    // sw: the neon's switch in light.switches
   /** How lit the neon is right now, 0..1, easing after a click. */
@@ -88,7 +90,7 @@
     A.neonFloor(5.7, 5.7, { a: 4.3, c: 1.4, on: neonOn(), t, chase: e, warm: light.lamp, traces: TRACES, clipTo: [[0, 0, 0], [W, 0, 0], [W, D, 0], [0, D, 0]] });
     // the palms stand outside, behind the walls — the walls hide their trunks, their crowns look over
     A.datePalm(-1.3, 12.1, 0, { h: 8.2, seed: 113, lean: 0.4 });
-    A.datePalm(12.1, -1.3, 0, { h: 7.8, seed: 117, lean: -0.3, n: 8 });
+    A.datePalm(13.1, -1.3, 0, { h: 7.8, seed: 117, lean: -0.3, n: 8 });
     room.walls();
 
     /* ── the screen wall: the panel, the beams down it, then the mark and the name ── */
@@ -109,13 +111,13 @@
     A.posterFrame('L', 11.9, 0.95, 1.6, 2.6, { print: true });
     A.edgeLight('L', 10.9, 13.9, H + 0.02, { on: light.lamp });
 
-    /* ── back wall, far to near ── */
+    /* ── back wall, far to near — a unit longer than the left one, the frames at its end ── */
     tubes[2] = A.neonTube('B', 6.0, 1.2, 5.0, { on: neonOn() });
     A.banner('B', 6.8, 2.3, 2.6, 3.4, { glow: 0.6 + 0.4 * neonOn() });
     tubes[3] = A.neonTube('B', 10.2, 1.2, 5.0, { on: neonOn() });
-    A.galleryFrame('B', 11.5, 4.4, 2.2, 1.4, { on: light.lamp, seed: 73 });
-    A.posterFrame('B', 11.9, 0.95, 1.6, 2.6, { print: true });
-    A.edgeLight('B', 10.9, 13.9, H + 0.02, { on: light.lamp });
+    A.galleryFrame('B', 12.5, 4.4, 2.2, 1.4, { on: light.lamp, seed: 73 });
+    A.posterFrame('B', 12.9, 0.95, 1.6, 2.6, { print: true });
+    A.edgeLight('B', 10.9, 14.9, H + 0.02, { on: light.lamp });
 
     /* ── the rig, over everything on the walls ── */
     lamp = A.truss(TRUSS, TZ, { on: light.lamp, led: neonOn(), ledSpan: 1, cans: CANS, heads: HEADS });
@@ -138,8 +140,8 @@
     A.waterCooler(7.0, 0.3, { face: '+y' });
     A.orangeDrawers(8.05, 0.35, { w: 1.1, d: 0.9, h: 1.4 });
     A.mixerDesk(9.35, 0.3, t, { w: 3.2, d: 1.5, h: 1.7 });
-    A.tallPot(13.0, 1.0, 0, { seed: 133, size: 1.6, r: 0.38 });
-    A.cactusPot(12.7, 2.3, 0, { seed: 137 });
+    A.tallPot(14.0, 1.0, 0, { seed: 133, size: 1.6, r: 0.38 });
+    A.cactusPot(13.7, 2.3, 0, { seed: 137 });
 
     // the beanbags, and whoever's sat between them
     A.beanbag(2.5, 10.6, { kind: 'orange', seed: 5 });
@@ -150,15 +152,16 @@
     A.beanbag(6.4, 12.3, { kind: 'orange', seed: 13 });
     A.beanbag(9.7, 10.2, { kind: 'orange', seed: 15 });
     A.beanbag(8.4, 11.7, { kind: 'rust', seed: 17 });
-    A.waterCooler(12.5, 12.5, { face: '+y' });
+    A.waterCooler(13.5, 12.5, { face: '+y' });
 
     // the rails along the open edges, the corner post shared
-    A.glassRail(0, 13.6, 13.9, { along: 'x' });
-    A.glassRail(13.6, 0, 13.9, { along: 'y' });
+    A.glassRail(0, 13.6, 14.9, { along: 'x' });
+    A.glassRail(14.6, 0, 13.9, { along: 'y' });
   }
   const TEXT = 'YOUR SPONSOR';                                        // the name on the screen — change it here
 
-  // the traces laid into the tiles: out from the ring toward the rails, each a few right-angled steps, mirrored across the room's diagonal
+  // the traces laid into the tiles: out from the ring toward the rails, each a few right-angled steps, mirrored across the
+  // room's diagonal — the right-hand rail being a unit further out than the left, the last legs that way run a unit longer
   const TRACES = (() => {
     const left = [
       [[1.6, 9.2], [1.6, 10.6], [0.7, 10.6]],
@@ -168,7 +171,8 @@
       [[4.4, 11.0], [4.4, 11.9], [3.6, 11.9], [3.6, 13.1]],
       [[1.2, 12.0], [1.2, 13.3]],
     ];
-    return [...left, ...left.map(T => T.map(([x, y]) => [y, x])), [[5.9, 10.9], [5.9, 13.2]], [[7.6, 9.7], [8.6, 9.7], [8.6, 10.6]], [[9.7, 7.6], [9.7, 8.6], [10.6, 8.6]]];
+    const out = v => (v > 11.5 ? v + (W - D) : v);
+    return [...left, ...left.map(T => T.map(([x, y]) => [out(y), x])), [[5.9, 10.9], [5.9, 13.2]], [[7.6, 9.7], [8.6, 9.7], [8.6, 10.6]], [[9.7, 7.6], [9.7, 8.6], [10.6, 8.6]]];
   })();
 
   /* The lighting pass: the lenses and where the beams land, the

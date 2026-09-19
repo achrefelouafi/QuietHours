@@ -41,9 +41,9 @@
 
       floor() {
         box(0, 0, -FT, W, D, FT, M.navyDk, { colTop: M.navyDk, top: 1, left: 0.85, right: 0.65, edgeCol: M.navy });
-        const T = W / 4;                                                // big tiles, four across
-        for (let i = 0; i <= W + 0.01; i += T) stroke([[i, 0, 0], [i, D, 0]], rgb(M.navy));
-        for (let j = 0; j <= D + 0.01; j += T) stroke([[0, j, 0], [W, j, 0]], rgb(M.navy));
+        const TX = W / 4, TY = D / 4;                                   // big tiles, four across each way
+        for (let i = 0; i <= W + 0.01; i += TX) stroke([[i, 0, 0], [i, D, 0]], rgb(M.navy));
+        for (let j = 0; j <= D + 0.01; j += TY) stroke([[0, j, 0], [W, j, 0]], rgb(M.navy));
         grain(Math.round(W * D * 2.0), M.floor, 3, 1, R => [R() * W, R() * D, 0.01]);
         grain(Math.round(W * D * 0.7), M.ink, 4, 1, R => [R() * W, R() * D, 0.01]);
       },
