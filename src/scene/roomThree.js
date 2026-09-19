@@ -75,7 +75,7 @@
     lightning = storm.flash();
     room.floor();
     pool(BARC[0] + 0.5, 3.3, 4.4);
-    A.bathMat(3.9, 8.6, 2.7, 1.7);
+    A.bathMat(3.9, 7.2, 2.1, 3.5);                                  // long side along the tub, a step out from its feet, clear of the towels
     room.walls();
 
     /* ── left wall, far to near ── */
