@@ -54,7 +54,7 @@
     A.wallShelf('B', 11.05, 4.6, 2.45);                         // upper (drawn over the books): a little speaker and a trailing plant
     A.speaker(11.2, 0.15, 4.7, { w: 0.45, d: 0.4, h: 0.75, rim: false });
     A.pottedPlant(12.5, 0.4, 4.7, { r: 0.22, kind: 'leafy', size: 0.6, seed: 43 });
-    A.vines(12.5, 0.75, 4.75, 1.3, 5, 44);
+    A.vines(12.5, 0.55, 4.97, 1.6, 5, 44);                     // from the pot's front rim, down past the lower board
 
     /* ── the floor, far corner outward ── */
     A.bed(0.15, 2.3, { w: 2.0, d: 3.4 });
