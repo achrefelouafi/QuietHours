@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    main.js — the canvas, the frame loop, the camera and the few
-   things you can touch: each room's lamp, and the blind over
-   room two's window. Paints the scene
+   things you can touch: each room's lamp, the neon sign and the
+   blind over the window in room two. Paints the scene
    into a small offscreen buffer, snaps it to the inks, and blits
    it up pixelated.
 
@@ -122,17 +122,43 @@
     const qx = a[0] + (b[0] - a[0]) * t, qy = a[1] + (b[1] - a[1]) * t;
     return (bx - qx) ** 2 + (by - qy) ** 2 < L.stemR * L.stemR;
   }
+  /** Is (bx, by) within r of the screen polyline `line`? */
+  function nearLine(line, r, bx, by) {
+    for (let i = 1; i < line.length; i++) {
+      const a = line[i - 1], b = line[i];
+      const len = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) || 1;
+      const t = clamp(((bx - a[0]) * (b[0] - a[0]) + (by - a[1]) * (b[1] - a[1])) / len, 0, 1);
+      const qx = a[0] + (b[0] - a[0]) * t, qy = a[1] + (b[1] - a[1]) * t;
+      if ((bx - qx) ** 2 + (by - qy) ** 2 < r * r) return true;
+    }
+    return false;
+  }
   /** Which room's lamp is under this css point, or null. */
   function overLamp(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
     for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
     return null;
   }
-  function setLamp(id, on) {
-    light.set(id, on);
-    stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')).join(String.fromCharCode(10));
+  /** The slate: each room's lamp, and the neon where there is one. */
+  function showState() {
+    const neonOf = Object.fromEntries(scene.neons().map(n => [n.id, n.sw]));
+    stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')
+      + (neonOf[r.id] ? ' · neon ' + (light.isOn(neonOf[r.id]) ? 'on' : 'off') : '')).join(String.fromCharCode(10));
   }
+  function setLamp(id, on) { light.set(id, on); showState(); }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
+
+  /* ── the neon ─────────────────────────────────────────────── */
+  /** The neon sign under this css point, or null. */
+  function overNeon(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const n of scene.neons()) if (n.geo && nearLine(n.geo.line, n.geo.r, bx, by)) return n;
+    return null;
+  }
+  function setNeon(sw, on) { light.set(sw, on); showState(); }
+  const toggleNeon = sw => setNeon(sw, !light.isOn(sw));
+  /** Switch the neon in this room, if it has one. */
+  const toggleNeonIn = id => { const n = scene.neons().find(n => n.id === id); if (n) toggleNeon(n.sw); };
 
   /* ── the blinds ───────────────────────────────────────────── */
   /** Is (bx, by) inside this convex quad of screen points? */
@@ -153,8 +179,8 @@
     for (const b of scene.blinds()) if (inQuad(b.geo && b.geo.quad, bx, by)) return b;
     return null;
   }
-  /** What's under this css point that you can touch: 'lamp', 'blind' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overBlind(cx, cy) ? 'blind' : null;
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : null;
   const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
 
   /* ── pointer: drag to pan, pinch to zoom, a still tap hits the lamp ── */
@@ -206,8 +232,9 @@
       return;
     }
     if (press && !press.far && performance.now() - press.t < 400) {
-      const id = overLamp(e.clientX, e.clientY), b = id ? null : overBlind(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (b) b.toggle();
+      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY);
+      const b = id || n ? null : overBlind(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle();
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -248,6 +275,7 @@
     else if (k === '1' || k === '2') goRoom(k === '1' ? 'one' : 'two', 1100);
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
     else if (k === 'b') toggleBlind(roomInView().id);
+    else if (k === 'n') toggleNeonIn(roomInView().id);
     else return;
     e.preventDefault();
   });
@@ -289,6 +317,7 @@
   QH.app = {
     frame, size, home: () => goHome(0), room: id => goRoom(id, 0), look, eye, cam,
     setLamp: (on, id) => { for (const r of scene.rooms) if (!id || r.id === id) { setLamp(r.id, on); light.switch(r.id).v = on ? 1 : 0; } },
+    setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     toggleBlind,
   };
 })(QH);

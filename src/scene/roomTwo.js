@@ -9,9 +9,10 @@
    origin at its far corner — and the scene that holds both rooms
    puts it where it goes. Painter order, as in room one.
 
-   Two things here you can touch: the lamp, and the blind over
-   the window — a click runs it all the way down over the glass,
-   another runs it back up to where it hangs.
+   Three things here you can touch: the lamp, the neon over the
+   shelf (its own switch, off and on like the lamp), and the blind
+   over the window — a click runs it all the way down over the
+   glass, another runs it back up to where it hangs.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -23,7 +24,9 @@
   const TABLE = { x: 0.3, y: 3.9, w: 2.1, d: 2.0, h: 2.1 };            // the lamp table
   const LAMP = { x: 1.05, y: 4.55, head: [0.35, 0.65, 1.55] };
   const HEAD = [LAMP.x + LAMP.head[0], LAMP.y + LAMP.head[1], TABLE.h + LAMP.head[2]];
-  const NEON = { u: 10.6, z: 6.0, w: 3.8 };
+  const NEON = { u: 10.6, z: 6.0, w: 3.8, sw: 'two-neon' };            // sw: its switch in light.switches
+  /** How lit the neon is right now, 0..1, easing after a click. */
+  const neonOn = () => light.switch(NEON.sw).v;
   const WINDOW = { u: 1.3, z: 2.0, w: 4.7, h: 4.55, moon: [0.7, 0.44] };
 
   /* ── the blind ────────────────────────────────────────────────
@@ -54,10 +57,10 @@
   // what shades the faces: the lamp, the neon, and the moon a little
   const sources = [
     { x: HEAD[0], y: HEAD[1], z: HEAD[2] - 0.2, range: 10, k: 0.6, on: () => light.lamp },
-    { x: NEON.u + NEON.w * 0.4, y: 0.15, z: NEON.z + 0.5, range: 6.5, k: 0.32, on: () => 1 },
+    { x: NEON.u + NEON.w * 0.4, y: 0.15, z: NEON.z + 0.5, range: 7.5, k: 0.38, on: neonOn },
     { x: 4.7, y: 0.1, z: 3.6, range: 4.5, k: 0.1, on: moonOut },
   ];
-  let lamp = null;
+  let lamp = null, neon = null;
 
   function draw(t) {
     easeBlind();
@@ -73,7 +76,7 @@
 
     /* ── back wall, far to near ── */
     blindGeo = A.window('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { moon: WINDOW.moon, skyline: 0.32, blind: blind.v, drops: 22, seed: 9 });
-    A.neonSign('B', NEON.u, NEON.z, NEON.w, { h: 0.9 });
+    neon = A.neonSign('B', NEON.u, NEON.z, NEON.w, { h: 0.9, on: neonOn() });
     A.wallShelf('B', 10.5, 3.6, 3.9, { depth: 0.9 });
     A.snakePlant(11.15, 0.45, 3.7, { r: 0.3, ph: 0.55, size: 1.35, n: 10, seed: 85 });
     A.bookRow(12.35, 0.15, 3.7, 1.75, { along: 'x', depth: 0.6, seed: 47, hMin: 0.7, hMax: 0.95, cols: [M.navy, M.rustLt, M.slate, M.orange, M.greyDk, M.cream] });
@@ -107,7 +110,10 @@
     light.glow(hx + 0.6, hy + 2.2, TABLE.h - 0.6, 5.5, [220, 130, 50], 0.08 * f);   // warm wash over the bed head
     light.glow(0.1, 3.9, 5.0, 3.0, [220, 140, 60], 0.05 * f);                       // up the wall, onto the prints
 
-    A.neonSign.halo(0.9 + 0.1 * Math.sin(t * 9.7) * Math.sin(t * 3.1));           // the neon, flickering a little
+    const n = neonOn() * (0.9 + 0.1 * Math.sin(t * 9.7) * Math.sin(t * 3.1));   // the neon, flickering a little
+    A.neonSign.halo(n);
+    light.glow(NEON.u + NEON.w * 0.45, 0.6, 3.9, 3.2, [235, 130, 45], 0.14 * n);    // its pool on the shelf and the dresser top
+    light.glow(NEON.u + NEON.w * 0.5, 0.1, NEON.z + 1.2, 3.6, [220, 120, 40], 0.06 * n); // and up the wall above it
     light.glow(4.6, 0, 4.0, 1.0, [200, 220, 255], 0.1 * moonOut());                 // the moon, until the blind hides it
     light.glow(3.9, 0, 3.0, 4.0, [70, 100, 150], (0.04 + 0.05 * (1 - light.lamp)) * cityOut());   // the city, more of it with the lamp off
     light.end();
@@ -115,6 +121,7 @@
 
   QH.scenes.roomTwo = {
     room, sources, draw, lights, lamp: () => lamp,
+    neon: () => neon, neonSwitch: NEON.sw,
     blind: () => blindGeo, toggleBlind, blindDown, busy: blindBusy,
   };
 })(QH);

@@ -11,7 +11,9 @@ Open `index.html`. No build step, no dependencies, no server.
 
 - drag to look around, scroll to zoom, `1` / `2` fly to a room, `0` comes home
 - click a lamp to switch it off and on (`L`, `Enter` or `Space` do the one in view)
-- that's it. The lamps are the only things in the rooms you can touch.
+- click the neon in the bedroom to switch it off and on (`N`)
+- click the bedroom blind to run it down over the window and back up (`B`)
+- that's it. Those are the only things in the rooms you can touch.
 
 Each room is built from two pictures in `docs/`: `reference.png` / `reference2.jpg`
 is the whole scene, `assets.png` / `assets2.png` is every piece of furniture on its own.
@@ -99,7 +101,7 @@ Room two:
 | `wardrobe.js` | tall wardrobe: two panelled doors, handles, a drawer, the grain showing | `wardrobe(x, y, {w, d, h})` |
 | `dresser.js` | low dark dresser, six drawers with orange handles | `dresser(x, y, {w, d, h, cols, rows})` |
 | `tvStand.js` | the low stand, and `tv(x, y, z, {w, h, turn})` — the screen turned to face the bed | `tvStand(x, y, {w, d, h, bare})` |
-| `neonSign.js` | a neon tube bent into hills; `neonSign.halo(k)` adds its glow in the lighting pass | `neonSign(wall, u, z, w, {h, pts})` |
+| `neonSign.js` | a neon tube bent into hills, lit by `on` (0..1); returns its screen polyline for hit-testing; `neonSign.halo(k)` adds its glow in the lighting pass | `neonSign(wall, u, z, w, {h, pts, on})` |
 | `rollerBlind.js` | roll, fabric, hem bar, cord — `window()` draws one when given `blind` | `rollerBlind(wall, u, zTop, w, drop)` |
 | `runner.js` | small jute mat with fringe | `runner(x, y, w, d)` |
 | `monstera.js` | split-leaf plant on tall stems | `monstera(x, y, z, {r, size, n})` |
@@ -191,11 +193,12 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two      # framed on room two
+node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two 0    # …with the neon off
 node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the desk
 ```
 
