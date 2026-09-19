@@ -5,8 +5,9 @@
    deskLamp(x, y, z, o)
      base centre at (x, y) on a surface at height z.
      o.head = [dx, dy, dz] puts the shade relative to the base.
-   deskLamp.last — screen geometry of the last draw, for hit-testing.
-   The halo itself is added by the scene's lighting pass.
+   Returns the screen geometry of the draw, for hit-testing (also
+   kept in deskLamp.last). The halo itself is added by the scene's
+   lighting pass.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -29,7 +30,7 @@
     cyl(HX, HY, HZ, 0.44, 0.38, M.navy, { n: 14, rt: 0.16, colTop: M.navyLt });
 
     const h = P(HX, HY, HZ + 0.15), b = P(x, y, z), j = P(x, y, jz);
-    deskLamp.last = { head: h, r: 0.7 * cam.s, stem: [b, j], stemR: 0.3 * cam.s };
+    return (deskLamp.last = { head: h, r: 0.7 * cam.s, stem: [b, j], stemR: 0.3 * cam.s });
   };
   deskLamp.last = null;
   QH.assets.deskLamp = deskLamp;

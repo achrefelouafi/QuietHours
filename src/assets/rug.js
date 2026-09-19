@@ -3,6 +3,8 @@
    border, flecks. Goes warm when the lamp is on.
 
    rug(x, y, w, d, o)
+     o.weave = true for the plain one: no cells, a diagonal weave
+     and a double border instead.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -11,6 +13,22 @@
 
   QH.assets.rug = (x, y, w, d, o = {}) => {
     const z = 0.02;
+    if (o.weave) {
+      // the plain one: a redder ground, herringbone rows of ticks leaning one way then the other, two borders
+      const g = light.warm(M.rustLt, M.orangeDk), tick = light.warm(M.rust, M.rustLt), bd = light.warm(M.rust, M.rustLt);
+      poly([[x, y, z], [x + w, y, z], [x + w, y + d, z], [x, y + d, z]], rgb(g));
+      let row = 0;
+      for (let j = 0.45; j < d - 0.45; j += 0.22, row++) {
+        const lean = row & 1 ? 0.14 : -0.14;
+        for (let i = 0.5; i < w - 0.5; i += 0.3) stroke([[x + i, y + j - 0.07, z], [x + i + lean, y + j + 0.07, z]], rgb(tick));
+      }
+      stroke([[x + 0.1, y + 0.1, z], [x + w - 0.1, y + 0.1, z], [x + w - 0.1, y + d - 0.1, z], [x + 0.1, y + d - 0.1, z]], rgb(bd), 1, true);
+      stroke([[x + 0.32, y + 0.32, z], [x + w - 0.32, y + 0.32, z], [x + w - 0.32, y + d - 0.32, z], [x + 0.32, y + d - 0.32, z]], rgb(light.warm(M.orangeDk, M.orange)), 1, true);
+      grain(Math.round(w * d * 6), light.warm(M.orangeDk, M.orange), 5, 1, R => [x + R() * w, y + R() * d, z]);
+      grain(Math.round(w * d * 5), M.rustDk, 6, 1, R => [x + R() * w, y + R() * d, z]);
+      return;
+    }
+
     const base = light.warm(M.rustDk, M.rust), cell = light.warm(M.woodDk, M.rustDk);
     const line = light.warm(M.rust, M.rustLt), edge = light.warm(M.rustLt, M.orangeDk);
     poly([[x, y, z], [x + w, y, z], [x + w, y + d, z], [x, y + d, z]], rgb(base));

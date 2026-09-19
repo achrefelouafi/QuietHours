@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>quiet hours — room one</title>
+<title>quiet hours</title>
 <style>
   :root{ --bg:#050b14; --ink:#8ea0b8; --dim:#3f5170; --amber:#e6a24a; }
   *{box-sizing:border-box}
@@ -20,15 +20,17 @@
   #stage:focus-visible{outline:2px solid var(--amber); outline-offset:-4px}
   .slate{ position:fixed; left:18px; top:16px; pointer-events:none; letter-spacing:.06em; color:var(--dim); }
   .slate b{display:block; color:var(--ink); font-weight:400; font-size:13px}
+  .slate span{white-space:pre-line}
   .hint{ position:fixed; right:18px; bottom:14px; margin:0; color:var(--dim); letter-spacing:.04em; text-align:right; pointer-events:none; }
   @media (max-width:640px){ .slate{left:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
 </style>
 </head>
 <body>
 <canvas id="stage" tabindex="0"
-        aria-label="An isometric pixel-art bedroom at night: a desk lamp lights a desk under a rain-streaked window. Drag to look around, scroll to zoom, click the lamp to switch it off and on."></canvas>
-<div class="slate"><b>quiet hours</b><span id="state">lamp on</span></div>
-<p class="hint">drag to look around · scroll to zoom · click the lamp</p>
+        aria-label="Two isometric pixel-art rooms at night, one stacked on the other: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom. Drag to look around, scroll to zoom, press 1 or 2 to fly to a room, click a lamp to switch it off and on."></canvas>
+<div class="slate"><b>quiet hours</b><span id="state">room one · lamp on
+room two · lamp on</span></div>
+<p class="hint">drag to look around · scroll to zoom · 1 / 2 fly to a room · click a lamp</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>
@@ -38,7 +40,7 @@
 <script src="src/engine/draw.js"></script>
 <script src="src/engine/light.js"></script>
 
-<!-- assets: one file per thing in docs/assets.png -->
+<!-- assets: one file per thing in docs/assets.png (room one) and docs/assets2.png (room two) -->
 <script src="src/assets/props.js"></script>
 <script src="src/assets/bed.js"></script>
 <script src="src/assets/sofa.js"></script>
@@ -66,10 +68,23 @@
 <script src="src/assets/monitor.js"></script>
 <script src="src/assets/keyboard.js"></script>
 <script src="src/assets/chest.js"></script>
+<script src="src/assets/platformBed.js"></script>
+<script src="src/assets/bedsideTable.js"></script>
+<script src="src/assets/wardrobe.js"></script>
+<script src="src/assets/dresser.js"></script>
+<script src="src/assets/tvStand.js"></script>
+<script src="src/assets/neonSign.js"></script>
+<script src="src/assets/rollerBlind.js"></script>
+<script src="src/assets/runner.js"></script>
+<script src="src/assets/monstera.js"></script>
+<script src="src/assets/fern.js"></script>
+<script src="src/assets/palm.js"></script>
 
-<!-- the room -->
+<!-- the rooms, and the house that holds them -->
 <script src="src/scene/room.js"></script>
 <script src="src/scene/roomOne.js"></script>
+<script src="src/scene/roomTwo.js"></script>
+<script src="src/scene/house.js"></script>
 <script src="src/main.js"></script>
 </body>
 </html>

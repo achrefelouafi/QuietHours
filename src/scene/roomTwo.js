@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════════════════
+   scene/roomTwo.js — room two: the bedroom upstairs. A big bed
+   under three prints, a lamp on the table beside it, the moon in
+   a half-blinded window, a wardrobe, a neon line of hills over a
+   shelf and a dresser, plants everywhere.
+
+   Everything is placed here and nowhere else. Positions are in
+   this room's own units — the room is 15 × 14, walls 8 high,
+   origin at its far corner — and the scene that holds both rooms
+   puts it where it goes. Painter order, as in room one.
+   ═══════════════════════════════════════════════════════════════ */
+(QH => {
+  const M = QH.M;
+  const A = QH.assets;
+  const light = QH.light;
+
+  const room = QH.scenes.room(15, 14, 8, 0.4, 0.4);
+  const TABLE = { x: 0.3, y: 3.9, w: 2.1, d: 2.0, h: 2.1 };            // the lamp table
+  const LAMP = { x: 1.05, y: 4.55, head: [0.35, 0.65, 1.55] };
+  const HEAD = [LAMP.x + LAMP.head[0], LAMP.y + LAMP.head[1], TABLE.h + LAMP.head[2]];
+  const NEON = { u: 10.6, z: 6.0, w: 3.8 };
+
+  // what shades the faces: the lamp, the neon, and the moon a little
+  const sources = [
+    { x: HEAD[0], y: HEAD[1], z: HEAD[2] - 0.2, range: 10, k: 0.6, on: () => light.lamp },
+    { x: NEON.u + NEON.w * 0.4, y: 0.15, z: NEON.z + 0.5, range: 6.5, k: 0.32, on: () => 1 },
+    { x: 4.7, y: 0.1, z: 3.6, range: 4.5, k: 0.1, on: () => 1 },
+  ];
+  let lamp = null;
+
+  function draw(t) {
+    room.floor();
+    A.runner(2.9, 0.9, 2.1, 3.4);
+    A.rug(7.7, 4.4, 4.5, 8.2, { weave: true });
+    room.walls();
+
+    /* ── left wall, far to near ── */
+    A.poster('L', 1.3, 5.35, 1.0, 1.2, { art: 'stars' });
+    A.poster('L', 1.3, 3.65, 1.0, 1.3, { art: 'mountain' });
+    A.poster('L', 2.85, 3.5, 2.0, 3.2, { art: 'moon' });
+
+    /* ── back wall, far to near ── */
+    A.window('B', 1.3, 2.0, 4.7, 4.55, t, { moon: [0.7, 0.44], skyline: 0.32, blind: 0.4, drops: 22, seed: 9 });
+    A.neonSign('B', NEON.u, NEON.z, NEON.w, { h: 0.9 });
+    A.wallShelf('B', 10.5, 3.6, 3.9, { depth: 0.9 });
+    A.snakePlant(11.15, 0.45, 3.7, { r: 0.3, ph: 0.55, size: 1.35, n: 10, seed: 85 });
+    A.bookRow(12.35, 0.15, 3.7, 1.75, { along: 'x', depth: 0.6, seed: 47, hMin: 0.7, hMax: 0.95, cols: [M.navy, M.rustLt, M.slate, M.orange, M.greyDk, M.cream] });
+
+    /* ── the floor, far corner outward ── */
+    A.snakePlant(0.8, 0.8, 0, { r: 0.42, size: 2.3, n: 12, seed: 83 });
+    A.bedsideTable(TABLE.x, TABLE.y, { kind: 'open', w: TABLE.w, d: TABLE.d, h: TABLE.h });
+    lamp = A.deskLamp(LAMP.x, LAMP.y, TABLE.h, { head: LAMP.head });
+    A.openBook(1.35, 4.95, TABLE.h, { w: 0.95, d: 0.65 });
+
+    A.wardrobe(6.5, 0.1, { w: 3.6, d: 1.4, h: 6.6 });
+    A.platformBed(0.3, 5.9, { w: 6.9, d: 6.3 });
+    A.dresser(11.2, 0.35, { w: 3.7, d: 1.4, h: 2.3 });
+    A.bedsideTable(0.3, 12.35, { kind: 'drawer', w: 1.4, d: 1.4, h: 1.7 });
+
+    A.pottedPlant(10.6, 8.7, 0, { r: 0.3, ph: 0.45, kind: 'leafy', size: 1.0, n: 8, seed: 63, pot: M.rustLt, rim: M.orange });
+    A.palm(14.15, 4.7, 0, { r: 0.42, size: 2.3, seed: 101 });
+    A.tvStand(12.5, 7.1, { w: 2.3, d: 2.5, h: 1.3 });
+    A.monstera(13.4, 10.4, 0, { r: 0.5, size: 2.4, seed: 97 });
+    A.fern(14.0, 12.4, 0, { r: 0.48, size: 1.8, seed: 89 });
+  }
+
+  /* The lighting pass: the lamp's small halo and its pool over the
+     bed head, the neon's wash on the wall, the moon on the glass. */
+  function lights(t) {
+    light.begin();
+    const f = light.lamp * (0.92 + 0.08 * Math.sin(t * 6.3) * Math.sin(t * 2.9));
+    const [hx, hy, hz] = HEAD;
+    light.glow(hx, hy, hz - 0.15, 0.5, [255, 200, 120], 0.35 * f);                 // the bulb
+    light.glow(hx + 0.2, hy + 0.3, TABLE.h, 2.4, [255, 170, 80], 0.24 * f);         // pool on the table
+    light.glow(hx + 0.6, hy + 2.2, TABLE.h - 0.6, 5.5, [220, 130, 50], 0.08 * f);   // warm wash over the bed head
+    light.glow(0.1, 3.9, 5.0, 3.0, [220, 140, 60], 0.05 * f);                       // up the wall, onto the prints
+
+    A.neonSign.halo(0.9 + 0.1 * Math.sin(t * 9.7) * Math.sin(t * 3.1));           // the neon, flickering a little
+    light.glow(4.6, 0, 4.0, 1.0, [200, 220, 255], 0.1);                             // the moon
+    light.glow(3.9, 0, 3.0, 4.0, [70, 100, 150], 0.04 + 0.05 * (1 - light.lamp));   // the city, more of it with the lamp off
+    light.end();
+  }
+
+  QH.scenes.roomTwo = { room, sources, draw, lights, lamp: () => lamp };
+})(QH);

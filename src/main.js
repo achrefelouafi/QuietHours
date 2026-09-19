@@ -1,20 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
    main.js — the canvas, the frame loop, the camera and the one
-   thing you can touch: the lamp. Paints the scene into a small
-   offscreen buffer, snaps it to the inks, and blits it up
-   pixelated.
+   thing in each room you can touch: its lamp. Paints the scene
+   into a small offscreen buffer, snaps it to the inks, and blits
+   it up pixelated.
 
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
    or pinch to zoom about the pointer, arrows / WASD / + - 0 on
-   the keyboard, double-click to lean in and back out.
+   the keyboard, 1 and 2 to fly to a room, double-click to lean
+   in and back out.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { clamp, lerp } = QH;
-  const { cam, fit } = QH.cam;
+  const { cam, fitBox } = QH.cam;
   const draw = QH.draw, light = QH.light;
-  const scene = QH.scenes.roomOne;
+  const scene = QH.scenes.house;
 
   const view = document.getElementById('stage');
   const stateEl = document.getElementById('state');
@@ -23,7 +24,7 @@
   const buf = document.createElement('canvas');
   const bctx = buf.getContext('2d', { willReadFrequently: true });
   const vctx = view.getContext('2d');
-  let iw = 0, ih = 0, w = 0, h = 0, hot = false, lampOn = true;
+  let iw = 0, ih = 0, w = 0, h = 0, hot = null;
 
   /* ── camera ──────────────────────────────────────────────────
      `eye` is the scene point (projection at s = 1) sitting at the
@@ -70,8 +71,8 @@
     buf.width = iw; buf.height = ih;
     view.width = iw; view.height = ih;
     view.style.width = w + 'px'; view.style.height = h + 'px';
-    // fit the whole room, then remember that as "home" — the eye keeps its place across resizes
-    fit(scene.room.W, scene.room.D, scene.room.H, iw, ih, 8);
+    // fit the whole house, then remember that as "home" — the eye keeps its place across resizes
+    fitBox(scene.bounds, iw, ih, 8);
     s0 = cam.s;
     home.x = (iw / 2 - cam.x) / s0;
     home.y = (ih / 2 - cam.y) / s0;
@@ -79,6 +80,22 @@
     look();
   }
   const goHome = ms => moveCamera({ x: home.x, y: home.y, zoom: 1 }, ms);
+  /** Fly to one room: centre it and zoom until it fills the view. */
+  function goRoom(id, ms) {
+    const r = scene.rooms.find(r => r.id === id); if (!r) return;
+    const b = scene.boundsOf(r);
+    const zoom = Math.min((iw - 16) / (b.x1 - b.x0), (ih - 16) / (b.y1 - b.y0)) / s0;
+    moveCamera({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, zoom }, ms);
+  }
+  /** The room whose centre is nearest the eye — the one you're looking at. */
+  function roomInView() {
+    let best = null, bd = Infinity;
+    for (const r of scene.rooms) {
+      const b = scene.boundsOf(r), d = Math.hypot((b.x0 + b.x1) / 2 - eye.x, (b.y0 + b.y1) / 2 - eye.y);
+      if (d < bd) { bd = d; best = r; }
+    }
+    return best;
+  }
 
   function frame(ms) {
     const t = ms / 1000;
@@ -94,11 +111,9 @@
     vctx.putImageData(snap, 0, 0);
   }
 
-  /* ── the lamp ─────────────────────────────────────────────── */
-  function overLamp(cx, cy) {
-    const L = scene.lamp();
+  /* ── the lamps ────────────────────────────────────────────── */
+  function hits(L, bx, by) {
     if (!L) return false;
-    const [bx, by] = toBuf(cx, cy);
     if ((bx - L.head[0]) ** 2 + (by - L.head[1]) ** 2 < L.r * L.r) return true;
     const [a, b] = L.stem;
     const len = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) || 1;
@@ -106,11 +121,17 @@
     const qx = a[0] + (b[0] - a[0]) * t, qy = a[1] + (b[1] - a[1]) * t;
     return (bx - qx) ** 2 + (by - qy) ** 2 < L.stemR * L.stemR;
   }
-  function setLamp(on) {
-    lampOn = on;
-    light.target = on ? 1 : 0;
-    stateEl.textContent = on ? 'lamp on' : 'lamp off';
+  /** Which room's lamp is under this css point, or null. */
+  function overLamp(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
+    return null;
   }
+  function setLamp(id, on) {
+    light.set(id, on);
+    stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')).join(String.fromCharCode(10));
+  }
+  const toggleLamp = id => setLamp(id, !light.isOn(id));
 
   /* ── pointer: drag to pan, pinch to zoom, a still tap hits the lamp ── */
   const pointers = new Map();
@@ -127,12 +148,12 @@
       const [a, b] = [...pointers.values()];
       pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom: eye.zoom, anchor: toScene((a.x + b.x) / 2, (a.y + b.y) / 2) };
     }
-    hot = false; view.classList.remove('hot'); view.classList.add('drag');
+    hot = null; view.classList.remove('hot'); view.classList.add('drag');
   });
   view.addEventListener('pointermove', e => {
     if (!pointers.has(e.pointerId)) {
       const on = overLamp(e.clientX, e.clientY);
-      if (on !== hot) { hot = on; view.classList.toggle('hot', hot); }
+      if (on !== hot) { hot = on; view.classList.toggle('hot', !!hot); }
       return;
     }
     interrupt();
@@ -160,7 +181,7 @@
       drag = { x: p.x, y: p.y, t: performance.now() };
       return;
     }
-    if (press && !press.far && performance.now() - press.t < 400 && overLamp(e.clientX, e.clientY)) setLamp(!lampOn);
+    if (press && !press.far && performance.now() - press.t < 400) { const id = overLamp(e.clientX, e.clientY); if (id) toggleLamp(id); }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
     view.classList.remove('drag');
@@ -168,7 +189,7 @@
   };
   view.addEventListener('pointerup', up);
   view.addEventListener('pointercancel', up);
-  view.addEventListener('pointerleave', () => { hot = false; view.classList.remove('hot'); });
+  view.addEventListener('pointerleave', () => { hot = null; view.classList.remove('hot'); });
 
   /* ── wheel: zoom about the pointer ────────────────────────── */
   view.addEventListener('wheel', e => {
@@ -197,7 +218,8 @@
     else if (k === '+' || k === '=') { interrupt(); zoomAbout(eye.zoom * 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
     else if (k === '-' || k === '_') { interrupt(); zoomAbout(eye.zoom / 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
     else if (k === '0') goHome(900);
-    else if (k === 'enter' || k === ' ' || k === 'l') setLamp(!lampOn);
+    else if (k === '1' || k === '2') goRoom(k === '1' ? 'one' : 'two', 1100);
+    else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
     else return;
     e.preventDefault();
   });
@@ -232,8 +254,12 @@
     if (moving(now) || now - last > 33) { frame(still ? 4200 : now); last = now; }
   }
   size();
+  setLamp('one', true);
   requestAnimationFrame(loop);
 
   /* exposed so tools/preview.js can render a frame outside the browser */
-  QH.app = { frame, size, home: () => goHome(0), look, eye, cam, setLamp: on => { setLamp(on); light.lamp = light.target; } };
+  QH.app = {
+    frame, size, home: () => goHome(0), room: id => goRoom(id, 0), look, eye, cam,
+    setLamp: (on, id) => { for (const r of scene.rooms) if (!id || r.id === id) { setLamp(r.id, on); light.switch(r.id).v = on ? 1 : 0; } },
+  };
 })(QH);

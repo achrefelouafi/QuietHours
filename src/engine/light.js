@@ -6,14 +6,23 @@
    glow() composites soft radial gradients over it with 'lighter'.
    The quantiser turns those into stepped rings of ink.
 
-   `lamp` is 0..1 and eases toward `target`, so switching the lamp
-   off is one number changing.
+   Each room has its own lamp, a `switch` that is 0..1 and eases
+   toward its target. use(name) makes one of them the current
+   `lamp`, which is what warm() and the assets read — so switching
+   a lamp off is still one number changing.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { mix, clamp } = QH;
   const { P, cam } = QH.cam;
 
-  const light = { lamp: 1, target: 1, sources: [] };
+  const light = { lamp: 1, target: 1, sources: [], switches: {} };
+
+  /** The switch called `name`, made on first use (on). */
+  light.switch = name => light.switches[name] || (light.switches[name] = { v: 1, target: 1 });
+  /** Make one switch the lamp the assets read. */
+  light.use = name => { const s = light.switch(name); light.lamp = s.v; light.target = s.target; };
+  light.set = (name, on) => { light.switch(name).target = on ? 1 : 0; };
+  light.isOn = name => light.switch(name).target > 0.5;
 
   /** Brightness of a face at p with normal n: its base factor plus
       whatever the point lights add. Each source is
@@ -35,8 +44,10 @@
   light.warm = (dark, lit, k = 1) => mix(dark, lit, clamp(light.lamp * k, 0, 1));
 
   light.ease = () => {
-    light.lamp += (light.target - light.lamp) * 0.12;
-    if (Math.abs(light.target - light.lamp) < 0.005) light.lamp = light.target;
+    for (const s of Object.values(light.switches)) {
+      s.v += (s.target - s.v) * 0.12;
+      if (Math.abs(s.target - s.v) < 0.005) s.v = s.target;
+    }
   };
 
   light.begin = () => { QH.draw.g.globalCompositeOperation = 'lighter'; };

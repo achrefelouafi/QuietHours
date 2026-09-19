@@ -5,11 +5,12 @@
 
    mug · penCup · photoFrame · notepad · book · bookRow · smallBox
    crate · lidBox · vinyl · radio · laptop · journal · turntable
+   openBook · bookStack · ball
    pottedPlant (+ spikes, leaves, vines)
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
-  const { box, cyl, disc, discX, discY, ring, beam, dot, rectX, rectY, poly, rgb, sh } = QH.draw;
+  const { box, cyl, disc, discX, discY, ring, beam, dot, rectX, rectY, poly, stroke, rgb, sh } = QH.draw;
   const { TAU, rnd, mix } = QH;
   const light = QH.light;
   const A = QH.assets;
@@ -199,11 +200,39 @@
     }
   };
 
-  /** Small potted plant. o.kind = 'spiky' (default) | 'leafy'. */
+  /** A book lying open: two pages, a spine, a few lines of print. */
+  A.openBook = (x, y, z, o = {}) => {
+    const w = o.w || 0.9, d = o.d || 0.62, h = 0.07;
+    box(x, y, z, w, d, h, M.silver, { colTop: M.cream, top: 0.98, left: 0.8, right: 0.65, edgeCol: M.grey });
+    stroke([[x + w / 2, y, z + h + 0.01], [x + w / 2, y + d, z + h + 0.01]], rgb(M.greyLt));
+    for (const px of [x + 0.1, x + w / 2 + 0.1]) for (let i = 0; i < 3; i++) {
+      beam([px, y + 0.14 + i * 0.15, z + h + 0.01], [px + w / 2 - 0.2, y + 0.14 + i * 0.15, z + h + 0.01], 0.02, M.greyLt, 1);
+    }
+  };
+
+  /** A few books stacked flat, each a little offset. */
+  A.bookStack = (x, y, z, o = {}) => {
+    const cols = o.cols || [M.navy, light.warm(M.rustLt, M.orange), M.slate], R = rnd(o.seed || 17);
+    let zz = z;
+    for (let i = 0; i < cols.length; i++) {
+      const w = (o.w || 0.7) - i * 0.05, d = (o.d || 0.5) - i * 0.03, h = 0.1 + R() * 0.05;
+      A.book(x + (R() - 0.5) * 0.08, y + (R() - 0.5) * 0.08, zz, w, d, cols[i], { h });
+      zz += h;
+    }
+  };
+
+  /** A ball — a sphere reads as a disc with a highlight. */
+  A.ball = (x, y, z, r, col = M.greyDk) => {
+    disc(x, y, z + r, r, rgb(col), 12);
+    stroke([[x - r, y, z + r], [x, y - r, z + r]], rgb(mix(col, M.silver, 0.5)));
+    dot(x - r * 0.3, y - r * 0.3, z + r + 0.02, 1, M.silver);
+  };
+
+  /** Small potted plant. o.kind = 'spiky' (default) | 'leafy'; o.pot recolours the pot. */
   A.pottedPlant = (x, y, z, o = {}) => {
     const r = o.r || 0.2, ph = o.ph || 0.3, size = o.size || 0.7, seed = o.seed || 11;
-    cyl(x, y, z, r * 0.85, ph, M.navyLt, { n: 10, rt: r, colTop: M.woodDk, topK: 1 });
-    ring(x, y, z + ph + 0.005, r, rgb(light.warm(M.rust, M.orangeDk)), 10);
+    cyl(x, y, z, r * 0.85, ph, o.pot || M.navyLt, { n: 10, rt: r, colTop: M.woodDk, topK: 1 });
+    ring(x, y, z + ph + 0.005, r, rgb(o.rim || light.warm(M.rust, M.orangeDk)), 10);
     if ((o.kind || 'spiky') === 'spiky') A.spikes(x, y, z + ph - 0.03, size, o.n || 8, seed);
     else A.leaves(x, y, z + ph - 0.03, size, o.n || 7, seed);
   };

@@ -19,10 +19,12 @@
   const HEAD = [LAMP.x + LAMP.head[0], LAMP.y + LAMP.head[1], T + LAMP.head[2]];
 
   // what shades the faces: the lamp, and a little from the strip light
-  light.sources = [
+  const sources = [
     { x: HEAD[0], y: HEAD[1], z: HEAD[2] - 0.2, range: 11, k: 0.6, on: () => light.lamp },
     { x: 10.3, y: 0.1, z: 6.4, range: 6, k: 0.2, on: () => 1 },
   ];
+  light.sources = sources;
+  let lamp = null;                                                    // the lamp's screen geometry, for the click
 
   function draw(t) {
     room.floor();
@@ -52,7 +54,7 @@
     A.bed(0.15, 2.3, { w: 2.0, d: 3.4 });
 
     A.desk(2.4, 0.4, { w: 7.0, d: 1.9 });
-    A.deskLamp(LAMP.x, LAMP.y, T, { head: LAMP.head });
+    lamp = A.deskLamp(LAMP.x, LAMP.y, T, { head: LAMP.head });
     A.book(2.65, 1.55, T, 0.7, 0.5, M.cream, { h: 0.1 });               // in front of the lamp base
     A.journal(2.7, 1.55, T + 0.1, { w: 0.6, d: 0.45, col: light.warm(M.rustLt, M.orange) });
     A.monitor(3.9, 0.75, T, t, { w: 2.0, h: 1.45 });
@@ -99,5 +101,5 @@
     light.end();
   }
 
-  QH.scenes.roomOne = { room, draw, lights, lamp: () => A.deskLamp.last };
+  QH.scenes.roomOne = { room, sources, draw, lights, lamp: () => lamp };
 })(QH);
