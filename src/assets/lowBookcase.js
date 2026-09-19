@@ -12,7 +12,7 @@
 
   QH.assets.lowBookcase = (x, y, o = {}) => {
     const w = o.w || 2.4, d = o.d || 1.0, h = o.h || 1.2;
-    box(x, y, 0, w, d, h, M.navy, { colTop: M.navyLt, rim: light.warm(M.rust, M.orangeDk) });
+    box(x, y, 0, w, d, h, M.navy, { colTop: M.navyLt });
     const cw = (w - 0.4) / 2;
     for (let i = 0; i < 2; i++) {
       const cx = x + 0.13 + i * (cw + 0.14);

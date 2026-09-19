@@ -141,10 +141,12 @@
     A.tallPot(14.0, 1.0, 0, { seed: 133, size: 1.6, r: 0.38 });
     A.cactusPot(13.7, 2.3, 0, { seed: 137 });
 
-    // the lounge, from docs/sofas.jpg: a green chair looking out over each rail — one by the left rail, one by
-    // the right — and the two cream chairs turned in toward each other over the room's diagonal, a corner between them
+    // the lounge, from docs/sofas.jpg: two green chairs looking out over each rail — a pair by the left rail, a pair
+    // by the right — and the two cream chairs turned in toward each other over the room's diagonal, a corner between them
     A.frameChair(2.35, 10.1, { face: '+y', size: 0.65 });
+    A.frameChair(5.3, 10.1, { face: '+y', size: 0.65 });
     A.frameChair(10.4, 2.95, { face: '+x', size: 0.65 });
+    A.frameChair(10.4, 5.3, { face: '+x', size: 0.65 });
     A.clubChair(8.8, 10.4, { face: '+x', size: 0.65, w: 2.9 });
     A.clubChair(10.4, 8.8, { face: '+y', size: 0.65, w: 2.9 });
     A.waterCooler(13.5, 12.5, { face: '+y' });

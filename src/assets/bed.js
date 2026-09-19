@@ -19,14 +19,13 @@
 
   QH.assets.bed = (x, y, o = {}) => {
     const w = o.w || 2.0, d = o.d || 3.4, rail = o.rail !== false;
-    const rim = light.warm(M.rust, M.orangeDk);
     const RT = 0.4, RH = 1.9;                                          // rail thickness, height
 
     // rail down the wall side, headboard across the head. The rail owns
     // the corner: the headboard starts at x so it has no face inside the
     // rail, and being drawn second it hides the rail's face inside it.
-    if (rail) box(x - RT, y - RT, 0, RT, d + RT + 0.1, RH, M.navyLt, { colTop: M.slate, rim });
-    box(x, y - RT, 0, w + 0.1, RT, RH, M.navyLt, { colTop: M.slate, rim });
+    if (rail) box(x - RT, y - RT, 0, RT, d + RT + 0.1, RH, M.navyLt, { colTop: M.slate });
+    box(x, y - RT, 0, w + 0.1, RT, RH, M.navyLt, { colTop: M.slate });
 
     // legs, then the base they carry
     const LZ = 0.25;

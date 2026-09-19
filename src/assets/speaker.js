@@ -5,8 +5,7 @@
 
    speaker(x, y, z, o)
      footprint x..x+w by y..y+d, standing on z, h tall.
-     Cones face o.face ('+y' default | '+x'). o.rim = false for
-     the small ones.
+     Cones face o.face ('+y' default | '+x').
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -15,7 +14,7 @@
 
   QH.assets.speaker = (x, y, z, o = {}) => {
     const w = o.w || 0.85, d = o.d || 0.8, h = o.h || 2.9, face = o.face || '+y';
-    box(x, y, z, w, d, h, M.navy, { colTop: M.navyLt, rim: o.rim === false ? null : light.warm(M.rust, M.orangeDk) });
+    box(x, y, z, w, d, h, M.navy, { colTop: M.navyLt });
     const ring = light.warm(M.orangeDk, M.orange), R1 = Math.min(w, d) * 0.34, R2 = R1 * 0.55;
     if (face === '+y') {
       const cx = x + w / 2, py = y + d + 0.01;

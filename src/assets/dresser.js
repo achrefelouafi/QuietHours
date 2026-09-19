@@ -9,13 +9,12 @@
 (QH => {
   const M = QH.M;
   const { box, rectY, rgb, sh, beam } = QH.draw;
-  const light = QH.light;
 
   QH.assets.dresser = (x, y, o = {}) => {
     const w = o.w || 3.7, d = o.d || 1.4, h = o.h || 2.3, cols = o.cols || 3, rows = o.rows || 2, L = 0.25;
     for (const [lx, ly] of [[x + 0.1, y + d - 0.25], [x + w - 0.25, y + d - 0.25], [x + w - 0.25, y + 0.1]]) box(lx, ly, 0, 0.15, 0.15, L, M.ink, { edge: false });
     box(x, y, L, w, d, h - L - 0.1, M.navy, { colTop: M.navyLt, colLeft: M.navy, colRight: M.navyDk });
-    box(x - 0.04, y - 0.04, h - 0.1, w + 0.08, d + 0.08, 0.1, M.navy, { colTop: M.navyLt, rim: light.warm(M.rust, M.orangeDk) });
+    box(x - 0.04, y - 0.04, h - 0.1, w + 0.08, d + 0.08, 0.1, M.navy, { colTop: M.navyLt });
 
     // the drawers: a lighter front in a dark reveal, a handle low on each
     const fy = y + d, gap = 0.1, dw = (w - gap * (cols + 1)) / cols, dh = (h - L - 0.2 - gap * (rows + 1)) / rows;

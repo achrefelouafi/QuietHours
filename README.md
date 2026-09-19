@@ -23,6 +23,8 @@ Open `index.html`. No build step, no dependencies, no server.
   in the bathroom the lamp is the bar light over the mirror; in the booth it's the rig
   of spots on the truss, beams and all
 - click the strip light over the poster downstairs to switch it off and on (`T`)
+- click the screen of the PC on the desk downstairs to switch it off and on (`M`) —
+  the code fades out and the glass goes dark, and its glow on the desk with it
 - click the neon in the bedroom, or a neon tube in the booth, to switch it off and on
   (`N`) — in the booth that's the tubes, the ring round the stage, the traces in the
   floor and the strip under the truss, on one switch
@@ -117,7 +119,7 @@ Room one:
 | `chest.js` | storage chest, books on top | `chest(x, y, {w, d, h})` |
 | `snakePlant.js` | the big spiky plant | `snakePlant(x, y, z, {r, size, n})` |
 | `headphones.js` | headphones on a stand | `headphones(x, y, z, {size})` |
-| `monitor.js` | monitor with code on the screen | `monitor(x, y, z, t, {w, h})` |
+| `monitor.js` | monitor with code on the screen, dark when switched off | `monitor(x, y, z, t, {w, h, on})` |
 | `keyboard.js` | keyboard, and `mouse(x, y, z)` | `keyboard(x, y, z, {w, d})` |
 | `door.js` | door, frame, plate, handle, mat, hall light | `door(wall, u, {w, h, mat})` |
 | `window.js` | night sky, city, rain, frame; a crescent, a lower skyline and a blind on request; with `flash` the sky whitens and a bolt forks down it. Returns the glass's screen quad for the click, and the blind's geometry | `window(wall, u, z, w, h, t, {moon, skyline, blind, drops, flash, bolt})` |
@@ -344,7 +346,7 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
@@ -352,6 +354,7 @@ node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two      # framed on room two
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two 0    # …with the neon off
 node tools/preview.js bed.png 4.2 1100 760 1 1 0 0 two 1 1 "" "" "" 1   # …the duvet turned down (last arg: how far, 0..1)
 node tools/preview.js one.png 4.2 1100 760 1 1 0 0 one 1 0  # room one with the strip light off
+node tools/preview.js one.png 4.2 1100 760 1 1 0 0 one 1 1 "" "" "" "" "" 0   # …with the PC off (last arg)
 node tools/preview.js desk.png 4.2 1100 760 1 1 0 0 one 1 1 "" "" "" "" 1   # …the chair rolled in under the desk (last arg: how far, 0..1)
 node tools/preview.js three.png 4.2 1100 760 1 1 0 0 three  # framed on room three
 node tools/preview.js bolt.png 4.2 1100 760 1 1 0 0 three 1 1 0   # …at the peak of the lightning (last arg: seconds since the strike)

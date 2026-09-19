@@ -8,11 +8,11 @@
 (QH => {
   const M = QH.M;
   const { box, rectY, rgb, sh } = QH.draw;
-  const light = QH.light, A = QH.assets;
+  const A = QH.assets;
 
   QH.assets.filingCabinet = (x, y, o = {}) => {
     const w = o.w || 1.0, d = o.d || 1.0, h = o.h || 1.75;
-    box(x, y, 0, w, d, h, M.navy, { colTop: M.navyLt, rim: light.warm(M.rust, M.orangeDk) });
+    box(x, y, 0, w, d, h, M.navy, { colTop: M.navyLt });
     const dh = (h - 0.2) / 3;
     for (let i = 0; i < 3; i++) {
       const z0 = 0.12 + i * dh, z1 = z0 + dh - 0.08, zm = (z0 + z1) / 2;

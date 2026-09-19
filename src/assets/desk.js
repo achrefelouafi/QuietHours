@@ -14,11 +14,10 @@
   const H = 2.4;                                                     // height of the top surface
   const desk = (x, y, o = {}) => {
     const w = o.w || 7.0, d = o.d || 1.9, T = 0.16;
-    const rim = light.warm(M.rust, M.orangeDk);
 
     // pedestal with drawers
     const pw = o.pedestal || 1.8, px0 = x + w - pw - 0.1;
-    box(px0, y + 0.1, 0, pw, d - 0.2, H - T, M.navy, { colTop: M.navyLt, rim });
+    box(px0, y + 0.1, 0, pw, d - 0.2, H - T, M.navy, { colTop: M.navyLt });
     const dh = (H - T - 0.3) / 3;
     for (let i = 0; i < 3; i++) {
       const z0 = 0.2 + i * dh, z1 = z0 + dh - 0.08, zm = (z0 + z1) / 2;

@@ -13,7 +13,7 @@
    (cam.at), its own light sources and its own lamp switch made
    current — so the rooms never need to know about each other.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, pcs, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
@@ -64,6 +64,8 @@
   const neons  = () => rooms.filter(r => r.scene.neon).map(r => ({ id: r.id, name: r.name, kind: 'neon', geo: r.scene.neon(), sw: r.scene.neonSwitch }));
   /** The strip lights' screen geometry from the last draw, with the switch each one is on. */
   const strips = () => rooms.filter(r => r.scene.strip).map(r => ({ id: r.id, name: r.name, kind: 'strip', geo: r.scene.strip(), sw: r.scene.stripSwitch }));
+  /** The PCs' screen geometry from the last draw — the glass of the monitor — with the switch each one is on, in the rooms with one. */
+  const pcs    = () => rooms.filter(r => r.scene.pc).map(r => ({ id: r.id, name: r.name, kind: 'pc', geo: r.scene.pc(), sw: r.scene.pcSwitch }));
   /** The blinds' screen geometry from the last draw, in the rooms that have one. */
   const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind }));
   /** The duvets' screen geometry from the last draw, in the rooms with a bed you can turn down. */
@@ -79,5 +81,5 @@
   /** Is anything in a room mid-animation and wanting every frame? */
   const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, pcs, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf };
 })(QH);

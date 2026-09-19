@@ -13,7 +13,7 @@
   QH.assets.nightstand = (x, y, o = {}) => {
     const w = o.w || 1.0, d = o.d || 1.0, h = o.h || 1.9, face = o.face || '+x';
     for (const [lx, ly] of [[x + 0.05, y + d - 0.2], [x + w - 0.2, y + d - 0.2], [x + w - 0.2, y + 0.05]]) box(lx, ly, 0, 0.15, 0.15, 0.15, M.ink, { edge: false });
-    box(x, y, 0.15, w, d, h - 0.15, M.navy, { colTop: M.navyLt, rim: light.warm(M.rust, M.orangeDk) });
+    box(x, y, 0.15, w, d, h - 0.15, M.navy, { colTop: M.navyLt });
     const dh = (h - 0.6) / 2;
     for (let i = 0; i < 2; i++) {
       const z0 = 0.35 + i * dh, z1 = z0 + dh - 0.1, zm = (z0 + z1) / 2;

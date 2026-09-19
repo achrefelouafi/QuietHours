@@ -166,10 +166,10 @@
     for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
     return null;
   }
-  /** The slate: each room's lamp, and the strip or neon where there is one. */
+  /** The slate: each room's lamp, and the strip, neon or PC where there is one. */
   function showState() {
     stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')
-      + wallLights().filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')).join(String.fromCharCode(10));
+      + [...wallLights(), ...scene.pcs()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')).join(String.fromCharCode(10));
   }
   function setLamp(id, on) { light.set(id, on); showState(); }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
@@ -190,6 +190,16 @@
   const toggleNeon = sw => setNeon(sw, !light.isOn(sw));
   /** Switch the neon (or strip, as asked) in this room, if it has one. */
   const toggleNeonIn = (id, kind = 'neon') => { const n = wallLights().find(n => n.id === id && n.kind === kind); if (n) toggleNeon(n.sw); };
+
+  /* ── the PCs ──────────────────────────────────────────────── */
+  /** Which room's PC screen is under this css point, or null — { id, name, kind, geo, sw }, on a switch like the wall lights. */
+  function overPc(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const p of scene.pcs()) if (inPoly(p.geo && p.geo.quad, bx, by)) return p;
+    return null;
+  }
+  /** Switch the PC in this room, if it has one. */
+  const togglePcIn = id => { const p = scene.pcs().find(p => p.id === id); if (p) toggleNeon(p.sw); };
 
   /* ── the blinds ───────────────────────────────────────────── */
   /** Is (bx, by) inside this convex polygon of screen points? */
@@ -267,8 +277,8 @@
   /** Run the show in this room — every room's, with no id. `at` is when it began (now). */
   const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -328,7 +338,7 @@
       return;
     }
     if (press && !press.far && performance.now() - press.t < 400) {
-      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY);
+      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY) || overPc(e.clientX, e.clientY);
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
       const dv = id || n || b ? null : overDuvet(e.clientX, e.clientY);
       const ch = id || n || b || dv ? null : overChair(e.clientX, e.clientY);
@@ -380,6 +390,7 @@
     else if (k === 'c') toggleChair(roomInView().id);
     else if (k === 'n') toggleNeonIn(roomInView().id);
     else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
+    else if (k === 'm') togglePcIn(roomInView().id);
     else if (k === 'f') strike(roomInView().id);
     else if (k === 'p') playShow(roomInView().id);
     else return;
@@ -424,6 +435,7 @@
     setLamp: (on, id) => { for (const r of scene.rooms) if (!id || r.id === id) { setLamp(r.id, on); light.switch(r.id).v = on ? 1 : 0; } },
     setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
+    setPc: (on, id) => { for (const p of scene.pcs()) if (!id || p.id === id) { setNeon(p.sw, on); light.switch(p.sw).v = on ? 1 : 0; } },
     toggleBlind, toggleDuvet, toggleChair,
     setDuvet: (v, id) => { for (const d of scene.duvets()) if (!id || d.id === id) d.set(v); },   // the duvet turned down this far, 0..1, in one room or every room's
     setChair: (v, id) => { for (const c of scene.chairs()) if (!id || c.id === id) c.set(v); },   // the chair rolled this far under the desk, 0..1, in one room or every room's

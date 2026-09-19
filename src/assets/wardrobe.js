@@ -19,7 +19,7 @@
 
     box(x + 0.08, y + 0.08, 0, w - 0.16, d - 0.16, 0.3, M.rustDk, { edge: false });   // plinth, set back
     box(x, y, 0.3, w, d, h - 0.3, face, { colTop: top, colLeft: face, colRight: side, left: 0.92, right: 0.72 });
-    box(x - 0.05, y - 0.05, h - 0.25, w + 0.1, d + 0.1, 0.25, face, { colTop: top, colLeft: face, colRight: side, left: 0.92, right: 0.72, rim: M.amber });   // cornice
+    box(x - 0.05, y - 0.05, h - 0.25, w + 0.1, d + 0.1, 0.25, face, { colTop: top, colLeft: face, colRight: side, left: 0.92, right: 0.72 });   // cornice
 
     // the drawer band and the two doors, drawn as inset panels on the face
     const dk = rgb(M.rustLt);

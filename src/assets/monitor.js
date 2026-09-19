@@ -6,12 +6,17 @@
    monitor(x, y, z, t, o)
      panel from x to x+w (2.0), back edge at y, screen facing +y,
      stand on a surface at z. t is seconds; the typing is a fixed
-     cycle of it, so the screen is the same for the same t.
+     cycle of it, so the screen is the same for the same t. o.on
+     is how lit the screen is, 0..1 (1): at 0 it's dark glass
+     with nothing on it, and between the code fades in with it.
+     Returns the screen's geometry on screen, for the click:
+     { quad } — the glass, four screen points.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { box, rectY, rgb, clip, unclip } = QH.draw;
-  const { rnd } = QH;
+  const { rnd, mix } = QH;
+  const { P } = QH.cam;
 
   /* ── the file being written ──────────────────────────────────
      A cycle of lines, each with its indent, its tokens, how fast
@@ -46,6 +51,7 @@
 
   QH.assets.monitor = (x, y, z, t = 0, o = {}) => {
     const w = o.w || 2.0, h = o.h || 1.45, lift = 0.5;
+    const on = o.on === undefined ? 1 : o.on;
     // base straddles the panel's back edge; the neck sits under the panel
     // (not in front of it) so its top disappears into the panel's underside
     box(x + w / 2 - 0.35, y - 0.1, z, 0.7, 0.5, 0.06, M.navyDk, { colTop: M.navy });
@@ -54,7 +60,11 @@
 
     const sy = y + 0.085, z0 = z + lift + 0.06, z1 = z + lift + h - 0.06;
     const x0 = x + 0.06, x1 = x + w - 0.06;
-    rectY(sy, x0, z0, x1, z1, rgb(M.slate));
+    const glass = mix(M.ink, M.slate, on);                   // the screen: dark glass off, slate lit
+    rectY(sy, x0, z0, x1, z1, rgb(glass));
+    const quad = [[x0, z0], [x1, z0], [x1, z1], [x0, z1]].map(([a, b]) => P(a, sy, b));
+    if (on <= 0) return { quad };                             // switched off: nothing on it
+    const lit = c => rgb(mix(glass, c, on));                  // everything on the screen fades in with it
 
     // where we are in the file: the line under the cursor, how far into it
     const tt = ((t % period) + period) % period;
@@ -69,27 +79,28 @@
     const t0 = sy + 0.01, t1 = sy + 0.02;
 
     clip([[x0, sy, z0], [x1, sy, z0], [x1, sy, z1], [x0, sy, z1]]);
-    rectY(t0, x0, rowZ(ROWS - 1) - 0.04, x1 - 0.08, rowZ(ROWS - 1) + 0.09, rgb(M.navyLt));   // the line being written
+    rectY(t0, x0, rowZ(ROWS - 1) - 0.04, x1 - 0.08, rowZ(ROWS - 1) + 0.09, lit(M.navyLt));   // the line being written
     // from the row sliding out over the top down to the cursor's, which slides in from under the bottom edge
     for (let r = -1; r < ROWS; r++) {
       const i = cur - (ROWS - 1 - r), L = lines[((i % N) + N) % N], lz = rowZ(r);
       const done = r < ROWS - 1 ? L.chars : typed;            // the rows above are finished; the cursor's is as far as it's got
-      rectY(t0, gx, lz, gx + 0.06, lz + 0.05, rgb(M.sky));    // the gutter: line numbers
+      rectY(t0, gx, lz, gx + 0.06, lz + 0.05, lit(M.sky));    // the gutter: line numbers
       for (const wd of L.words) {
         const c1 = Math.min(wd.c1, done);
         if (c1 <= wd.c0) break;
         const wx = tx + (L.indent * 3 + wd.c0) * CH;
-        rectY(t1, wx, lz, wx + (c1 - wd.c0) * CH, lz + 0.05, rgb(wd.col));
+        rectY(t1, wx, lz, wx + (c1 - wd.c0) * CH, lz + 0.05, lit(wd.col));
       }
     }
     // the cursor: solid while the line's being typed, blinking while it thinks
     const cx = tx + (lines[cur].indent * 3 + typed) * CH, cz = rowZ(ROWS - 1);
-    if (typed < lines[cur].chars || Math.floor(t * 2.5) % 2 === 0) rectY(t1, cx, cz - 0.01, cx + 0.07, cz + 0.07, rgb(M.cream));
+    if (typed < lines[cur].chars || Math.floor(t * 2.5) % 2 === 0) rectY(t1, cx, cz - 0.01, cx + 0.07, cz + 0.07, lit(M.cream));
     // the scrollbar, its thumb creeping down as the file grows
     const next = cur + 1 < N ? lines[cur + 1].at : period;
     const sx = x1 - 0.06, sz = z1 - 0.08 - (z1 - z0 - 0.4) * ((cur + el / (next - lines[cur].at)) / N);
-    rectY(t0, sx, z0 + 0.06, sx + 0.03, z1 - 0.06, rgb(M.navyLt));
-    rectY(t1, sx, sz - 0.24, sx + 0.03, sz, rgb(M.sky));
+    rectY(t0, sx, z0 + 0.06, sx + 0.03, z1 - 0.06, lit(M.navyLt));
+    rectY(t1, sx, sz - 0.24, sx + 0.03, sz, lit(M.sky));
     unclip();
+    return { quad };
   };
 })(QH);

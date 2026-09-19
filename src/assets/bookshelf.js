@@ -9,11 +9,10 @@
 (QH => {
   const M = QH.M;
   const { box } = QH.draw;
-  const light = QH.light, A = QH.assets;
+  const A = QH.assets;
 
   QH.assets.bookshelf = (x, y, o = {}) => {
     const w = o.w || 2.7, dp = o.depth || 1.1, H = o.h || 4.8, n = 4, post = 0.1;
-    const rim = light.warm(M.rust, M.orangeDk);
     const boards = [];
     for (let i = 0; i <= n; i++) boards.push(0.12 + i * (H - 0.12) / n);
 
@@ -21,7 +20,7 @@
     box(x, y + w - post, 0, post, post, H, M.navyLt);
 
     boards.forEach((z, i) => {
-      box(x, y, z, dp, w, 0.08, M.navy, { colTop: M.navyLt, rim });
+      box(x, y, z, dp, w, 0.08, M.navy, { colTop: M.navyLt });
       const zt = z + 0.08, row = (u, len, seed, hi) => A.bookRow(x + 0.2, y + u, zt, len, { along: 'y', depth: 0.7, seed, hMin: 0.65, hMax: hi || 0.95 });
       switch (i) {
         case 0: row(0.15, w - 0.3, 51); break;
@@ -33,7 +32,7 @@
       }
     });
 
-    box(x + dp - post, y, 0, post, post, H, M.navyLt, { rim });         // front posts
-    box(x + dp - post, y + w - post, 0, post, post, H, M.navyLt, { rim });
+    box(x + dp - post, y, 0, post, post, H, M.navyLt);                  // front posts
+    box(x + dp - post, y + w - post, 0, post, post, H, M.navyLt);
   };
 })(QH);

@@ -8,11 +8,12 @@
    Things are drawn back to front — the order below is the painter
    order, so keep it when moving furniture.
 
-   Four things here you can touch: the lamp, the strip light on
-   the back wall, each on its own switch, the window — a click
-   brings lightning over the city, and thunder a beat after — and
-   the blanket on the daybed, turned down toward the foot and
-   back with a click.
+   Six things here you can touch: the lamp, the strip light on
+   the back wall and the PC on the desk, each on its own switch,
+   the window — a click brings lightning over the city, and
+   thunder a beat after — the blanket on the daybed, turned down
+   toward the foot and back with a click, and the desk chair,
+   rolled in under the desk and back out.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -28,6 +29,10 @@
   /** How lit the strip light is right now, 0..1, easing after a click. */
   const stripOn = () => light.switch(STRIP.sw).v;
   const WINDOW = { u: 1.05, z: 2.3, w: 6.65, h: 4.3 };
+  const PC = { sw: 'one-pc' };                                        // the monitor on the desk: its switch in light.switches
+  /** How lit the PC's screen is right now, 0..1, easing after a click. */
+  const pcOn = () => light.switch(PC.sw).v;
+  let pcGeo = null;                                                   // the screen's geometry from the last draw, for the click
 
   // the storm outside the window: a click strikes it (see engine/storm.js)
   const storm = QH.storm();
@@ -73,7 +78,7 @@
     A.bookRow(11.2, 0.12, 3.7, 1.0, { along: 'x', depth: 0.55, seed: 45, hMin: 0.5, hMax: 0.7 });
     A.smallBox(12.45, 0.15, 3.7, 0.7, 0.5, 0.35, M.navy);
     A.wallShelf('B', 11.05, 4.6, 2.45);                         // upper (drawn over the books): a little speaker and a trailing plant
-    A.speaker(11.2, 0.15, 4.7, { w: 0.45, d: 0.4, h: 0.75, rim: false });
+    A.speaker(11.2, 0.15, 4.7, { w: 0.45, d: 0.4, h: 0.75 });
     A.pottedPlant(12.5, 0.4, 4.7, { r: 0.22, kind: 'leafy', size: 0.6, seed: 43 });
     A.vines(12.5, 0.55, 4.97, 1.6, 5, 44);                     // from the pot's front rim, down past the lower board
 
@@ -84,13 +89,13 @@
     lamp = A.deskLamp(LAMP.x, LAMP.y, T, { head: LAMP.head });
     A.book(2.65, 1.55, T, 0.7, 0.5, M.cream, { h: 0.1 });               // in front of the lamp base
     A.journal(2.7, 1.55, T + 0.1, { w: 0.6, d: 0.45, col: light.warm(M.rustLt, M.orange) });
-    A.monitor(3.9, 0.75, T, t, { w: 2.0, h: 1.45 });
+    pcGeo = A.monitor(3.9, 0.75, T, t, { w: 2.0, h: 1.45, on: pcOn() });
     A.keyboard(4.1, 1.45, T, { w: 1.9, d: 0.6 });
     A.mouse(6.3, 1.7, T);
     A.photoFrame(6.7, 1.2, T);
     A.penCup(7.45, 1.0, T);
     A.notepad(7.3, 1.7, T);
-    A.speaker(8.1, 0.85, T, { w: 0.35, d: 0.35, h: 0.6, rim: false });
+    A.speaker(8.1, 0.85, T, { w: 0.35, d: 0.35, h: 0.6 });
 
     A.nightstand(0.15, 5.85, { face: '+x' });
     chairGeo = A.chair(CHAIR.x, lerp(CHAIR.out, CHAIR.in, chair.v));
@@ -121,7 +126,7 @@
 
     A.stripLight.halo(stripOn());                                                // the strip light
 
-    light.glow(4.9, 0.8, T + 1.2, 1.5, [70, 120, 190], 0.09);                    // monitor
+    light.glow(4.9, 0.8, T + 1.2, 1.5, [70, 120, 190], 0.09 * pcOn());            // monitor
     light.glow(4.4, 0, 4.5, 4.5, [60, 90, 140], 0.03 + 0.05 * (1 - light.lamp)); // the city, more of it with the lamp off
     light.glow(0.2, 11.65, 0.05, 1.3, [180, 200, 230], 0.12);                    // hall light under the door
 
@@ -137,6 +142,7 @@
     room, sources, draw, lights,
     lamp: () => lamp,
     strip: () => strip, stripSwitch: STRIP.sw,
+    pc: () => pcGeo, pcSwitch: PC.sw,
     duvet: () => duvetGeo, toggleDuvet: duvet.toggle, duvetOpen: duvet.open, setDuvet: duvet.set,
     chair: () => chairGeo, toggleChair: chair.toggle, chairIn: chair.open, setChair: chair.set,
     storm: () => windowGeo, strike: storm.strike,

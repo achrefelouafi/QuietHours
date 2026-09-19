@@ -23,7 +23,7 @@
     leg(x + w - LEG, y);
     leg(x, y + d - LEG);
     if (o.shelf) {
-      box(x + LEG * 0.5, y + LEG * 0.5, SHELF - 0.08, w - LEG, d - LEG, 0.08, frame, { colTop: M.navy, top: 0.9, rim: light.warm(M.rustDk, M.rustLt) });
+      box(x + LEG * 0.5, y + LEG * 0.5, SHELF - 0.08, w - LEG, d - LEG, 0.08, frame, { colTop: M.navy, top: 0.9 });
       if (!o.bare) A.towelStack(x + LEG + 0.12, y + LEG + 0.12, SHELF, { w: w - 2 * LEG - 0.3, d: d - 2 * LEG - 0.3, cols: o.towels || ['navy', 'slate', 'rust', 'orange'] });
     }
     leg(x + w - LEG, y + d - LEG);

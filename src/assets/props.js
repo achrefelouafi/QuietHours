@@ -101,7 +101,7 @@
   A.lidBox = (x, y, z, o = {}) => {
     const w = o.w || 0.9, d = o.d || 1.0, h = o.h || 0.6;
     box(x, y, z, w, d, h - 0.12, M.navyDk);
-    box(x - 0.04, y - 0.04, z + h - 0.12, w + 0.08, d + 0.08, 0.12, M.navy, { colTop: M.navyLt, rim: light.warm(M.rust, M.orangeDk) });
+    box(x - 0.04, y - 0.04, z + h - 0.12, w + 0.08, d + 0.08, 0.12, M.navy, { colTop: M.navyLt });
     rectX(x + w + 0.01, y + d * 0.35, z + 0.15, y + d * 0.65, z + h - 0.2, rgb(light.warm(M.rustLt, M.orangeDk)));
   };
 
