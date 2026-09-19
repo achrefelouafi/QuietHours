@@ -2,10 +2,11 @@
    main.js — the canvas, the frame loop, the camera and the few
    things you can touch: each room's lamp (in room three, the bar
    light over the mirror), the strip light in room one, the neon
-   sign and the blind over the window in room two — and every
-   plant, whose leaves part and sway under the pointer and shake
-   at a tap. Paints the scene into a small offscreen buffer, snaps
-   it to the inks, and blits it up pixelated.
+   sign and the blind over the window in room two, every window
+   for the lightning — and every plant, whose leaves part and sway
+   under the pointer and shake at a tap. Paints the scene into a
+   small offscreen buffer, snaps it to the inks, and blits it up
+   pixelated.
 
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
@@ -187,14 +188,14 @@
   const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
 
   /* ── the storm ────────────────────────────────────────────── */
-  /** Which room's rain window is under this css point, or null. */
+  /** Which room's window is under this css point, or null. */
   function overStorm(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
     for (const s of scene.storms()) if (inQuad(s.geo && s.geo.quad, bx, by)) return s;
     return null;
   }
-  /** Lightning over this room's window, if it has one. `at` is when the strike began (now). */
-  const strike = (id, at) => { const s = scene.storms().find(s => s.id === id); if (s) s.strike(at); };
+  /** Lightning over this room's window — every room's, with no id. `at` is when the strike began (now). */
+  const strike = (id, at) => { for (const s of scene.storms()) if (!id || s.id === id) s.strike(at); };
 
   /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm' or null. */
   const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : null;
@@ -347,6 +348,6 @@
     setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     toggleBlind,
-    strike: (id = 'three', ago = 0) => strike(id, performance.now() - ago * 1000),   // `ago` seconds into the flash
+    strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
   };
 })(QH);

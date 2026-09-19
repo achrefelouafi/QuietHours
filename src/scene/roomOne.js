@@ -8,8 +8,9 @@
    Things are drawn back to front — the order below is the painter
    order, so keep it when moving furniture.
 
-   Two things here you can touch: the lamp, and the strip light on
-   the back wall, each on its own switch.
+   Three things here you can touch: the lamp, the strip light on
+   the back wall, each on its own switch, and the window — a click
+   brings lightning over the city, and thunder a beat after.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -23,16 +24,23 @@
   const STRIP = { u: 8.8, z: 6.4, w: 3.0, sw: 'one-strip' };          // sw: its switch in light.switches
   /** How lit the strip light is right now, 0..1, easing after a click. */
   const stripOn = () => light.switch(STRIP.sw).v;
+  const WINDOW = { u: 1.05, z: 2.3, w: 6.65, h: 4.3 };
 
-  // what shades the faces: the lamp, and a little from the strip light
+  // the storm outside the window: a click strikes it (see engine/storm.js)
+  const storm = QH.storm();
+  let windowGeo = null, lightning = 0;                                // the glass's screen geometry, for the click; how bright the lightning is this frame
+
+  // what shades the faces: the lamp, a little from the strip light — and the lightning, hard and cold, while it lasts
   const sources = [
     { x: HEAD[0], y: HEAD[1], z: HEAD[2] - 0.2, range: 11, k: 0.6, on: () => light.lamp },
     { x: STRIP.u + STRIP.w / 2, y: 0.1, z: STRIP.z, range: 6, k: 0.2, on: stripOn },
+    { x: WINDOW.u + WINDOW.w / 2, y: 0.05, z: WINDOW.z + WINDOW.h / 2, range: 13, k: 0.7, on: () => lightning },
   ];
   light.sources = sources;
   let lamp = null, strip = null;                                      // screen geometry of the lamp and the strip, for the click
 
   function draw(t) {
+    lightning = storm.flash();
     room.floor();
     A.rug(2.2, 3.9, 7.1, 4.0);
     room.walls();
@@ -45,7 +53,7 @@
     A.door('L', 10.4, { w: 2.5, h: 5.3 });
 
     /* ── back wall, far to near ── */
-    A.window('B', 1.05, 2.3, 6.65, 4.3, t);
+    windowGeo = A.window('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { flash: lightning, bolt: storm.seed });
     strip = A.stripLight('B', STRIP.u, STRIP.z, STRIP.w, { on: stripOn() });
     A.poster('B', 9.25, 3.0, 1.45, 2.75, { art: 'sun' });
     A.wallShelf('B', 11.05, 3.6, 2.45);                         // lower: books and a box
@@ -103,6 +111,12 @@
     light.glow(4.9, 0.8, T + 1.2, 1.5, [70, 120, 190], 0.09);                    // monitor
     light.glow(4.4, 0, 4.5, 4.5, [60, 90, 140], 0.03 + 0.05 * (1 - light.lamp)); // the city, more of it with the lamp off
     light.glow(0.2, 11.65, 0.05, 1.3, [180, 200, 230], 0.12);                    // hall light under the door
+
+    // the lightning: a cold wash from the window, hardest on the glass, over the desk and out across the floor
+    const wu = WINDOW.u + WINDOW.w / 2, wz = WINDOW.z + WINDOW.h / 2;
+    light.glow(wu, 0.1, wz, 4.5, [200, 215, 240], 0.3 * lightning);
+    light.glow(wu, 1.5, WINDOW.z, 9, [150, 175, 220], 0.32 * lightning);
+    light.glow(wu + 1, 5, 1.0, 11, [110, 140, 200], 0.14 * lightning);
     light.end();
   }
 
@@ -110,5 +124,6 @@
     room, sources, draw, lights,
     lamp: () => lamp,
     strip: () => strip, stripSwitch: STRIP.sw,
+    storm: () => windowGeo, strike: storm.strike, busy: storm.busy,
   };
 })(QH);

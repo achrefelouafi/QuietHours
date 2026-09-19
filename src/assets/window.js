@@ -9,28 +9,36 @@
      glass; o.skyline caps the buildings at that fraction of h
      (0.5); o.drops thins the rain; o.blind = 0..1 pulls a roller
      blind down over that much of the glass (see rollerBlind.js).
-   Returns the blind's screen geometry when there is one, so the
-   scene can make it something you can touch.
+     o.flash (0..1) is how bright the lightning is right now; past
+     half, a bolt shows (lightning.js), its shape from o.bolt (any
+     integer — change it for a new one).
+   Returns the screen geometry of the draw, for hit-testing (also
+   kept in window.last): the glass's quad, and the blind's geometry
+   when there is one, or null.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { wall: W, rgb, beam, dot, clip, unclip } = QH.draw;
-  const { rnd } = QH;
+  const { rnd, mix } = QH;
+  const { P } = QH.cam;
   const A = QH.assets;
 
-  QH.assets.window = (wall, u, z, w, h, t = 0, o = {}) => {
-    const Wl = W[wall];
-    Wl.rect(u, z, u + w, z + h, rgb(M.navyLt), 0.02);
+  const win = (wall, u, z, w, h, t = 0, o = {}) => {                 // not `window` — that's the page's
+    const Wl = W[wall], f = o.flash || 0;
+    const skyCol = rgb(mix(M.navyLt, M.silver, f));                  // the night sky — white in the lightning
+    Wl.rect(u, z, u + w, z + h, skyCol, 0.02);
     clip([Wl.pt(u, z, 0.02), Wl.pt(u + w, z, 0.02), Wl.pt(u + w, z + h, 0.02), Wl.pt(u, z + h, 0.02)]);
 
     if (o.moon) {
       // a crescent: the moon, then the sky bitten out of it
-      const mu = u + w * o.moon[0], mz = z + h * o.moon[1], r = o.moonR || 0.42;
-      Wl.disc(mu, mz, r + 0.14, rgb(M.slate), 16, 0.025);
+      const mu = u + w * o.moon[0], mz = z + h * o.moon[1], r = o.moonR || 0.42, halo = rgb(mix(M.slate, M.silver, f));
+      Wl.disc(mu, mz, r + 0.14, halo, 16, 0.025);
       Wl.disc(mu, mz, r, rgb(M.glow), 16, 0.03);
-      Wl.disc(mu - r * 0.5, mz + r * 0.3, r * 0.82, rgb(M.slate), 16, 0.035);
-      Wl.disc(mu - r * 0.58, mz + r * 0.34, r * 0.72, rgb(M.navyLt), 16, 0.04);
+      Wl.disc(mu - r * 0.5, mz + r * 0.3, r * 0.82, halo, 16, 0.035);
+      Wl.disc(mu - r * 0.58, mz + r * 0.34, r * 0.72, skyCol, 16, 0.04);
     }
+
+    if (f > 0.5) A.lightning(wall, u, z, w, h, o.bolt, 0.028);     // the bolt, behind the city
 
     // the city
     const R = rnd(o.seed || 7);
@@ -65,7 +73,10 @@
     Wl.box(u + w / 2 - 0.07, z, 0.14, h, D * 0.8, M.slate, fo);
     Wl.box(u - F, z + h, w + 2 * F, F, D, M.slate, fo);
 
-    if (o.blind && A.rollerBlind) return A.rollerBlind(wall, u - F, z + h + F, w + 2 * F, h * o.blind + F);
-    return null;
+    const quad = [[u, z], [u + w, z], [u + w, z + h], [u, z + h]].map(([a, b]) => P(...Wl.pt(a, b, 0.02)));
+    const blind = o.blind && A.rollerBlind ? A.rollerBlind(wall, u - F, z + h + F, w + 2 * F, h * o.blind + F) : null;
+    return (win.last = { quad, blind });
   };
+  win.last = null;
+  QH.assets.window = win;
 })(QH);

@@ -9,10 +9,12 @@
    origin at its far corner — and the scene that holds both rooms
    puts it where it goes. Painter order, as in room one.
 
-   Three things here you can touch: the lamp, the neon over the
-   shelf (its own switch, off and on like the lamp), and the blind
+   Four things here you can touch: the lamp, the neon over the
+   shelf (its own switch, off and on like the lamp), the blind
    over the window — a click runs it all the way down over the
-   glass, another runs it back up to where it hangs.
+   glass, another runs it back up to where it hangs — and the
+   glass itself, for lightning over the city and thunder a beat
+   after; the blind keeps most of the flash out of the room.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -54,16 +56,23 @@
   /** How much of the city still shows, 0..1. */
   const cityOut = () => clamp((1 - blind.v) / (1 - BLIND.rest), 0, 1);
 
-  // what shades the faces: the lamp, the neon, and the moon a little
+  // the storm outside the window: a click on the glass strikes it (see engine/storm.js)
+  const storm = QH.storm();
+  let windowGeo = null, lightning = 0;                                // the glass's screen geometry, for the click; how much lightning is in the room this frame
+
+  // what shades the faces: the lamp, the neon, the moon a little — and the lightning, hard and cold, while it lasts
   const sources = [
     { x: HEAD[0], y: HEAD[1], z: HEAD[2] - 0.2, range: 10, k: 0.6, on: () => light.lamp },
     { x: NEON.u + NEON.w * 0.4, y: 0.15, z: NEON.z + 0.5, range: 7.5, k: 0.38, on: neonOn },
     { x: 4.7, y: 0.1, z: 3.6, range: 4.5, k: 0.1, on: moonOut },
+    { x: WINDOW.u + WINDOW.w / 2, y: 0.05, z: WINDOW.z + WINDOW.h / 2, range: 13, k: 0.7, on: () => lightning },
   ];
   let lamp = null, neon = null;
 
   function draw(t) {
     easeBlind();
+    const flash = storm.flash();
+    lightning = flash * (0.2 + 0.8 * cityOut());                     // the blind keeps most of it out
     room.floor();
     A.runner(2.9, 0.9, 2.1, 3.4);
     A.rug(7.7, 4.4, 4.5, 8.2, { weave: true });
@@ -75,7 +84,8 @@
     A.poster('L', 2.85, 3.5, 2.0, 3.2, { art: 'moon' });
 
     /* ── back wall, far to near ── */
-    blindGeo = A.window('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { moon: WINDOW.moon, skyline: 0.32, blind: blind.v, drops: 22, seed: 9 });
+    windowGeo = A.window('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { moon: WINDOW.moon, skyline: 0.32, blind: blind.v, drops: 22, seed: 9, flash, bolt: storm.seed });
+    blindGeo = windowGeo.blind;
     A.wardrobe(6.5, 0.1, { w: 3.6, d: 1.4, h: 6.6 });          // over the window's edge, but the shelf's end is nearer than its side
     neon = A.neonSign('B', NEON.u, NEON.z, NEON.w, { h: 0.9, on: neonOn() });
     A.wallShelf('B', 10.5, 3.6, 3.9, { depth: 0.9 });
@@ -116,12 +126,20 @@
     light.glow(NEON.u + NEON.w * 0.5, 0.1, NEON.z + 1.2, 3.6, [220, 120, 40], 0.06 * n); // and up the wall above it
     light.glow(4.6, 0, 4.0, 1.0, [200, 220, 255], 0.1 * moonOut());                 // the moon, until the blind hides it
     light.glow(3.9, 0, 3.0, 4.0, [70, 100, 150], (0.04 + 0.05 * (1 - light.lamp)) * cityOut());   // the city, more of it with the lamp off
+
+    // the lightning: a cold wash from the window, hardest on the glass, over the bed head and out across the floor
+    const wu = WINDOW.u + WINDOW.w / 2, wz = WINDOW.z + WINDOW.h / 2;
+    light.glow(wu, 0.1, wz, 4.5, [200, 215, 240], 0.3 * lightning);
+    light.glow(wu, 1.5, WINDOW.z, 9, [150, 175, 220], 0.32 * lightning);
+    light.glow(wu + 1, 5, 1.0, 11, [110, 140, 200], 0.14 * lightning);
     light.end();
   }
 
   QH.scenes.roomTwo = {
     room, sources, draw, lights, lamp: () => lamp,
     neon: () => neon, neonSwitch: NEON.sw,
-    blind: () => blindGeo, toggleBlind, blindDown, busy: blindBusy,
+    blind: () => blindGeo, toggleBlind, blindDown,
+    storm: () => windowGeo, strike: storm.strike,
+    busy: () => blindBusy() || storm.busy(),
   };
 })(QH);

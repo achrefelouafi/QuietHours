@@ -18,6 +18,8 @@ Open `index.html`. No build step, no dependencies, no server.
 - click the strip light over the poster downstairs to switch it off and on (`T`)
 - click the neon in the bedroom to switch it off and on (`N`)
 - click the bedroom blind to run it down over the window and back up (`B`)
+- click a window for lightning over the city, and thunder a beat after (`F` does the
+  one in view) — in the bedroom the blind keeps most of the flash out of the room
 - brush a plant: the leaves under the pointer part around it, a swipe sweeps them
   along, and they spring back when you go. A tap shakes the whole plant.
 - that's it. Those are the only things in the rooms you can touch.
@@ -44,6 +46,8 @@ src/
     camera.js           2:1 isometric projection, and a movable world origin
     draw.js             primitives: box, cyl, beam, disc, wall helpers …
     light.js            per-face shading from point lights, screen-space glow, one switch per lamp
+    sound.js            thunder, shaped out of noise in Web Audio — the one sound
+    storm.js            the lightning outside a window: a strike, its keyframed flash, the thunder after
     sway.js             every leaf a small spring: the pointer parts, sweeps and shakes them
   assets/               one file per thing in docs/assets.png, assets2.png and assets3.png
   scene/
@@ -92,7 +96,8 @@ Room one:
 | `monitor.js` | monitor with code on the screen | `monitor(x, y, z, t, {w, h})` |
 | `keyboard.js` | keyboard, and `mouse(x, y, z)` | `keyboard(x, y, z, {w, d})` |
 | `door.js` | door, frame, plate, handle, mat, hall light | `door(wall, u, {w, h, mat})` |
-| `window.js` | night sky, city, rain, frame; a crescent, a lower skyline and a blind on request | `window(wall, u, z, w, h, t, {moon, skyline, blind, drops})` |
+| `window.js` | night sky, city, rain, frame; a crescent, a lower skyline and a blind on request; with `flash` the sky whitens and a bolt forks down it. Returns the glass's screen quad for the click, and the blind's geometry | `window(wall, u, z, w, h, t, {moon, skyline, blind, drops, flash, bolt})` |
+| `lightning.js` | the bolt the windows draw in a flash: a jagged run into the city, forking once or twice, a dark halo round a bright core | `lightning(wall, u, z, w, h, seed, off)` |
 | `clock.js` | wall clock, second hand ticking | `clock(wall, u, z, r, t)` |
 | `poster.js` | framed print | `poster(wall, u, z, w, h, {art: 'mountain'│'sun'│'moon'│'stars'})` |
 | `stripLight.js` | bar of light on the wall, lit by `on` (0..1); returns its screen line for hit-testing; `stripLight.halo(k)` adds its glow in the lighting pass | `stripLight(wall, u, z, w, {on})` |
@@ -133,7 +138,7 @@ Room three — nothing here is shared with the other rooms; every piece in `asse
 | `clockShelf.js` | teak board with a round clock standing on it and a small aloe | `clockShelf(wall, u, z, w, t, {clockAt, plantAt})` |
 | `vineShelf.js` | teak board with a pothos spilling off it and a candle jar | `vineShelf(wall, u, z, w, {plantAt, drop})` |
 | `bathShelves.js` | two boards: tins, a hanging fern, a row of grey boxes | `bathShelves(wall, u, z, w, {gap, depth, bare})` |
-| `rainWindow.js` | two big panes in a deep steel frame, towers and spires, broken streaks of rain | `rainWindow(wall, u, z, w, h, t, {skyline, seed})` |
+| `rainWindow.js` | two big panes in a deep steel frame, towers and spires, broken streaks of rain; with `flash` the sky whitens and a bolt forks down it. Returns the glass's screen quad for the click | `rainWindow(wall, u, z, w, h, t, {skyline, seed, flash, bolt})` |
 | `vanityMirror.js` | mirror in a teak frame with the bar light above it — this room's lamp. Returns the bar's screen geometry for the click | `vanityMirror(wall, u, z, w, h, {barUp, barOver})` |
 | `towelRing.js` | a hand towel folded over a ring | `towelRing(wall, u, z)` |
 | `vanity.js` | teak cabinet, charcoal door and drawers, a tray of bottles, soap, a tumbler of toothbrushes on top | `vanity(x, y, {w, d, h, bare})` |
@@ -229,6 +234,21 @@ can be lit independently.
 
 ![the house, lamps off](docs/lights-out.png)
 
+The lightning is the same machinery driven hard for a moment. Each room keeps a
+`QH.storm()` for its window (`storm.js`); a click on the glass strikes it, and
+`flash()` reads the brightness off a few keyframes — the first stroke, a dip, the
+return stroke, the fade, three-quarters of a second in all. That one number does
+everything: the window mixes its sky toward silver behind the silhouetted towers and,
+past half, draws a forked bolt in a dark halo (`lightning.js` — behind the city in
+`window.js`, between the two rows of towers in `rainWindow.js`); a cold point source
+lights the faces that look toward the window; three blue-white glows wash the wall,
+whatever stands under the window and the floor beyond. In the bedroom the room's share
+is scaled by how much glass the blind leaves clear. Half a second or so after the flash,
+`sound.js` plays thunder — there are no audio files; it's white noise through a
+low-pass filter whose cutoff sweeps down under a fast-attack, slow-decay envelope, a
+bright short roll for the crack, a long deep one for the body, a few quieter ones
+rolling off. Under reduced motion the flicker becomes one soft swell.
+
 ### 5. The plants
 
 Every leaf is drawn as a few segments from a base point out to a tip, so bending
@@ -258,7 +278,7 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
@@ -266,6 +286,8 @@ node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two      # framed on room two
 node tools/preview.js two.png 4.2 1100 760 1 1 0 0 two 0    # …with the neon off
 node tools/preview.js one.png 4.2 1100 760 1 1 0 0 one 1 0  # room one with the strip light off
 node tools/preview.js three.png 4.2 1100 760 1 1 0 0 three  # framed on room three
+node tools/preview.js bolt.png 4.2 1100 760 1 1 0 0 three 1 1 0   # …at the peak of the lightning (last arg: seconds since the strike)
+node tools/preview.js storm.png 4.2 1100 760 1 1 0 0 "" 1 1 0.22  # every window struck, at the return stroke
 node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the desk
 ```
 

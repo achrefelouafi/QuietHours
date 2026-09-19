@@ -5,8 +5,8 @@
  *
  * `lamp` 0 switches every lamp off; `room` (one | two | three) frames that
  * room instead of the whole house, before zoom and pan apply; `flash` is
- * how many seconds ago the lightning struck the bathroom window (0 is the
- * peak; leave it out for no lightning).
+ * how many seconds ago the lightning struck — that room's window, or every
+ * window with no room (0 is the peak; leave it out for no lightning).
  *
  * Reads the <script src> list out of index.html, runs those files in
  * order against a minimal DOM backed by node-canvas, and writes the
@@ -71,7 +71,7 @@ const app = sandbox.QH.app;
 if (LIT < 1) app.setLamp(false);
 if (NEON < 1) app.setNeon(false);
 if (STRIP < 1) app.setStrip(false);
-if (FLASH !== undefined) app.strike('three', parseFloat(FLASH));
+if (FLASH !== undefined) app.strike(ROOM, parseFloat(FLASH));
 if (ROOM) { app.room(ROOM); app.look(); }
 if (ZOOM !== 1 || PANX || PANY) { app.cam.s *= ZOOM; app.cam.x += PANX; app.cam.y += PANY; }
 app.frame(time * 1000);

@@ -9,8 +9,8 @@
      glass from (u, z) to (u+w, z+h); t moves the rain. o.skyline
      is how high the towers reach as a fraction of h (0.72),
      o.seed changes the city. o.flash (0..1) is how bright the
-     lightning is right now; past half, a bolt shows, its shape
-     from o.bolt (any integer — change it for a new one).
+     lightning is right now; past half, a bolt shows (lightning.js),
+     its shape from o.bolt (any integer — change it for a new one).
    Returns the screen geometry of the glass — its quad — for
    hit-testing (also kept in rainWindow.last).
    ═══════════════════════════════════════════════════════════════ */
@@ -19,6 +19,7 @@
   const { wall: W, rgb, beam, dot, poly, clip, unclip } = QH.draw;
   const { rnd, mix } = QH;
   const { P } = QH.cam;
+  const A = QH.assets;
 
   const rainWindow = (wall, u, z, w, h, t = 0, o = {}) => {
     const Wl = W[wall], sky = o.skyline ?? 0.72, f = o.flash || 0;
@@ -49,28 +50,7 @@
     };
     city(z, 0.35, sky, [M.wallB, M.navyDk], 0.25, 0.03);
 
-    // the bolt: down from over the glass into the far city, in one
-    // pane or the other, forking once or twice on the way — a dark
-    // halo round a bright core, and the near towers still in front
-    if (f > 0.5) {
-      const B = rnd(1000 + (o.bolt | 0)), runs = [];
-      const fork = (pu, pz, step, lean, n) => {
-        const pts = [[pu, pz]];
-        for (let k = 0; k < n && pz > z + h * 0.15; k++) {
-          pu += lean + (B() - 0.5) * 0.6; pz -= step * (0.6 + B() * 0.8);
-          pts.push([pu, pz]);
-        }
-        runs.push(pts);
-        return pts;
-      };
-      const pane = B() > 0.5 ? 0.6 : 0.12;
-      const main = fork(u + w * (pane + B() * 0.28), z + h + 0.2, 0.4, 0, 14);
-      for (const i of [2 + ((B() * 3) | 0), 5 + ((B() * 3) | 0)]) if (main[i]) fork(main[i][0], main[i][1], 0.3, B() > 0.5 ? 0.3 : -0.3, 3 + ((B() * 3) | 0));
-      for (const [wd, col] of [[0.22, M.navy], [0.08, M.cream]]) for (const pts of runs) for (let k = 1; k < pts.length; k++) {
-        beam(Wl.pt(pts[k - 1][0], pts[k - 1][1], 0.035), Wl.pt(pts[k][0], pts[k][1], 0.035), wd, col, 1);
-      }
-    }
-
+    if (f > 0.5) A.lightning(wall, u, z, w, h, o.bolt, 0.035);                    // the bolt, into the far city — the near towers still in front
     city(z, 0.2, sky * 0.72, [M.navyDk, M.ink, M.navy], 0.45, 0.04);
 
     // rain: each streak a run of short dashes down a slant
