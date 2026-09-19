@@ -130,7 +130,6 @@
 
     // along the left wall
     A.roadCase(0.35, 6.9, { w: 1.5, d: 1.3, h: 1.4 });
-    A.miniTv(1.95, 7.25, t, { w: 0.95, d: 0.8, h: 0.85 });
     A.arcadeCabinet(0.3, 8.5, t, { face: '+x', w: 1.2, d: 1.35 });
     A.tallPot(0.85, 10.55, 0, { seed: 125, size: 1.7, r: 0.4 });
     A.cactusPot(0.8, 11.85, 0, { seed: 131 });
@@ -142,11 +141,9 @@
     A.tallPot(14.0, 1.0, 0, { seed: 133, size: 1.6, r: 0.38 });
     A.cactusPot(13.7, 2.3, 0, { seed: 137 });
 
-    // the beanbags, and whoever's sat between them
-    A.beanbag(2.5, 10.6, { kind: 'orange', seed: 5 });
+    // the beanbags
     A.beanbag(10.9, 7.6, { kind: 'olive', seed: 9 });
     A.beanbag(11.6, 5.9, { kind: 'rust', seed: 11 });
-    A.gamer(3.7, 11.75, { face: '+x' });
     A.beanbag(4.9, 12.5, { kind: 'orange', seed: 7 });
     A.beanbag(6.4, 12.3, { kind: 'orange', seed: 13 });
     A.beanbag(9.7, 10.2, { kind: 'orange', seed: 15 });
