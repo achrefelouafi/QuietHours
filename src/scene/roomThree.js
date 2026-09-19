@@ -11,14 +11,18 @@
    corner — and the scene that holds the rooms puts it where it
    goes. Painter order, as in the other rooms.
 
-   Two things here you can touch: the light over the mirror, and
+   Three things here you can touch: the light over the mirror;
    the window — a click brings lightning over the city, and
-   thunder a beat after.
+   thunder a beat after; and the tub. A click on it, or on the
+   shower over it — the head or the mixer — turns the shower on:
+   rain falls into the tub until it's full, then the shower stops,
+   and that's that — it can't be run again or let out.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const A = QH.assets;
   const light = QH.light;
+  const { clamp } = QH;
 
   const room = QH.scenes.room(14, 14, 8, 0.4, 0.4);
   const MIRROR = { u: 8.85, z: 3.0, w: 2.15, h: 3.3 };
@@ -27,6 +31,22 @@
   const WINDOW = { u: 1.2, z: 3.1, w: 6.5, h: 3.7 };
   const SINK = { x: 8.75, y: 0.1, z: 1.5, w: 2.3, d: 1.7 };
   const VANITY = { x: 4.4, y: 0.15, w: 3.0, d: 1.7 };
+
+  /* ── the bath ────────────────────────────────────────────────
+     `v` is how full the tub is, 0..1. One click on the tub or the
+     shower turns the shower on; the level rises steadily until
+     the tub is full, and then the shower stops for good — there's
+     nothing more to touch. Under reduced motion it fills at once. */
+  const BATH = { ms: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 12000 };
+  const bath = { v: 0, on: false, start: -1e9 };
+  let tubGeo = null, showerGeo = null;                                // the tub's and the shower's screen geometry, for the click
+  const now = () => performance.now();
+  /** Turn the shower on — now, or from `at` in ms as performance.now() gives it. Once. */
+  function fillTub(at = now()) { if (bath.on) return; bath.on = true; bath.start = at; }
+  const bathBusy = () => bath.on && now() - bath.start < BATH.ms + 50;
+  const easeBath = () => { bath.v = !bath.on ? 0 : BATH.ms ? clamp((now() - bath.start) / BATH.ms, 0, 1) : 1; };
+  /** Is the water running — the shower on and the tub not yet full? */
+  const running = () => (bath.on && bath.v < 1 ? 1 : 0);
 
   // the storm outside the window: a click strikes it (see engine/storm.js)
   const storm = QH.storm();
@@ -72,6 +92,7 @@
   }
 
   function draw(t) {
+    easeBath();
     lightning = storm.flash();
     room.floor();
     pool(BARC[0] + 0.5, 3.3, 4.4);
@@ -81,7 +102,7 @@
     /* ── left wall, far to near ── */
     A.clockShelf('L', 0.5, 4.7, 2.7, t);
     A.starChart('L', 4.1, 4.5, 1.6, 2.3);
-    A.showerColumn('L', 8.0, 2.4, { h: 3.6, out: 0.95 });
+    showerGeo = A.showerColumn('L', 8.0, 2.4, { h: 3.6, out: 0.95, on: running() });
     A.vineShelf('L', 9.9, 4.6, 2.5);
 
     /* ── back wall, far to near ── */
@@ -102,7 +123,7 @@
     A.sideTable(12.25, 0.3, { w: 1.6, d: 1.6, h: 1.6, shelf: true });
     A.aloe(13.05, 1.1, 1.6, { r: 0.3, size: 1.1, n: 9, spread: 0.4, seed: 53 });
 
-    A.bathtub(0.5, 6.0, { w: 2.5, l: 5.6 });
+    tubGeo = A.bathtub(0.5, 6.0, { w: 2.5, l: 5.6, water: bath.v, shower: showerGeo.rain, flow: running(), flash: lightning, t });
     A.sideTable(0.3, 11.9, { w: 1.4, d: 1.4, h: 1.45 });
     A.aloe(1.0, 12.6, 1.45, { r: 0.32, size: 1.5, n: 11, spread: 0.9, pot: M.navyLt, lip: light.warm(M.rust, M.orangeDk), seed: 51 });
     A.towelStack(3.05, 11.2, 0);
@@ -131,6 +152,9 @@
 
   QH.scenes.roomThree = {
     room, sources, draw, lights, lamp: () => lamp,
-    storm: () => windowGeo, strike: storm.strike, busy: storm.busy,
+    storm: () => windowGeo, strike: storm.strike,
+    // the tub and the shower over it, while a click can still run it — nothing once it has been
+    tub: () => (bath.on ? null : { hull: tubGeo && tubGeo.hull, tap: showerGeo && showerGeo.quad, head: showerGeo && showerGeo.head }), fillTub,
+    busy: () => bathBusy() || storm.busy(),
   };
 })(QH);

@@ -20,6 +20,9 @@ Open `index.html`. No build step, no dependencies, no server.
 - click the bedroom blind to run it down over the window and back up (`B`)
 - click a window for lightning over the city, and thunder a beat after (`F` does the
   one in view) — in the bedroom the blind keeps most of the flash out of the room
+- click the bathtub, or the shower over it, to run the bath: rain falls from the
+  shower head and the tub fills to the top over twelve seconds, then the shower stops.
+  Once — it can't be run again or let out.
 - brush a plant: the leaves under the pointer part around it, a swipe sweeps them
   along, and they spring back when you go. A tap shakes the whole plant.
 - that's it. Those are the only things in the rooms you can touch.
@@ -56,7 +59,7 @@ src/
     roomTwo.js          the same for room two
     roomThree.js        the same for room three
     house.js            the rooms in one scene: where each sits, its lamp switch, its lights
-  main.js               canvas, frame loop, the camera, the lamp clicks, the pointer over the plants
+  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, windows, the tub — the pointer over the plants
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
@@ -130,8 +133,8 @@ Room three — nothing here is shared with the other rooms; every piece in `asse
 
 | file | what | signature |
 |---|---|---|
-| `bathtub.js` | the clawfoot tub: enamel shell on a tucked belly, pale rim, the well and drain inside, copper claw feet | `bathtub(x, y, {w, l, along: 'y'│'x'})` |
-| `showerColumn.js` | riser, arm and rain head, slide bar with the hand shower, mixer with lever and spout, the hose looping between | `showerColumn(wall, u, z, {h, out})` |
+| `bathtub.js` | the clawfoot tub: enamel shell on a tucked belly, pale rim, the well and drain inside, copper claw feet; with `water` the well holds that much, the light in pale flecks all over it, and while `flow` is up rain falls into it from `shower` (the head). Returns the tub's screen silhouette for the click | `bathtub(x, y, {w, l, along: 'y'│'x', water, shower, flow, flash, t})` |
+| `showerColumn.js` | riser, arm and rain head, slide bar with the hand shower, mixer with lever and spout, the hose looping between; `on` lifts the lever. Returns the mixer's quad and the head's circle on screen for the click, and where the rain comes out of the head | `showerColumn(wall, u, z, {h, out, on})` |
 | `toilet.js` | tank on a rounded pedestal, oval bowl, seat lid down, flush lever | `toilet(x, y, {face: '+x'│'+y'})` |
 | `paperHolder.js` | bracket, roll and spindle on the wall | `paperHolder(wall, u, z)` |
 | `starChart.js` | framed print: orange sun, stars, a constellation, lines of small print | `starChart(wall, u, z, w, h)` |
@@ -282,7 +285,7 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
@@ -292,6 +295,7 @@ node tools/preview.js one.png 4.2 1100 760 1 1 0 0 one 1 0  # room one with the 
 node tools/preview.js three.png 4.2 1100 760 1 1 0 0 three  # framed on room three
 node tools/preview.js bolt.png 4.2 1100 760 1 1 0 0 three 1 1 0   # …at the peak of the lightning (last arg: seconds since the strike)
 node tools/preview.js storm.png 4.2 1100 760 1 1 0 0 "" 1 1 0.22  # every window struck, at the return stroke
+node tools/preview.js bath.png 4.2 1100 760 1 1 0 0 three 1 1 "" 6   # the shower running, the tub half full (last arg: seconds since it went on)
 node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the desk
 ```
 

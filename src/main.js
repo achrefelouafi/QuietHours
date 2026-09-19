@@ -3,7 +3,8 @@
    things you can touch: each room's lamp (in room three, the bar
    light over the mirror), the strip light in room one, the neon
    sign and the blind over the window in room two, every window
-   for the lightning — and every plant, whose leaves part and sway
+   for the lightning, the tub in room three (or the shower over
+   it) to run the bath, once — and every plant, whose leaves part and sway
    under the pointer and shake at a tap. Paints the scene into a
    small offscreen buffer, snaps it to the inks, and blits it up
    pixelated — three css px to the pixel at home and closer; zoomed
@@ -184,12 +185,12 @@
   const toggleNeonIn = (id, kind = 'neon') => { const n = wallLights().find(n => n.id === id && n.kind === kind); if (n) toggleNeon(n.sw); };
 
   /* ── the blinds ───────────────────────────────────────────── */
-  /** Is (bx, by) inside this convex quad of screen points? */
-  function inQuad(q, bx, by) {
+  /** Is (bx, by) inside this convex polygon of screen points? */
+  function inPoly(q, bx, by) {
     if (!q) return false;
     let sign = 0;
-    for (let i = 0; i < 4; i++) {
-      const [ax, ay] = q[i], [cx, cy] = q[(i + 1) % 4];
+    for (let i = 0; i < q.length; i++) {
+      const [ax, ay] = q[i], [cx, cy] = q[(i + 1) % q.length];
       const cross = (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
       if (cross === 0) continue;
       if (sign === 0) sign = Math.sign(cross); else if (Math.sign(cross) !== sign) return false;
@@ -199,7 +200,7 @@
   /** Which room's blind is under this css point, or null. */
   function overBlind(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
-    for (const b of scene.blinds()) if (inQuad(b.geo && b.geo.quad, bx, by)) return b;
+    for (const b of scene.blinds()) if (inPoly(b.geo && b.geo.quad, bx, by)) return b;
     return null;
   }
   const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
@@ -208,14 +209,29 @@
   /** Which room's window is under this css point, or null. */
   function overStorm(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
-    for (const s of scene.storms()) if (inQuad(s.geo && s.geo.quad, bx, by)) return s;
+    for (const s of scene.storms()) if (inPoly(s.geo && s.geo.quad, bx, by)) return s;
     return null;
   }
   /** Lightning over this room's window — every room's, with no id. `at` is when the strike began (now). */
   const strike = (id, at) => { for (const s of scene.storms()) if (!id || s.id === id) s.strike(at); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : null;
+  /* ── the bath ─────────────────────────────────────────────── */
+  /** Which room's tub — or the shower over it, head or mixer — is under this css point, or null. A tub that's been run isn't there to hit. */
+  function overTub(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const b of scene.tubs()) {
+      if (!b.geo) continue;
+      const hd = b.geo.head;
+      if (hd && (bx - hd.at[0]) ** 2 + (by - hd.at[1]) ** 2 < hd.r * hd.r) return b;
+      if (inPoly(b.geo.tap, bx, by) || inPoly(b.geo.hull, bx, by)) return b;
+    }
+    return null;
+  }
+  /** Run the bath in this room — every room's, with no id. `at` is when the shower went on (now). */
+  const fillTub = (id, at) => { for (const b of scene.tubs()) if (!id || b.id === id) b.fill(at); };
+
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'blind', 'storm', 'tub' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overBlind(cx, cy) ? 'blind' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -278,7 +294,8 @@
       const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY);
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
       const s = id || n || b ? null : overStorm(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (s) s.strike(); else shake(e.clientX, e.clientY);
+      const bt = id || n || b || s ? null : overTub(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -366,5 +383,6 @@
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     toggleBlind,
     strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
+    fillTub: (id, ago = 0) => fillTub(id, performance.now() - ago * 1000), // run the bath in one room, or every room's; `ago` seconds since the shower went on
   };
 })(QH);

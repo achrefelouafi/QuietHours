@@ -10,7 +10,7 @@
    (cam.at), its own light sources and its own lamp switch made
    current — so the rooms never need to know about each other.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, busy, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
@@ -62,8 +62,10 @@
   const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind }));
   /** The rain windows' screen geometry from the last draw, in the rooms where a click brings the lightning. */
   const storms = () => rooms.filter(r => r.scene.storm).map(r => ({ id: r.id, name: r.name, geo: r.scene.storm(), strike: r.scene.strike }));
+  /** The tubs' screen geometry from the last draw — the tub and the shower over it — in the rooms with one, while a click can still run it. */
+  const tubs   = () => rooms.filter(r => r.scene.tub).map(r => ({ id: r.id, name: r.name, geo: r.scene.tub(), fill: r.scene.fillTub }));
   /** Is anything in a room mid-animation and wanting every frame? */
   const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, busy, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, blinds, storms, tubs, busy, boundsOf };
 })(QH);

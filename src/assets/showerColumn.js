@@ -8,21 +8,27 @@
    showerColumn(wall, u, z, o)
      the riser stands at u along the wall, the mixer at height z;
      o.h is the riser's height above it (3.6), o.out how far the
-     rain head reaches into the room (0.95).
+     rain head reaches into the room (0.95). o.on (0..1) lifts the
+     lever: the shower is running.
+   Returns screen geometry for hit-testing — `quad` round the
+   mixer, `head` a circle round the rain head — and `rain`, where
+   the rain comes out of the head, { at: [x, y, z], r } in the
+   room, for whatever it falls into (also kept in showerColumn.last).
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const { wall: W, beam, disc, cyl, box, rgb } = QH.draw;
+  const { P: S, cam } = QH.cam;
 
-  QH.assets.showerColumn = (wall, u, z, o = {}) => {
-    const Wl = W[wall], h = o.h || 3.6, out = o.out || 0.95;
+  const showerColumn = (wall, u, z, o = {}) => {
+    const Wl = W[wall], h = o.h || 3.6, out = o.out || 0.95, on = o.on || 0;
     const pipe = M.slate, dark = M.navyLt, lt = M.steel;
     const P = (off, dz, du = 0) => Wl.pt(u + du, z + dz, off);
     const riserOff = 0.18, barOff = 0.42;
 
-    // mixer: a block on the wall, the lever to one side, the spout under it
+    // mixer: a block on the wall, the lever to one side — lying along the wall, or lifted up and out when the shower's on — the spout under it
     Wl.box(u - 0.28, z - 0.16, 0.56, 0.32, 0.3, dark, { colTop: lt, left: 0.85, right: 0.7 });
-    beam(P(0.3, 0.02, 0.28), P(0.3, 0.02, 0.62), 0.07, pipe, 1);                    // lever
+    beam(P(0.3, 0.02, 0.28), P(0.3 + 0.15 * on, 0.02 + 0.28 * on, 0.62 - 0.19 * on), 0.07, pipe, 1);   // lever
     beam(P(0.15, -0.2), P(0.5, -0.24), 0.09, pipe, 0.95);                            // spout
     beam(P(0.5, -0.24), P(0.5, -0.34), 0.07, pipe, 0.9);
     for (const dz of [0.9, 2.2, h - 0.15]) Wl.disc(u, z + dz, 0.09, rgb(dark), 8, riserOff * 0.6);   // wall brackets
@@ -51,5 +57,15 @@
     const hose = [P(0.28, -0.02, 0.12), P(0.42, -0.5, 0.18), P(0.48, -0.95, 0.05), P(0.46, -1.15, -0.15), P(0.4, -0.7, -0.3),
                   P(0.36, 0.3, -0.25), P(0.34, 1.2, -0.14), P(barOff + 0.1, clipZ - z, -0.02)];
     for (let i = 1; i < hose.length; i++) beam(hose[i - 1], hose[i], 0.055, pipe, 0.9);
+
+    // for the click: the mixer, lever and spout together with a little room round them, and the head; for the water: its underside
+    const q = [[u - 0.35, z - 0.42], [u + 0.7, z - 0.42], [u + 0.7, z + 0.26], [u - 0.35, z + 0.26]];
+    return (showerColumn.last = {
+      quad: q.map(([a, b]) => S(...Wl.pt(a, b, 0.3))),
+      head: { at: S(head[0], head[1], head[2] - 0.04), r: 0.5 * cam.s },
+      rain: { at: [head[0], head[1], head[2] - 0.08], r: 0.3 },
+    });
   };
+  showerColumn.last = null;
+  QH.assets.showerColumn = showerColumn;
 })(QH);
