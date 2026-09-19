@@ -31,7 +31,7 @@
   const view = document.getElementById('stage');
   const stateEl = document.getElementById('state');
   const PIXEL = 3;                                   // css px per rendered px, at home and closer — the chunkiness dial
-  const MIN = 0.35, MAX = 6;                         // zoom, relative to the fitted room
+  const MIN = 0.35, MAX = 10;                        // zoom, relative to the fitted room
   const buf = document.createElement('canvas');
   const bctx = buf.getContext('2d', { willReadFrequently: true });
   const vctx = view.getContext('2d');

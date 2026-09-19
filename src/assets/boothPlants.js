@@ -70,7 +70,6 @@
       beam(a, [a[0] + s * 0.16, a[1] - s * 0.16, a[2]], 0.13, M.leaf, 1);
       beam([a[0] + s * 0.16, a[1] - s * 0.16, a[2]], e, 0.13, M.leaf, 1);
     }
-    for (let i = 0; i < 7; i++) dot(x + (R() - 0.5) * 0.15, y + (R() - 0.5) * 0.15, zb + R() * size, 1, M.cream);   // spines
     disc(top[0], top[1], top[2] + 0.02, 0.06, rgb(M.bright), 6);                                                  // a flower on top
   };
 })(QH);
