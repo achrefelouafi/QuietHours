@@ -1,8 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
-   scene/house.js — both rooms in one scene. Room one is where it
-   always was; room two sits on top of its left wall, set back so
-   its floor rests on the wall's top and nothing in either room
-   hides anything in the other.
+   scene/house.js — the rooms in one scene. Room one is where it
+   always was; room two sits on top of its left wall and room
+   three on top of its back wall, each set back so its floor rests
+   on the wall's top and nothing in one room hides anything in
+   another. The two upstairs rooms meet at a corner over room
+   one's far corner.
 
    Each room is drawn in its own coordinates with the origin moved
    (cam.at), its own light sources and its own lamp switch made
@@ -13,11 +15,20 @@
 (QH => {
   const { at } = QH.cam;
   const light = QH.light;
+  const { roomOne, roomTwo, roomThree } = QH.scenes;
+  const up = roomOne.room.H;                                          // the upstairs rooms stand on room one's walls
 
   const rooms = [
-    { id: 'one', name: 'room one', scene: QH.scenes.roomOne, at: [0, 0, 0] },
-    { id: 'two', name: 'room two', scene: QH.scenes.roomTwo, at: [-QH.scenes.roomTwo.room.W, 0, QH.scenes.roomOne.room.H + QH.scenes.roomTwo.room.FT] },
+    { id: 'one',   name: 'room one',   scene: roomOne,   at: [0, 0, 0] },
+    { id: 'two',   name: 'room two',   scene: roomTwo,   at: [-roomTwo.room.W, 0, up + roomTwo.room.FT] },
+    { id: 'three', name: 'room three', scene: roomThree, at: [0, -roomThree.room.D, up + roomThree.room.FT] },
   ];
+  /* Painter order. Room one first: the others' floors lie over its
+     wall tops. Then room three, then room two — where the two meet,
+     the end of room two's back wall closes the corner over room
+     three's left wall, and it's the darker of the two, so it goes
+     on last. */
+  const painted = [rooms[0], rooms[2], rooms[1]];
 
   /** A room's shell in projected units, moved to where the room is. */
   function boundsOf(r) {
@@ -30,7 +41,7 @@
   }));
 
   function each(fn) {
-    for (const r of rooms) {
+    for (const r of painted) {
       at(r.at[0], r.at[1], r.at[2]);
       light.use(r.id);
       light.sources = r.scene.sources;

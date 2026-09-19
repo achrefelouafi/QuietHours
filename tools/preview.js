@@ -3,7 +3,7 @@
  *
  *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip]
  *
- * `lamp` 0 switches every lamp off; `room` (one | two) frames that
+ * `lamp` 0 switches every lamp off; `room` (one | two | three) frames that
  * room instead of the whole house, before zoom and pan apply.
  *
  * Reads the <script src> list out of index.html, runs those files in

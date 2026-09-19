@@ -113,6 +113,41 @@
     }
   }
 
+  /** Vertical prism over any flat outline: pts = [[x, y], …] in either
+      winding, from z up h. Like cyl, only the sides facing the camera
+      are drawn, each shaded by its normal; o.inside draws the far sides
+      from within instead — how a tub shows its inner wall. */
+  function prism(pts, z, h, col, o = {}) {
+    const n = pts.length;
+    let area = 0;
+    for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+    const Q = area < 0 ? pts.slice().reverse() : pts;               // counter-clockwise, so (dy, -dx) points out
+    const facing = i => { const a = Q[i], b = Q[(i + 1) % n]; return (b[1] - a[1]) - (b[0] - a[0]) > 0; };
+    const faces = [];
+    for (let i = 0; i < n; i++) {
+      if (facing(i) === !!o.inside) continue;
+      const a = Q[i], b = Q[(i + 1) % n], len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      const s = o.inside ? -1 : 1;
+      faces.push({ a, b, nx: s * (b[1] - a[1]) / len, ny: -s * (b[0] - a[0]) / len });
+    }
+    for (const f of faces) {
+      let k = lerp(F.right, F.left, clamp((f.ny - f.nx) * 0.5 + 0.5, 0, 1));
+      k = QH.light.shade((f.a[0] + f.b[0]) / 2, (f.a[1] + f.b[1]) / 2, z + h / 2, f.nx, f.ny, 0, k) * (o.side || 1);
+      poly([[f.a[0], f.a[1], z], [f.b[0], f.b[1], z], [f.b[0], f.b[1], z + h], [f.a[0], f.a[1], z + h]], sh(col, k));
+    }
+    if (o.top !== false && !o.inside) {
+      let cx = 0, cy = 0;
+      for (const p of Q) { cx += p[0] / n; cy += p[1] / n; }
+      poly(Q.map(p => [p[0], p[1], z + h]), sh(o.colTop || col, o.topK ?? QH.light.shade(cx, cy, z + h, 0, 0, 1, F.top)));
+    }
+    if (o.edge !== false) {
+      const c = rgb(o.edgeCol || QH.M.ink);
+      if (!o.inside) stroke(Q.map(p => [p[0], p[1], z + h]), c, 1, true);
+      // the silhouette's uprights: where the outline turns from facing away to facing the camera
+      for (let i = 0; i < n; i++) if (facing((i + n - 1) % n) !== facing(i)) stroke([[Q[i][0], Q[i][1], z], [Q[i][0], Q[i][1], z + h]], c);
+    }
+  }
+
   /** Thick line between two world points; width in world units. */
   function beam(a, b, w, col, k = 1) {
     const p = P(a[0], a[1], a[2]), q = P(b[0], b[1], b[2]);
@@ -163,7 +198,7 @@
   QH.draw = {
     get g() { return g; }, use,
     rgb, sh, F, px,
-    poly, stroke, box, rectX, rectY, disc, discX, discY, ring, cyl, beam, dot, grain, clip, unclip,
+    poly, stroke, box, rectX, rectY, disc, discX, discY, ring, cyl, prism, beam, dot, grain, clip, unclip,
     wall,
   };
 })(QH);

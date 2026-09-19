@@ -27,10 +27,11 @@
 </head>
 <body>
 <canvas id="stage" tabindex="0"
-        aria-label="Two isometric pixel-art rooms at night, one stacked on the other: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom. Drag to look around, scroll to zoom, press 1 or 2 to fly to a room, click a lamp, the strip light or the neon sign to switch it off and on, click the bedroom blind to run it down over the window and back up."></canvas>
+        aria-label="Three isometric pixel-art rooms at night, two stacked on the first: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom, and beside it a bar light over a mirror lights a bathroom with a clawfoot tub. Drag to look around, scroll to zoom, press 1, 2 or 3 to fly to a room, click a lamp, the strip light, the neon sign or the bathroom's mirror light to switch it off and on, click the bedroom blind to run it down over the window and back up."></canvas>
 <div class="slate"><b>quiet hours</b><span id="state">room one · lamp on · strip on
-room two · lamp on · neon on</span></div>
-<p class="hint">drag to look around · scroll to zoom · 1 / 2 fly to a room · click a lamp · click the strip · click the neon · click the blind</p>
+room two · lamp on · neon on
+room three · lamp on</span></div>
+<p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 fly to a room · click a lamp · click the strip · click the neon · click the blind</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>
@@ -40,7 +41,7 @@ room two · lamp on · neon on</span></div>
 <script src="src/engine/draw.js"></script>
 <script src="src/engine/light.js"></script>
 
-<!-- assets: one file per thing in docs/assets.png (room one) and docs/assets2.png (room two) -->
+<!-- assets: one file per thing in docs/assets.png (room one), docs/assets2.png (room two) and docs/assets3.png (room three) -->
 <script src="src/assets/props.js"></script>
 <script src="src/assets/bed.js"></script>
 <script src="src/assets/sofa.js"></script>
@@ -79,11 +80,32 @@ room two · lamp on · neon on</span></div>
 <script src="src/assets/monstera.js"></script>
 <script src="src/assets/fern.js"></script>
 <script src="src/assets/palm.js"></script>
+<script src="src/assets/bathProps.js"></script>
+<script src="src/assets/bathtub.js"></script>
+<script src="src/assets/showerColumn.js"></script>
+<script src="src/assets/toilet.js"></script>
+<script src="src/assets/paperHolder.js"></script>
+<script src="src/assets/starChart.js"></script>
+<script src="src/assets/aloe.js"></script>
+<script src="src/assets/broadleaf.js"></script>
+<script src="src/assets/trailingPlant.js"></script>
+<script src="src/assets/clockShelf.js"></script>
+<script src="src/assets/vineShelf.js"></script>
+<script src="src/assets/bathShelves.js"></script>
+<script src="src/assets/rainWindow.js"></script>
+<script src="src/assets/vanityMirror.js"></script>
+<script src="src/assets/towelRing.js"></script>
+<script src="src/assets/towelStack.js"></script>
+<script src="src/assets/sideTable.js"></script>
+<script src="src/assets/vanity.js"></script>
+<script src="src/assets/sink.js"></script>
+<script src="src/assets/bathMat.js"></script>
 
 <!-- the rooms, and the house that holds them -->
 <script src="src/scene/room.js"></script>
 <script src="src/scene/roomOne.js"></script>
 <script src="src/scene/roomTwo.js"></script>
+<script src="src/scene/roomThree.js"></script>
 <script src="src/scene/house.js"></script>
 <script src="src/main.js"></script>
 </body>

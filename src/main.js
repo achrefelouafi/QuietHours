@@ -1,15 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════
    main.js — the canvas, the frame loop, the camera and the few
-   things you can touch: each room's lamp, the strip light in room
-   one, the neon sign and the blind over the window in room two. Paints the scene
+   things you can touch: each room's lamp (in room three, the bar
+   light over the mirror), the strip light in room one, the neon
+   sign and the blind over the window in room two. Paints the scene
    into a small offscreen buffer, snaps it to the inks, and blits
    it up pixelated.
 
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
    or pinch to zoom about the pointer, arrows / WASD / + - 0 on
-   the keyboard, 1 and 2 to fly to a room, double-click to lean
-   in and back out.
+   the keyboard, 1, 2 and 3 to fly to a room, double-click to
+   lean in and back out.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -273,7 +274,7 @@
     else if (k === '+' || k === '=') { interrupt(); zoomAbout(eye.zoom * 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
     else if (k === '-' || k === '_') { interrupt(); zoomAbout(eye.zoom / 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
     else if (k === '0') goHome(900);
-    else if (k === '1' || k === '2') goRoom(k === '1' ? 'one' : 'two', 1100);
+    else if (k === '1' || k === '2' || k === '3') goRoom({ 1: 'one', 2: 'two', 3: 'three' }[k], 1100);
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
     else if (k === 'b') toggleBlind(roomInView().id);
     else if (k === 'n') toggleNeonIn(roomInView().id);
