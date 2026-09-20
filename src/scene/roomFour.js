@@ -170,7 +170,8 @@
     A.glassRail(0, 13.6, 14.9, { along: 'x' });
     A.glassRail(14.6, 0, 13.9, { along: 'y' });
   }
-  const TEXT = 'YOUR SPONSOR';                                        // the name on the screen — change it here
+  const TEXT = 'BECOME A SPONSOR';                                    // the name on the screen — change it here
+  const SITE = 'https://chirostudio.xyz';                             // where a click on the screen takes you
 
   // the traces laid into the tiles: out from the ring toward the rails, each a few right-angled steps, mirrored across the
   // room's diagonal — the right-hand rail being a unit further out than the left, the last legs that way run a unit longer.
@@ -223,7 +224,8 @@
                    extra: podiumGeo ? podiumGeo.ring.map(line => ({ line, r: podiumGeo.ringR })) : [], polys: podiumGeo ? [podiumGeo.badge] : [] }), neonSwitch: NEON.sw,
     mixer: () => mixerGeo, mixerSwitch: MIXER.sw,
     arcade: () => arcadeGeo, arcadeSwitch: ARCADE.sw,
-    show: () => ({ polys: [podiumGeo && podiumGeo.top, screenGeo && screenGeo.quad].filter(p => p) }), play,
+    show: () => ({ polys: [podiumGeo && podiumGeo.top].filter(p => p) }), play,
+    site: () => ({ quad: screenGeo && screenGeo.quad, url: SITE }),                              // the screen: a click opens the sponsor page
     busy: showBusy,
   };
 })(QH);

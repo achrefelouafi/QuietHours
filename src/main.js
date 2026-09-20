@@ -8,8 +8,9 @@
    the neon tubes in room four, the mixing desk there, whose console
    blinks until you switch it off, the arcade cabinet there,
    whose screen and marquee light up on a click, every window for the lightning, the tub in room three
-   (or the shower over it) to run the bath, once, the stage or
-   the screen in room four to switch the show on and off, the
+   (or the shower over it) to run the bath, once, the stage in
+   room four to switch the show on and off, its screen to open
+   the sponsor page, the
    turntable in room one to play the record and pause it — and every plant,
    whose leaves part and sway under the pointer and shake at a
    tap. Paints the scene into a
@@ -312,6 +313,16 @@
   /** Switch the show in this room the other way — every room's, with no id. `at` is when (now). */
   const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
 
+  /* ── the site ─────────────────────────────────────────────── */
+  /** Which room's screen with a web page behind it is under this css point, or null — { id, name, geo: { quad, url } }. */
+  function overSite(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const s of scene.sites()) if (s.geo && inPoly(s.geo.quad, bx, by)) return s;
+    return null;
+  }
+  /** Open the page behind this screen in a new tab. */
+  const openSite = s => { if (s.geo && s.geo.url) window.open(s.geo.url, '_blank', 'noopener,noreferrer'); };
+
   /* ── the record ───────────────────────────────────────────── */
   /** Which room's turntable is under this css point, or null — { id, name, geo, play, playing }. */
   function overRecord(cx, cy) {
@@ -324,8 +335,8 @@
   /** The preview tool: the loops switched `at` — back-date every room's record slider to then. */
   const playRecord = (id, at) => { for (const r of scene.records()) if (!id || r.id === id) r.play(at); showState(); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'arcade', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show', 'record' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overArcade(cx, cy) ? 'arcade' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : overRecord(cx, cy) ? 'record' : null;
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'arcade', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show', 'site', 'record' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overArcade(cx, cy) ? 'arcade' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : overSite(cx, cy) ? 'site' : overRecord(cx, cy) ? 'record' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -392,8 +403,9 @@
       const s = id || n || b || dv || ch ? null : overStorm(e.clientX, e.clientY);
       const bt = id || n || b || dv || ch || s ? null : overTub(e.clientX, e.clientY);
       const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
-      const rc = id || n || b || dv || ch || s || bt || sh ? null : overRecord(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) { dv.toggle(); QH.sound.lights.play('duvet', dv.turningDown()); } else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) sh.play(); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
+      const st = id || n || b || dv || ch || s || bt || sh ? null : overSite(e.clientX, e.clientY);
+      const rc = id || n || b || dv || ch || s || bt || sh || st ? null : overRecord(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) { dv.toggle(); QH.sound.lights.play('duvet', dv.turningDown()); } else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) sh.play(); else if (st) openSite(st); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;

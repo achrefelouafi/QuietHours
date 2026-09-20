@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    assets/ledScreen.js — the big LED wall across the far corner:
-   a charcoal bezel, the panel, the sponsor's mark over their name
+   a charcoal bezel, the panel, the sponsor's mark (a plain rectangle
+   for now) over their name
    in a pixel face.
    The mark is what the banners carry too, so it's here to borrow.
 
@@ -10,7 +11,7 @@
    ledScreen.panel(wall, u, z, w, h)
      bezel and dark panel from (u, z) to (u+w, z+h) on the wall.
    ledScreen.art(wall, u, z, w, h, t, o)
-     the mark and the name. o.text (YOUR SPONSOR) is the name;
+     the mark and the name. o.text (BECOME A SPONSOR) is the name;
      o.glow 0..1 lifts the mark.
    Returns the panel's screen quad, for the click (also kept in
    ledScreen.last).
@@ -143,12 +144,17 @@
     }
   }
 
-  /* ── the mark: two bars leaning right, and a third leg down off
-        the second — a mountain, or an A with its bar out ── */
+  /* ── the mark: a hollow rectangle with a thick border, a placeholder
+        for the sponsor's own — the full 1.13 of the box across, three
+        quarters of it high and centred, so it sits where the old mark
+        did. Four bars make the frame: the two long ones and the two
+        short ones between them ── */
+  const T = 0.055, L = 0.00, R = 1.13, B = 0.125, U = 0.875;
   const BARS = [
-    [[0.00, 0], [0.17, 0], [0.70, 1], [0.53, 1]],
-    [[0.30, 0], [0.47, 0], [1.00, 1], [0.83, 1]],
-    [[0.955, 0], [1.125, 0], [0.795, 0.62], [0.625, 0.62]],
+    [[L, B], [R, B], [R, B + T], [L, B + T]],             // the bottom
+    [[L, U - T], [R, U - T], [R, U], [L, U]],             // the top
+    [[L, B + T], [L + T, B + T], [L + T, U - T], [L, U - T]],   // the left side
+    [[R - T, B + T], [R, B + T], [R, U - T], [R - T, U - T]],   // the right side
   ];
   function mark(at, size, col) {
     for (const b of BARS) poly(b.map(([fx, fz]) => at(fx * size, fz * size)), rgb(col));
@@ -175,7 +181,7 @@
   };
 
   const art = (wall, u, z, w, h, t = 0, o = {}) => {
-    const Wl = W[wall], str = (o.text || 'YOUR SPONSOR').toUpperCase(), glow = o.glow ?? 1;
+    const Wl = W[wall], str = (o.text || 'BECOME A SPONSOR').toUpperCase(), glow = o.glow ?? 1;
     const q = [Wl.pt(u, z, 0.1), Wl.pt(u + w, z, 0.1), Wl.pt(u + w, z + h, 0.1), Wl.pt(u, z + h, 0.1)].map(p => P(...p));
     const g = QH.draw.g;
 
