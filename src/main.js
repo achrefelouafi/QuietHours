@@ -451,6 +451,49 @@
   QH.sound.record.open = openPopup;                  // the sound engine asks us to open it on click
   QH.sound.record.onchange = () => { refreshPopup(); showState(); };   // and refresh on any toggle, from the popup or the preview tool
 
+  /* ── the contact card ───────────────────────────────────────
+     The card lives in the bottom-right corner, the one corner the canvas
+     never lights up — the slate owns top-left, the HUD owns top-right, and
+     the popup is centred. The canvas owns every pointerdown on the page;
+     the card stops the event so a click on a link doesn't start a drag on
+     the rooms behind it, and so a click on the toggle never drags the
+     camera. Collapse is persisted so the choice survives a reload. */
+  const contact = document.getElementById('contact');
+  const contactToggle = contact && contact.querySelector('[data-contact-toggle]');
+  const CONTACT_STORE = 'qh.contact.collapsed';
+  function readContactCollapsed() {
+    let stored = null;
+    try { stored = localStorage.getItem(CONTACT_STORE); } catch { /* private window, fall through */ }
+    return stored === null ? false : stored === '1';
+  }
+  function writeContactCollapsed(v) {
+    try { localStorage.setItem(CONTACT_STORE, v ? '1' : '0'); } catch { /* forget between visits */ }
+  }
+  function setContactCollapsed(collapsed, { silent = false } = {}) {
+    contact.classList.toggle('is-collapsed', collapsed);
+    if (contactToggle) {
+      const label = collapsed ? 'Show the contact card' : 'Hide the contact card';
+      contactToggle.setAttribute('aria-label', label);
+      contactToggle.title = collapsed ? 'Work with me' : 'Hide';
+    }
+    if (!silent) writeContactCollapsed(collapsed);
+  }
+  if (contact) {
+    // stop the card from handing the canvas a pointerdown — a click on a link
+    // would otherwise start a drag on the room behind it, and the toggle
+    // would pan the camera instead of collapsing the card.
+    contact.addEventListener('pointerdown', e => e.stopPropagation());
+    setContactCollapsed(readContactCollapsed(), { silent: true });
+    contactToggle && contactToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      setContactCollapsed(!contact.classList.contains('is-collapsed'));
+    });
+    // play the entrance once the canvas has drawn its first frame —
+    // the Quiet Hours loader is the rooms drawing in, so the card waits
+    // one frame to land after them rather than fade in over empty black.
+    requestAnimationFrame(() => requestAnimationFrame(() => contact.classList.add('is-ready')));
+  }
+
   /* ── keys ─────────────────────────────────────────────────── */
   addEventListener('keydown', e => {
     if (e.key === 'Escape' && !popup.hidden) { closePopup(); e.preventDefault(); return; }

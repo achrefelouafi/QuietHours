@@ -48,7 +48,209 @@
   .popup-btn-sub{ font-size:10px; color:var(--dim); letter-spacing:.06em }
   .popup-btns button.on .popup-btn-sub{ color:var(--amber); opacity:.7 }
   .popup-foot{ color:var(--dim); font-size:10px; letter-spacing:.06em }
-  @media (max-width:640px){ .slate{left:12px; top:12px} .hud{right:12px; top:12px} }
+
+  /* the contact card: lives in the bottom-right, the one corner that stays
+     free at every width — the slate owns top-left, the HUD owns top-right,
+     and the popup is centred when it appears. The card sits over the canvas
+     and never steals a drag, so its pointerdown stops the canvas from waking.
+     The amber picks up the booth's neon and the bedroom's bedside lamp, so
+     the corner reads as part of the scene rather than a sticker on top of it. */
+  .contact{
+    --contact-accent: var(--amber);
+    position:fixed; right:18px; bottom:16px;
+    width:268px; padding:11px 12px;
+    border:1px solid var(--dim); border-radius:2px;
+    background:rgba(5,11,20,.78);
+    color:var(--ink);
+    font:400 11px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    letter-spacing:.06em;
+    box-shadow:0 0 26px -16px var(--amber);
+    z-index:5;
+    opacity:0;
+  }
+  /* A slow fade once the canvas has settled — the loader in QuietHours is
+     the canvas itself (the rooms draw straight in), so the card waits one
+     frame and then plays in. */
+  .contact.is-ready{ animation: contact-in .7s cubic-bezier(.2,.85,.25,1) .25s both; }
+  @keyframes contact-in{
+    from{ opacity:0; transform:translateY(14px) }
+    to  { opacity:1; transform:none }
+  }
+
+  /* collapse toggle, lives over the card. The whole tile is the way back when
+     the card is collapsed, so the button takes the whole tile then. */
+  .contact__toggle{
+    position:absolute; top:6px; right:6px; z-index:2;
+    display:grid; place-items:center;
+    width:18px; height:18px; padding:0;
+    appearance:none; margin:0; cursor:pointer;
+    background:transparent; color:var(--dim);
+    border:1px solid transparent; border-radius:2px;
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .contact__toggle:hover, .contact__toggle:focus-visible{
+    color:var(--amber); border-color:var(--dim); outline:none;
+  }
+  .contact__toggle-bar{
+    width:8px; height:1.5px; background:currentColor;
+  }
+
+  /* header: portrait + who. The portrait keeps its amber ring — the same
+     conic gradient as in the source scene, retuned to a single accent so
+     it sits with the rest of the Quiet Hours palette. */
+  .contact__head{ display:flex; align-items:center; gap:10px }
+  .contact__portrait{
+    position:relative; flex:0 0 50px;
+    width:50px; height:50px; padding:1.5px;
+    border-radius:50%;
+    background:#050b14;
+  }
+  .contact__portrait::before{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(
+      from 0deg,
+      rgba(142,160,184,.10) 0 44%,
+      var(--amber) 62%,
+      #ffe7c2 72%,
+      rgba(142,160,184,.10) 86% 100%
+    );
+    animation: contact-ring 8s linear infinite;
+  }
+  @keyframes contact-ring{ to { transform:rotate(1turn) } }
+  .contact__frame{
+    position:relative; display:block; width:100%; height:100%;
+    border-radius:50%; overflow:hidden; background:#0b0f14;
+  }
+  .contact__portrait img{
+    display:block; width:100%; height:100%;
+    object-fit:cover;
+    transform:scale(1.3) translate(-11.5%, 9.5%);
+    filter:grayscale(.4) brightness(1.04);
+    transition:filter .35s ease, transform .35s ease;
+  }
+  .contact:hover .contact__portrait img{
+    filter:none; transform:scale(1.38) translate(-11.5%, 9.5%);
+  }
+
+  /* the who column */
+  .contact__who{ min-width:0; display:flex; flex-direction:column; gap:1px; padding-right:18px }
+  .contact__status{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:9px; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--amber);
+  }
+  .contact__status i{
+    width:5px; height:5px; border-radius:50%; background:var(--amber);
+    animation: contact-pulse 2.4s ease-out infinite;
+  }
+  @keyframes contact-pulse{
+    0%   { box-shadow:0 0 0 0 rgba(230,162,74,.55) }
+    70%  { box-shadow:0 0 0 6px rgba(230,162,74,0) }
+    100% { box-shadow:0 0 0 0 rgba(230,162,74,0) }
+  }
+  .contact__name{
+    font-size:14px; font-weight:600; letter-spacing:.16em;
+    text-transform:uppercase; color:#e9eef7; line-height:1.15;
+  }
+  .contact__role{
+    font-size:10px; letter-spacing:.04em; color:var(--dim);
+    text-transform:none;
+  }
+
+  /* the note sits between head and links, with a hairline above */
+  .contact__note{
+    margin:10px 0 8px; padding-top:9px;
+    border-top:1px solid var(--dim);
+    color:var(--ink); font-size:11px; line-height:1.55;
+  }
+
+  /* the two links: same shape as the popup buttons, but stacked in a column */
+  .contact__links{ display:flex; flex-direction:column; gap:6px }
+  .contact__link{
+    display:flex; align-items:center; gap:8px;
+    padding:6px 8px;
+    appearance:none; text-decoration:none;
+    background:rgba(5,11,20,.55); color:var(--ink);
+    border:1px solid var(--dim); border-radius:2px;
+    font:inherit; letter-spacing:inherit;
+    transition:border-color .2s ease, background .2s ease, color .2s ease;
+  }
+  .contact__link:hover, .contact__link:focus-visible{
+    border-color:var(--amber); color:var(--amber); background:rgba(230,162,74,.08);
+    outline:none;
+  }
+  .contact__icon{
+    display:grid; place-items:center; flex:0 0 22px;
+    width:22px; height:22px;
+    border:1px solid var(--dim); border-radius:2px;
+    background:rgba(5,11,20,.65); color:var(--ink);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .contact__icon svg{ display:block; width:12px; height:12px }
+  .contact__link-text{
+    min-width:0; display:flex; flex-direction:column; line-height:1.3;
+  }
+  .contact__link-text b{ font-size:11px; font-weight:600; letter-spacing:.04em }
+  .contact__link-text em{
+    font-size:9px; font-style:normal; letter-spacing:.10em;
+    text-transform:uppercase; color:var(--dim);
+  }
+  .contact__go{
+    flex:none; width:11px; height:11px; margin-left:auto;
+    opacity:.55; transition:transform .2s ease, opacity .2s ease;
+  }
+  .contact__link:hover .contact__go, .contact__link:focus-visible .contact__go{
+    opacity:1; transform:translate(2px,-2px);
+  }
+
+  /* ---- collapsed: the portrait alone, the whole tile is the way back --- */
+  .contact.is-collapsed{ width:auto }
+  .contact.is-collapsed{ padding:7px }
+  .contact.is-collapsed .contact__who,
+  .contact.is-collapsed .contact__note,
+  .contact.is-collapsed .contact__links{ display:none }
+  .contact.is-collapsed .contact__toggle{
+    inset:0; width:auto; height:auto; border-radius:inherit;
+    border-color:transparent; background:transparent;
+  }
+  .contact.is-collapsed .contact__toggle-bar{ display:none }
+  /* Collapsed label sits next to the portrait, hidden until you hover it. */
+  .contact.is-collapsed .contact__toggle::after{
+    content:'Work with me';
+    position:absolute; top:50%; right:calc(100% + 8px);
+    transform:translate(6px,-50%);
+    padding:5px 10px;
+    background:rgba(5,11,20,.85); color:var(--amber);
+    border:1px solid var(--dim); border-radius:2px;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    white-space:nowrap; opacity:0;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .contact.is-collapsed:hover .contact__toggle::after,
+  .contact.is-collapsed .contact__toggle:focus-visible::after{
+    opacity:1; transform:translate(0,-50%);
+  }
+
+  /* respect reduced motion: drop the ring and the entrance, keep the card */
+  @media (prefers-reduced-motion: reduce){
+    .contact__portrait::before, .contact__status i{ animation:none }
+    .contact.is-ready{ animation-duration:.01ms; animation-delay:0s }
+  }
+
+  /* short window: drop the note line so the card stays in one screen */
+  @media (max-height: 720px){
+    .contact__note{ display:none }
+  }
+
+  /* narrow window: narrower card, no link subs */
+  @media (max-width:640px){
+    .slate{left:12px; top:12px}
+    .hud{right:12px; top:12px}
+    .contact{ right:12px; bottom:12px; width:228px }
+    .contact__link-text em{ display:none }
+    .contact__portrait{ flex-basis:42px; width:42px; height:42px }
+    .contact__name{ font-size:13px }
+  }
 </style>
 </head>
 <body>
@@ -74,6 +276,69 @@ room four · lamp on · neon on · mixer on</span></div>
     <div class="popup-foot">click outside or press esc to close</div>
   </div>
 </div>
+
+<!-- the contact card: bottom-right, after the canvas has the same corner free at every width.
+     a tile with the portrait alone when collapsed, the full card (name, role, two links) when open. -->
+<aside class="contact" id="contact" data-contact aria-label="about the author">
+  <button class="contact__toggle" type="button" data-contact-toggle
+    aria-label="Hide the contact card" title="Hide">
+    <span class="contact__toggle-bar"></span>
+  </button>
+
+  <div class="contact__head">
+    <span class="contact__portrait">
+      <span class="contact__frame">
+        <img src="public/contact/p.jpg" alt="Portrait of Chiro" decoding="async" draggable="false" />
+      </span>
+    </span>
+    <span class="contact__who">
+      <span class="contact__status"><i></i>Available for work</span>
+      <span class="contact__name">Chiro</span>
+      <span class="contact__role">Creative dev &mdash; 3D, motion, games</span>
+    </span>
+  </div>
+
+  <p class="contact__note">
+    Every room, prop and lamp in this scene is hand-drawn. Yours could be too.
+  </p>
+
+  <div class="contact__links">
+    <a class="contact__link contact__link--x" href="https://x.com/chirovisuals" target="_blank" rel="noopener noreferrer">
+      <span class="contact__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68
+            l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </span>
+      <span class="contact__link-text">
+        <b>@chirovisuals</b>
+        <em>Work in motion, daily</em>
+      </span>
+      <svg class="contact__go" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17 17 7M9 7h8v8"/>
+      </svg>
+    </a>
+    <a class="contact__link contact__link--site" href="https://chirostudio.xyz" target="_blank" rel="noopener noreferrer">
+      <span class="contact__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M3.4 9h17.2M3.4 15h17.2"/>
+          <path d="M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z"/>
+        </svg>
+      </span>
+      <span class="contact__link-text">
+        <b>chirostudio.xyz</b>
+        <em>Portfolio &amp; contact</em>
+      </span>
+      <svg class="contact__go" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17 17 7M9 7h8v8"/>
+      </svg>
+    </a>
+  </div>
+</aside>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>
