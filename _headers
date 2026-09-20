@@ -1,0 +1,11 @@
+# Cloudflare static-asset headers, copied into dist/ by tools/build.js.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cache-Control: public, max-age=0, must-revalidate
+
+/src/*
+  Cache-Control: public, max-age=3600
+
+/public/*
+  Cache-Control: public, max-age=86400

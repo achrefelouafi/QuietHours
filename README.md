@@ -92,6 +92,10 @@ src/
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
+  build.js              gather index.html, its scripts and public/ into dist/ for hosting
+wrangler.jsonc          Cloudflare config: serve dist/ as static assets
+_headers                cache and security headers, shipped inside dist/
+.github/workflows/      deploy.yml — build and deploy on every push to main
 ```
 
 Plain `<script>` tags, one shared `QH` namespace — so the page works from `file://`
@@ -381,6 +385,37 @@ node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the d
 ```
 
 The tool is for development only — `index.html` has no dependency on it and ships alone.
+
+---
+
+## Deploying
+
+The site is static — `index.html`, the scripts it lists, and `public/` — and it's
+hosted on Cloudflare as a Worker with static assets. `tools/build.js` gathers exactly
+those files into `dist/` (it reads the `<script src>` list from `index.html`, so a
+file the page doesn't load isn't shipped), and `wrangler.jsonc` points Cloudflare at
+that folder. There's no bundler and nothing to transpile.
+
+```bash
+npm install
+npm run build          # → dist/
+npm run cf:dev         # build, then serve dist/ the way Cloudflare will, on localhost
+npm run deploy         # build, then upload — needs `npx wrangler login` once
+```
+
+Pushes to `main` deploy automatically through `.github/workflows/deploy.yml`. It
+needs two repository secrets:
+
+- `CLOUDFLARE_API_TOKEN` — an API token with the **Workers Scripts: Edit** permission
+  (the "Edit Cloudflare Workers" template in the dashboard is enough).
+- `CLOUDFLARE_ACCOUNT_ID` — from the right-hand side of any zone's overview page, or
+  `npx wrangler whoami`.
+
+The Worker is named `quiet-hours` in `wrangler.jsonc`; it gets a
+`quiet-hours.<your-subdomain>.workers.dev` URL on first deploy, and a custom domain
+can be attached in the dashboard under the Worker's settings. `_headers` sets caching
+(the page revalidates every load; scripts for an hour; the record for a day) and is
+copied into `dist/` by the build.
 
 ---
 

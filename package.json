@@ -6,9 +6,13 @@
   "scripts": {
     "dev": "node tools/dev.js",
     "preview": "node tools/preview.js docs/preview.png 4.2 1100 760 1",
-    "preview:dark": "node tools/preview.js docs/lights-out.png 4.2 1100 760 0"
+    "preview:dark": "node tools/preview.js docs/lights-out.png 4.2 1100 760 0",
+    "build": "node tools/build.js",
+    "cf:dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
-    "canvas": "^3.0.0"
+    "canvas": "^3.0.0",
+    "wrangler": "^4.0.0"
   }
 }
