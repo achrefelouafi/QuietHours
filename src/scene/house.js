@@ -15,7 +15,7 @@
    Under them all is the ground (scene/ground.js), drawn first in
    room one's coordinates.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, blinds, duvets, chairs, storms, tubs, shows, records, busy, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, arcades, blinds, duvets, chairs, storms, tubs, shows, records, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
@@ -71,6 +71,8 @@
   const pcs    = () => rooms.filter(r => r.scene.pc).map(r => ({ id: r.id, name: r.name, kind: 'pc', geo: r.scene.pc(), sw: r.scene.pcSwitch }));
   /** The mixing desks' screen geometry from the last draw — the desk's faces — with the switch each console is on, in the rooms with one. */
   const mixers = () => rooms.filter(r => r.scene.mixer).map(r => ({ id: r.id, name: r.name, kind: 'mixer', geo: r.scene.mixer(), sw: r.scene.mixerSwitch }));
+  /** The arcade cabinets' screen geometry from the last draw — the screen rectangle — with the switch the cabinet is on, in the rooms with one. */
+  const arcades = () => rooms.filter(r => r.scene.arcade).map(r => ({ id: r.id, name: r.name, kind: 'arcade', geo: r.scene.arcade(), sw: r.scene.arcadeSwitch }));
   /** The blinds' screen geometry from the last draw, in the rooms that have one. */
   const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind }));
   /** The duvets' screen geometry from the last draw, in the rooms with a bed you can turn down. */
@@ -88,5 +90,5 @@
   /** Is anything in a room mid-animation and wanting every frame? */
   const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, blinds, duvets, chairs, storms, tubs, shows, records, busy, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, arcades, blinds, duvets, chairs, storms, tubs, shows, records, busy, boundsOf };
 })(QH);

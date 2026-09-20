@@ -19,9 +19,9 @@
    The dispatch — which room's lamp is which kind, and which switch
    name is which kind — lives at the bottom in two small tables.
    main.js hands the function a lamp id (`one`, `two`, …) for the
-   four main lamps, or a switch name (`one-strip`, `four-mixer`, …)
-   for the wall lights, the PC and the mixer. Anything new plugged
-   in elsewhere maps the same way.
+   four main lamps, or a switch name (`one-strip`, `four-mixer`,
+   `four-arcade`, …) for the wall lights, the PC, the mixer and the
+   arcade. Anything new plugged in elsewhere maps the same way.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -270,11 +270,12 @@
 
   const LAMP_KIND   = { one: 'deskLamp', two: 'bedsideLamp', three: 'barLight', four: 'trussSpots' };
   const SWITCH_KIND = {
-    'one-strip':  'ledStrip',
-    'one-pc':     'monitor',
-    'two-neon':   'neonSign',
-    'four-neon':  'neonRigs',
-    'four-mixer': 'mixerDesk',
+    'one-strip':    'ledStrip',
+    'one-pc':       'monitor',
+    'two-neon':     'neonSign',
+    'four-neon':    'neonRigs',
+    'four-mixer':   'mixerDesk',
+    'four-arcade':  'monitor',                                          // the cabinet is a CRT, the same sound as the PC in room one
   };
   const KINDS = { deskLamp, bedsideLamp, barLight, trussSpots, ledStrip, neonSign, neonRigs, monitor, mixerDesk };
 

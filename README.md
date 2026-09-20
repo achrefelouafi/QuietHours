@@ -30,6 +30,9 @@ Open `index.html`. No build step, no dependencies, no server.
   floor and the strip under the truss, on one switch
 - click the mixing desk in the booth to switch its console off and on (`X`) — on, its
   knobs blink and its buttons light in turn; off, they all sit at rest
+- click the arcade cabinet in the booth to switch its screen off and on (`G`) — on, the
+  marquee lights and rows scroll up the glass; off, the screen goes dark and the marquee
+  with it, just the cabinet standing there
 - click the bedroom blind to run it down over the window and back up (`B`)
 - click the duvet on the bedroom bed, or the blanket on the daybed downstairs, to turn it
   down toward the foot, ready for the night, and again to make the bed (`U`)
@@ -88,7 +91,7 @@ src/
     roomThree.js        the same for room three
     roomFour.js         the same for room four, plus its show
     house.js            the rooms in one scene: where each sits, its lamp switch, its lights
-  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, the mixer, windows, the tub, the stage, the turntable — the pointer over the plants
+  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, the mixer, the arcade, windows, the tub, the stage, the turntable — the pointer over the plants
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
@@ -203,7 +206,7 @@ far corner is cut off by a third wall that faces the camera square on:
 | `banner.js` | a dark cloth off a steel rail, the mark glowing on it, tabs on the hem | `banner(wall, u, z, w, h, {glow})` |
 | `podium.js` | the round stage: a drum on an eight-sided step, panelled with two lit windows, blue neon under the rim, the badge on top. Returns the top's polygon for the click | `podium(x, y, {r, h, on, pulse})` |
 | `neonFloor.js` | laid into the tiles: the six-sided ring round the stage, its inside warmed by the spots, and circuit traces with a bead of light running along each | `neonFloor(cx, cy, {a, c, traces, on, t, chase, warm, clipTo})` |
-| `arcadeCabinet.js` | upright cabinet in blue: plinth, coin door, control panel, screen with something scrolling, lit marquee; a stripe and an orange creature down its side | `arcadeCabinet(x, y, t, {face: '+x'│'+y', w, d, h})` |
+| `arcadeCabinet.js` | upright cabinet in blue: plinth, coin door, control panel, screen with something scrolling, lit marquee; a stripe and an orange creature down its side. `on` (1) fades the screen to dark glass and the marquee to black when off. Returns the screen's quad for the click and the cabinet's silhouette for the lighting mask | `arcadeCabinet(x, y, t, {face: '+x'│'+y', w, d, h, on})` |
 | `mixerDesk.js` | teal cabinet on posts with frosted panels, a wood lip, knobs in rows, faders, orange buttons, a bottle, a boom arm; a few lights blink while `on`. Returns the desk's screen polygons for the click | `mixerDesk(x, y, t, {w, d, h, on})` |
 | `waterCooler.js` | pale cabinet, tap panel, the blue bottle upended on top | `waterCooler(x, y, {face, w, h})` |
 | `beanbag.js` | slumped on the floor, drawn on screen like the ball: lumpy orange or rust, or the olive pear — no longer placed, the lounge took its floor | `beanbag(x, y, {kind: 'orange'│'rust'│'olive', size, seed})` |
@@ -364,7 +367,7 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc] [mixer] [record]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc] [mixer] [arcade] [record]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off

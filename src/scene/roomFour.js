@@ -18,13 +18,15 @@
    and the scene that holds the rooms puts it where it goes.
    Painter order, as in the other rooms.
 
-   Four things here you can touch: the rig — the truss with its
+   Five things here you can touch: the rig — the truss with its
    spots is this room's lamp; the neon — the tubes, the ring, the
    traces and the strip under the truss, on one switch; the mixing
    desk — its knobs blink and its buttons light in turn until a
-   click switches the console off; and the stage, or the screen: a
-   click switches the show on, the beams sweeping, the traces
-   racing, until the next click switches it off again.
+   click switches the console off; the arcade cabinet — a click on
+   its screen switches it on, the marquee lit and rows scrolling,
+   until the next click switches it off again; and the stage, or
+   the screen: a click switches the show on, the beams sweeping,
+   the traces racing, until the next click switches it off again.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -39,6 +41,9 @@
   const neonOn = () => light.switch(NEON.sw).v;
   const MIXER = { sw: 'four-mixer' };                                  // sw: the mixing desk's console, on its own switch
   const mixerOn = () => light.switch(MIXER.sw).v;
+  const ARCADE = { sw: 'four-arcade' };                                // sw: the arcade screen + marquee, on its own switch
+  /** How lit the arcade's screen and marquee are right now, 0..1, easing after a click. */
+  const arcadeOn = () => light.switch(ARCADE.sw).v;
 
   const SCREEN = { u: 0.4, z: 0.85, w: S.len - 0.8, h: H - 1.75 };
   const SCREEN_C = S.pt(SCREEN.u + SCREEN.w / 2, SCREEN.z + SCREEN.h / 2, 0.1);
@@ -140,7 +145,7 @@
 
     // along the left wall
     A.roadCase(0.35, 6.9, { w: 1.5, d: 1.3, h: 1.4 });
-    arcadeGeo = A.arcadeCabinet(0.3, 8.5, t, { face: '+x', w: 1.2, d: 1.35 });
+    arcadeGeo = A.arcadeCabinet(0.3, 8.5, t, { face: '+x', w: 1.2, d: 1.35, on: arcadeOn() });
     A.tallPot(0.85, 10.55, 0, { seed: 125, size: 1.7, r: 0.4 });
     A.cactusPot(0.8, 11.85, 0, { seed: 131 });
 
@@ -204,6 +209,9 @@
     for (const g of tubes) A.neonTube.halo(g, n);
     light.glow(5.7, 5.7, 1.2, 4.6, [70, 130, 255], 0.12 * n);                                       // the ring round the stage
     light.glow(5.7, 5.7, 1.3, 1.6, [120, 180, 255], 0.16 * n);                                      // the badge
+    const a = arcadeOn();
+    light.glow(1.7, 9.1, 2.4, 2.0, [80, 140, 220], 0.09 * a);                                       // the arcade's screen
+    light.glow(1.7, 9.1, 0.1, 2.6, [60, 110, 200], 0.05 * a);                                       // and its pool on the tiles before it
     light.end();
     if (arcadeGeo) QH.draw.unclip();
   }
@@ -214,6 +222,7 @@
     neon: () => ({ lines: tubes.filter(g => g).map(g => g.line), r: tubes[0] ? tubes[0].r : 0,
                    extra: podiumGeo ? podiumGeo.ring.map(line => ({ line, r: podiumGeo.ringR })) : [], polys: podiumGeo ? [podiumGeo.badge] : [] }), neonSwitch: NEON.sw,
     mixer: () => mixerGeo, mixerSwitch: MIXER.sw,
+    arcade: () => arcadeGeo, arcadeSwitch: ARCADE.sw,
     show: () => ({ polys: [podiumGeo && podiumGeo.top, screenGeo && screenGeo.quad].filter(p => p) }), play,
     busy: showBusy,
   };

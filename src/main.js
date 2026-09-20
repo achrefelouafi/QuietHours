@@ -6,7 +6,8 @@
    blind over the window and the duvet on the bed in room two,
    the desk chair in room one, which rolls in under the desk,
    the neon tubes in room four, the mixing desk there, whose console
-   blinks until you switch it off, every window for the lightning, the tub in room three
+   blinks until you switch it off, the arcade cabinet there,
+   whose screen and marquee light up on a click, every window for the lightning, the tub in room three
    (or the shower over it) to run the bath, once, the stage or
    the screen in room four to switch the show on and off, the
    turntable in room one to play the record and pause it — and every plant,
@@ -176,10 +177,10 @@
     for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
     return null;
   }
-  /** The slate: each room's lamp, and the strip, neon, PC, mixer or record where there is one. */
+  /** The slate: each room's lamp, and the strip, neon, PC, mixer, arcade or record where there is one. */
   function showState() {
     stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')
-      + [...wallLights(), ...scene.pcs(), ...scene.mixers()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')
+      + [...wallLights(), ...scene.pcs(), ...scene.mixers(), ...scene.arcades()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')
       + scene.records().filter(n => n.id === r.id).map(n => ' · record ' + (n.playing() ? 'playing' : 'stopped')).join('')).join(String.fromCharCode(10));
   }
   function setLamp(id, on) { light.set(id, on); QH.sound.lights.playForLamp(id, on); showState(); }
@@ -224,6 +225,16 @@
   }
   /** Switch the mixing desk's console in this room, if it has one. */
   const toggleMixerIn = id => { const m = scene.mixers().find(m => m.id === id); if (m) toggleNeon(m.sw); };
+
+  /* ── the arcades ──────────────────────────────────────────── */
+  /** Which room's arcade cabinet screen is under this css point, or null — { id, name, kind, geo, sw }, on a switch like the PC. */
+  function overArcade(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const a of scene.arcades()) if (inPoly(a.geo && a.geo.quad, bx, by)) return a;
+    return null;
+  }
+  /** Switch the arcade's screen in this room, if it has one — the same switch the monitor in room one is on. */
+  const toggleArcadeIn = id => { const a = scene.arcades().find(a => a.id === id); if (a) toggleNeon(a.sw); };
 
   /* ── the blinds ───────────────────────────────────────────── */
   /** Is (bx, by) inside this convex polygon of screen points? */
@@ -313,8 +324,8 @@
   /** The preview tool: the loops switched `at` — back-date every room's record slider to then. */
   const playRecord = (id, at) => { for (const r of scene.records()) if (!id || r.id === id) r.play(at); showState(); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show', 'record' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : overRecord(cx, cy) ? 'record' : null;
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'arcade', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show', 'record' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overArcade(cx, cy) ? 'arcade' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : overRecord(cx, cy) ? 'record' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -374,7 +385,7 @@
       return;
     }
     if (press && !press.far && performance.now() - press.t < 400) {
-      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY) || overPc(e.clientX, e.clientY) || overMixer(e.clientX, e.clientY);
+      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY) || overPc(e.clientX, e.clientY) || overMixer(e.clientX, e.clientY) || overArcade(e.clientX, e.clientY);
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
       const dv = id || n || b ? null : overDuvet(e.clientX, e.clientY);
       const ch = id || n || b || dv ? null : overChair(e.clientX, e.clientY);
@@ -516,6 +527,7 @@
     else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
     else if (k === 'm') togglePcIn(roomInView().id);
     else if (k === 'x') toggleMixerIn(roomInView().id);
+    else if (k === 'g') toggleArcadeIn(roomInView().id);
     else if (k === 'f') strike(roomInView().id);
     else if (k === 'p') playShow(roomInView().id);
     else if (k === 'r') openRecord(roomInView().id);
@@ -571,6 +583,7 @@
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setPc: (on, id) => { for (const p of scene.pcs()) if (!id || p.id === id) { setNeon(p.sw, on); light.switch(p.sw).v = on ? 1 : 0; } },
     setMixer: (on, id) => { for (const m of scene.mixers()) if (!id || m.id === id) { setNeon(m.sw, on); light.switch(m.sw).v = on ? 1 : 0; } },
+    setArcade: (on, id) => { for (const a of scene.arcades()) if (!id || a.id === id) { setNeon(a.sw, on); light.switch(a.sw).v = on ? 1 : 0; } },
     toggleBlind, toggleDuvet, toggleChair,
     setDuvet: (v, id) => { for (const d of scene.duvets()) if (!id || d.id === id) d.set(v); },   // the duvet turned down this far, 0..1, in one room or every room's
     setChair: (v, id) => { for (const c of scene.chairs()) if (!id || c.id === id) c.set(v); },   // the chair rolled this far under the desk, 0..1, in one room or every room's
