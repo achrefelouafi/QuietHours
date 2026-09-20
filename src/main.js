@@ -182,7 +182,7 @@
       + [...wallLights(), ...scene.pcs(), ...scene.mixers()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')
       + scene.records().filter(n => n.id === r.id).map(n => ' · record ' + (n.playing() ? 'playing' : 'stopped')).join('')).join(String.fromCharCode(10));
   }
-  function setLamp(id, on) { light.set(id, on); showState(); }
+  function setLamp(id, on) { light.set(id, on); QH.sound.lights.playForLamp(id, on); showState(); }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
 
   /* ── the wall lights: the neon and the strip ──────────────── */
@@ -200,7 +200,7 @@
     }
     return null;
   }
-  function setNeon(sw, on) { light.set(sw, on); showState(); }
+  function setNeon(sw, on) { light.set(sw, on); QH.sound.lights.playForSwitch(sw, on); showState(); }
   const toggleNeon = sw => setNeon(sw, !light.isOn(sw));
   /** Switch the neon (or strip, as asked) in this room, if it has one. */
   const toggleNeonIn = (id, kind = 'neon') => { const n = wallLights().find(n => n.id === id && n.kind === kind); if (n) toggleNeon(n.sw); };
