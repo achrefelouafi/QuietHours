@@ -73,8 +73,8 @@
   const mixers = () => rooms.filter(r => r.scene.mixer).map(r => ({ id: r.id, name: r.name, kind: 'mixer', geo: r.scene.mixer(), sw: r.scene.mixerSwitch }));
   /** The arcade cabinets' screen geometry from the last draw — the screen rectangle — with the switch the cabinet is on, in the rooms with one. */
   const arcades = () => rooms.filter(r => r.scene.arcade).map(r => ({ id: r.id, name: r.name, kind: 'arcade', geo: r.scene.arcade(), sw: r.scene.arcadeSwitch }));
-  /** The blinds' screen geometry from the last draw, in the rooms that have one. */
-  const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind }));
+  /** The blinds' screen geometry from the last draw, in the rooms that have one. `goingDown` reads the slider's current target so callers can play the direction-aware sound after a toggle. */
+  const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind, goingDown: r.scene.blindDown }));
   /** The duvets' screen geometry from the last draw, in the rooms with a bed you can turn down. */
   const duvets = () => rooms.filter(r => r.scene.duvet).map(r => ({ id: r.id, name: r.name, geo: r.scene.duvet(), toggle: r.scene.toggleDuvet, set: r.scene.setDuvet }));
   /** The desk chairs' screen geometry from the last draw, in the rooms with one you can roll under the desk. */

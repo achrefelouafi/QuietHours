@@ -260,6 +260,39 @@
     },
   };
 
+  /** Room two — the roller blind over the bedroom window. Noise only:
+      the fabric whispering as it unspools — no hum, no warble, no
+      tonal ring, nothing an oscillator makes. The closing version adds
+      the weighted hem bar thudding against the sill (filtered noise
+      clicks); the opening version is just the shorter, softer pull. */
+  const rollerBlind = {
+    on() {                                                                  // closing — blind rolling down to fully cover the glass
+      if (!ready()) return;
+      const t0 = ctx.currentTime;
+      fabric(t0, 0.04, 0.78, 0.040, 1300);                                  // the cloth whispering as it unspools
+      click(t0 + 0.78,  180, 3,   0.040, 0.42);                             // the weighted hem bar hitting the sill
+      click(t0 + 0.80,  110, 2,   0.060, 0.24);                             // the body of the rail
+    },
+    off() {                                                                 // opening — blind rolling up to its rest position
+      if (!ready()) return;
+      const t0 = ctx.currentTime;
+      fabric(t0, 0.04, 0.52, 0.035, 1200);                                  // the cloth pull, a hair shorter and softer
+    },
+  };
+  /** One slice of fabric rustle for the roller: noise through a highpass
+      at `f`, fading in over 80 ms, holding, then fading out by `end`. */
+  function fabric(t0, at, end, peak, f) {
+    const src = ctx.createBufferSource(); src.buffer = noise; src.loop = true;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = f; hp.Q.value = 0.4;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0 + at);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + at + 0.08);
+    g.gain.setValueAtTime(peak, t0 + end - 0.10);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + end);
+    src.connect(hp); hp.connect(g); g.connect(out);
+    src.start(t0 + at); src.stop(t0 + end + 0.05);
+  }
+
   /* ── dispatch ────────────────────────────────────────────────
      The light kinds, mapped to lamp ids (for the lamps in the
      four rooms) and to switch names (for the wall lights, the PC
@@ -277,7 +310,7 @@
     'four-mixer':   'mixerDesk',
     'four-arcade':  'monitor',                                          // the cabinet is a CRT, the same sound as the PC in room one
   };
-  const KINDS = { deskLamp, bedsideLamp, barLight, trussSpots, ledStrip, neonSign, neonRigs, monitor, mixerDesk };
+  const KINDS = { deskLamp, bedsideLamp, barLight, trussSpots, ledStrip, neonSign, neonRigs, monitor, mixerDesk, rollerBlind };
 
   /** Play the sound for the lamp in room `id`, going on or off. */
   function playForLamp(id, on) { const k = LAMP_KIND[id]; if (k) KINDS[k][on ? 'on' : 'off'](); }

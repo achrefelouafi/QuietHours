@@ -255,7 +255,7 @@
     for (const b of scene.blinds()) if (inPoly(b.geo && b.geo.quad, bx, by)) return b;
     return null;
   }
-  const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (b) b.toggle(); };
+  const toggleBlind = id => { const b = scene.blinds().find(b => b.id === id); if (!b) return; b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); };
 
   /* ── the duvets ───────────────────────────────────────────── */
   /** Which room's duvet is under this css point, or null. It's several faces on screen, each convex. */
@@ -300,7 +300,7 @@
     return null;
   }
   /** Run the bath in this room — every room's, with no id. `at` is when the shower went on (now). */
-  const fillTub = (id, at) => { for (const b of scene.tubs()) if (!id || b.id === id) b.fill(at); };
+  const fillTub = (id, at) => { for (const b of scene.tubs()) if (!id || b.id === id) b.fill(at); QH.sound.bath.fill(at); };
 
   /* ── the show ─────────────────────────────────────────────── */
   /** Which room's stage or screen is under this css point, or null. */
@@ -393,7 +393,7 @@
       const bt = id || n || b || dv || ch || s ? null : overTub(e.clientX, e.clientY);
       const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
       const rc = id || n || b || dv || ch || s || bt || sh ? null : overRecord(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) sh.play(); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
