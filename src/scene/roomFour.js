@@ -210,7 +210,9 @@
 
   QH.scenes.roomFour = {
     room, sources, draw, lights, lamp: () => lamp,
-    neon: () => ({ lines: tubes.filter(g => g).map(g => g.line), r: tubes[0] ? tubes[0].r : 0 }), neonSwitch: NEON.sw,
+    // the four tubes, the ring round the stage and the badge on it are one light — a click on any of them switches it
+    neon: () => ({ lines: tubes.filter(g => g).map(g => g.line), r: tubes[0] ? tubes[0].r : 0,
+                   extra: podiumGeo ? podiumGeo.ring.map(line => ({ line, r: podiumGeo.ringR })) : [], polys: podiumGeo ? [podiumGeo.badge] : [] }), neonSwitch: NEON.sw,
     mixer: () => mixerGeo, mixerSwitch: MIXER.sw,
     show: () => ({ polys: [podiumGeo && podiumGeo.top, screenGeo && screenGeo.quad].filter(p => p) }), play,
     busy: showBusy,

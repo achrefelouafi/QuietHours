@@ -58,29 +58,27 @@
   let chairGeo = null;
 
   /* ── the record ───────────────────────────────────────────────
-     A click on the turntable plays the record — the one track in
-     public/, on a loop — and the next pauses it, and so on. `rec`
-     is its slider (core.js), 0..1, so the ripples off the platter
-     and the bounce in the speakers by it come up and die away
-     rather than snap; `spin` is how far the record has turned,
-     gathering while it plays. The sound is the truth (sound.js):
-     the media keys can stop it too, and the room follows each
-     frame. Under reduced motion nothing turns or bounces, but the
-     record still plays, ripples and all, standing still. */
+     A click on the turntable opens the popup (sound.js / main.js),
+     and the popup's three buttons toggle the three synth loops.
+     `rec` is its slider (core.js), 0..1 — it follows the OR of
+     the three loops each frame, so the ripples off the platter and
+     the bounce in the speakers by it come up and die away rather
+     than snap; `spin` is how far the record has turned, gathering
+     while any loop plays. Under reduced motion nothing turns or
+     bounces, but the ripples still come up if a loop is on. */
   const RPM = 33.3;
   const rec = slider(still ? 0 : 600);
-  let recGeo = null, spin = 0, lastT = null;
-  const now = () => performance.now();
-  /** Play the record, or pause it. `at` is when (now) — in the past, it's been going (or stopped) that long already. */
-  function playRecord(at = now()) {
-    if (QH.sound.record.toggle() !== rec.open()) { rec.toggle(); rec.start = at; }
-  }
+  let recGeo = null, spin = 0, lastT = null, recAt = null;
+  /** A click: open the record popup — the loops it toggles drive `rec` from the next frame. With `at` (the preview tool),
+      that's when the loops switched: the slider is backdated to it, so a frame can be drawn with the record well up. */
+  function playRecord(at) { if (at === undefined) QH.sound.record.toggle(); else recAt = at; }
   const recordOn = () => rec.open();
 
   function draw(t) {
     lightning = storm.flash();
     duvet.step(); chair.step();
-    if (QH.sound.record.playing() !== rec.open()) rec.toggle();       // stopped, or started, from outside — the media keys — and the room follows
+    if (QH.sound.record.playing() !== rec.open()) { rec.toggle(); if (recAt !== null) rec.start = recAt; }   // a loop switched, in the popup — and the room follows
+    recAt = null;
     rec.step();
     const dt = lastT === null ? 0 : Math.min(0.1, Math.max(0, t - lastT)); lastT = t;
     spin += dt * rec.v * RPM / 60 * TAU;                                // the record turns while the play is up, slowing as it dies

@@ -60,7 +60,7 @@ function mkCanvas(w, h) {
 }
 
 const stage = mkCanvas(W, H);
-const stubEl = { textContent: '', style: {}, addEventListener: () => {} };
+const stubEl = { textContent: '', style: {}, hidden: true, addEventListener: () => {}, querySelectorAll: () => [], focus: () => {} };   // the slate, the HUD, the record popup
 
 const sandbox = {
   console,

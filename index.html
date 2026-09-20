@@ -33,17 +33,49 @@
   .hud button:active{ background:rgba(230,162,74,.12) }
   .hud button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px }
   .hud button.on{ color:var(--amber); border-color:var(--amber) }
+
+  /* the record popup: a centered modal over the whole viewport, the
+     same ink-on-dark palette as the rest of the page */
+  .popup{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(5,11,20,.86); z-index:10; padding:20px; }
+  .popup[hidden]{ display:none }
+  .popup-card{ background:var(--bg); border:1px solid var(--amber); border-radius:2px; min-width:300px; max-width:90vw; padding:26px 30px 20px; text-align:center; box-shadow:0 0 40px rgba(230,162,74,.12); }
+  .popup-title{ color:var(--amber); font-size:13px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:6px }
+  .popup-sub{ color:var(--dim); font-size:11px; letter-spacing:.06em; margin-bottom:22px }
+  .popup-btns{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px }
+  .popup-btns button{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:11px 16px; appearance:none; margin:0; background:rgba(5,11,20,.7); color:var(--ink); border:1px solid var(--dim); border-radius:2px; cursor:pointer; font:inherit; letter-spacing:inherit }
+  .popup-btns button:hover{ color:var(--amber); border-color:var(--amber) }
+  .popup-btns button.on{ color:var(--amber); border-color:var(--amber); background:rgba(230,162,74,.10) }
+  .popup-btns button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px }
+  .popup-btn-label{ font-size:13px }
+  .popup-btn-sub{ font-size:10px; color:var(--dim); letter-spacing:.06em }
+  .popup-btns button.on .popup-btn-sub{ color:var(--amber); opacity:.7 }
+  .popup-foot{ color:var(--dim); font-size:10px; letter-spacing:.06em }
   @media (max-width:640px){ .slate{left:12px; top:12px} .hud{right:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
 </style>
 </head>
 <body>
 <canvas id="stage" tabindex="0"
-        aria-label="Four isometric pixel-art rooms at night, stacked: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom, and beside it a bar light over a mirror lights a bathroom with a clawfoot tub; over them both a sponsor's booth, a wall of LEDs with the sponsor's mark and name under a truss of spotlights, blue neon, a round stage. Drag to look around, scroll to zoom, press 1, 2, 3 or 4 to fly to a room, click a lamp, the strip light, the neon sign, the bathroom's mirror light, the booth's spotlights or its neon tubes to switch them off and on, click the screen of the PC on the desk downstairs to switch it off and on, click the mixing desk in the booth to switch its blinking console off and on, click the bedroom blind to run it down over the window and back up, click the duvet on the bedroom bed or the blanket on the daybed to turn it down for the night and make it again, click the desk chair to roll it in under the desk and back out, click a window for lightning and thunder, click the bathtub or the shower over it once to run the bath until it is full, click the booth's stage or its screen to switch a light show on and off, click the turntable on the hi-fi console downstairs to play a record and again to pause it, brush the plants to stir their leaves."></canvas>
+        aria-label="Four isometric pixel-art rooms at night, stacked: downstairs a desk lamp lights a desk under a rain-streaked window; upstairs a bedside lamp and a neon sign light a bedroom, and beside it a bar light over a mirror lights a bathroom with a clawfoot tub; over them both a sponsor's booth, a wall of LEDs with the sponsor's mark and name under a truss of spotlights, blue neon, a round stage. Drag to look around, scroll to zoom, press 1, 2, 3 or 4 to fly to a room, click a lamp, the strip light, the neon sign, the bathroom's mirror light, the booth's spotlights or its neon tubes to switch them off and on, click the screen of the PC on the desk downstairs to switch it off and on, click the mixing desk in the booth to switch its blinking console off and on, click the bedroom blind to run it down over the window and back up, click the duvet on the bedroom bed or the blanket on the daybed to turn it down for the night and make it again, click the desk chair to roll it in under the desk and back out, click a window for lightning and thunder, click the bathtub or the shower over it once to run the bath until it is full, click the ring round the stage or the badge on it to switch the neon too, click the stage or its screen to switch a light show on and off, click the turntable on the hi-fi console downstairs to play a record and again to pause it, brush the plants to stir their leaves."></canvas>
 <div class="slate"><b>quiet hours</b><span id="state">room one · lamp on · strip on · pc on · record stopped
 room two · lamp on · neon on
 room three · lamp on
 room four · lamp on · neon on · mixer on</span></div>
-<div class="hud" id="hud" aria-label="controls"><button type="button" data-act="lofi" title="play/pause the lofi synth loop (10s)">lofi</button><button type="button" data-act="drums" title="play/pause the drum loop (10s, locks to the lofi pad)">drums</button><button type="button" data-act="piano" title="play/pause the piano arpeggio (10s, locks to the lofi pad)">piano</button><button type="button" data-act="home" title="back out to the whole house (0)">focus all</button></div>
+<div class="hud" id="hud" aria-label="controls"><button type="button" data-act="home" title="back out to the whole house (0)">focus all</button></div>
+
+<!-- the record popup: opened by clicking the turntable in room one; the
+     three buttons toggle the three synth loops -->
+<div class="popup" id="popup" hidden role="dialog" aria-modal="true" aria-labelledby="popup-title">
+  <div class="popup-card">
+    <div class="popup-title" id="popup-title">record player</div>
+    <div class="popup-sub">pick what to play · 12 s loop, 80 bpm</div>
+    <div class="popup-btns">
+      <button type="button" data-pop="lofi"><span class="popup-btn-label">lofi</span><span class="popup-btn-sub">chord pad</span></button>
+      <button type="button" data-pop="drums"><span class="popup-btn-label">drums</span><span class="popup-btn-sub">4-bar beat · 80 bpm</span></button>
+      <button type="button" data-pop="piano"><span class="popup-btn-label">piano</span><span class="popup-btn-sub">arpeggio</span></button>
+    </div>
+    <div class="popup-foot">click outside or press esc to close</div>
+  </div>
+</div>
 <p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 / 4 fly to a room · 0 focus all · click a lamp · click the strip · click the neon · click the PC · click the mixer · click the blind · click the duvet · click the chair · click a window · click the tub · click the stage · click the record player · brush the plants</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->

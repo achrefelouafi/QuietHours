@@ -1,7 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════
    engine/sound.js — the sounds in the house: thunder, the record on
-   the turntable downstairs, and two HUD-only test loops — a 10s lofi
-   chord pad and a 10s drum pattern at 96 BPM.
+   the turntable downstairs (a popup-driven selector for the three
+   synth loops), and those three synth loops — the lofi pad, the
+   drum loop, and the piano arpeggio.
 
    Thunder has no audio file. It is white noise shaped in the
    Web Audio graph: a noise buffer made once, then, for each
@@ -16,21 +17,20 @@
    the browser lets it play — and where there is no Web Audio (the
    preview tool) every call is a quiet no-op.
 
-   The record is the one audio file, public/ambient-lofi.mp3, in an
-   <audio> element made on the first click on the turntable and
-   looping from there; each click after plays or pauses it. The
-   element is the truth about whether it's playing — the media keys
-   can stop it too — and the room reads that off record.playing()
-   each frame. Where there is no <audio> (the preview tool) the
-   record keeps a flag instead, so a frame can still be drawn with
-   it on.
+   The three loops — lofi, drums, piano — are all rendered into
+   AudioBuffers on first toggle (no audio files) and played with
+   loop=true. They share an epoch — the audio time at which the
+   loop conceptually started — so whichever you toggle second
+   joins the others in phase. 80 BPM × 4 bars × 4 beats = 12 s
+   gives the same 4-bar chord progression in the pad that the
+   drum beat walks over and the piano arpeggios through.
 
-   The lofi pad and the drum loop are both 10-second AudioBuffers
-   rendered once on first toggle and played with loop=true. They
-   share an epoch — the audio time at which the loop conceptually
-   started — so whichever one you toggle on second joins the other
-   in phase. 96 BPM gives exactly 4 bars × 2.5 s = 10 s, so the
-   kick on beat 1 of every bar lines up with the chord change.
+   The record is just the OR of the three loops: `playing()` is
+   true when any of them is on, and the room's rec slider eases
+   the turntable ripples and the spin off that. `toggle()` is
+   a no-op stub — main.js hooks `record.open` to its popup-opening
+   function, so clicking the turntable opens the popup rather than
+   toggling anything.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -88,26 +88,24 @@
     for (let i = 0; i < 3; i++) roll(t0 + 0.7 + R() * 2.2, 280, 60, 0.3 + R() * 0.4, 1.6 + R() * 1.6, 0.2 + R() * 0.2);   // rolling off
   }
 
-  /* ── the record ──────────────────────────────────────────── */
-  const TRACK = 'public/ambient-lofi.mp3';
-  let el = null, flag = false;
+  /* ── the record ────────────────────────────────────────────
+     No audio file. The record is "playing" whenever any of the
+     three synth loops is on — that drives the turntable ripples
+     and the spin in room one, and the speakers' bounce. Clicking
+     the turntable opens the popup; main.js hangs `open` onto
+     its popup-opening function. */
   const record = {
-    /** Called when the record starts or stops, from a click or from outside — main.js hangs the slate on it. */
+    /** Called when record state changes — main.js hangs the slate on it. */
     onchange: null,
-    /** Is the record playing right now? */
-    playing: () => (el ? !el.paused : flag),
-    /** Play the record if it's stopped, pause it if it's playing. Returns whether it's playing now. */
-    toggle() {
-      if (!el && window.Audio) {
-        el = new Audio(TRACK); el.loop = true; el.preload = 'auto';
-        for (const ev of ['play', 'pause']) el.addEventListener(ev, () => { if (record.onchange) record.onchange(); });
-      }
-      if (!el) return (flag = !flag);
-      if (el.paused) { const p = el.play(); if (p && p.catch) p.catch(() => {}); }   // refused, or the file's missing: it stays paused, and the room sees that
-      else el.pause();
-      return !el.paused;
-    },
+    /** Is the record "playing" — any of the three loops on? */
+    playing: () => lofi.playing() || drums.playing() || piano.playing(),
+    /** Open the popup. main.js sets this to its popup-opening function. */
+    open: null,
+    /** Same as `open`, called as a method for symmetry with the old API. */
+    toggle() { if (record.open) record.open(); },
   };
+  /** Tell the page a loop switched — main.js hangs the slate and the popup on `record.onchange`. Returns `on` for the toggles. */
+  const changed = on => { if (record.onchange) record.onchange(); return on; };
 
   /* ── the lofi loop ───────────────────────────────────────────
      A 10-second chord pad, rendered into an AudioBuffer once on
@@ -161,7 +159,7 @@
     src: null, g: null, on: false,
     /** Play the lofi loop if it's stopped, silence it if it's playing. Returns whether it's on now. */
     toggle() {
-      if (!ready()) return false;
+      if (!ready()) return changed(this.on = !this.on);              // no Web Audio (the preview tool): keep the flag, so a frame can still be drawn with it on
       if (!this.src) {                                                  // build the graph once, on the first user gesture
         const { when, offset } = getLoopStart();                       // join the drum loop in phase, if it's already going
         this.src = ctx.createBufferSource();
@@ -175,14 +173,14 @@
       this.on = !this.on;
       this.g.gain.cancelScheduledValues(ctx.currentTime);
       this.g.gain.setTargetAtTime(this.on ? 0.45 : 0, ctx.currentTime, 0.25);
-      return this.on;
+      return changed(this.on);
     },
     /** Is the lofi loop playing right now? */
     playing: () => lofi.on,
   };
 
   /* ── the drum loop ────────────────────────────────────────────
-     Same 10-second loop as the pad. At 96 BPM, 4 bars fit in 10 s
+     Same 12-second loop as the pad. At 80 BPM, 4 bars fit in 12 s
      exactly, so the kick on beat 1 lines up with each chord change.
 
      Pattern per bar (8 hits on every 8th note):
@@ -272,7 +270,7 @@
     src: null, g: null, on: false,
     /** Play the drum loop if it's stopped, silence it if it's playing. Returns whether it's on now. */
     toggle() {
-      if (!ready()) return false;
+      if (!ready()) return changed(this.on = !this.on);              // no Web Audio (the preview tool): keep the flag, so a frame can still be drawn with it on
       if (!this.src) {
         const { when, offset } = getLoopStart();                       // join the lofi pad in phase, if it's already going
         this.src = ctx.createBufferSource();
@@ -286,7 +284,7 @@
       this.on = !this.on;
       this.g.gain.cancelScheduledValues(ctx.currentTime);
       this.g.gain.setTargetAtTime(this.on ? 0.55 : 0, ctx.currentTime, 0.12);
-      return this.on;
+      return changed(this.on);
     },
     /** Are the drums playing right now? */
     playing: () => drums.on,
@@ -362,7 +360,7 @@
     src: null, g: null, on: false,
     /** Play the piano loop if it's stopped, silence it if it's playing. Returns whether it's on now. */
     toggle() {
-      if (!ready()) return false;
+      if (!ready()) return changed(this.on = !this.on);              // no Web Audio (the preview tool): keep the flag, so a frame can still be drawn with it on
       if (!this.src) {
         const { when, offset } = getLoopStart();                       // join lofi / drums in phase
         this.src = ctx.createBufferSource();
@@ -376,7 +374,7 @@
       this.on = !this.on;
       this.g.gain.cancelScheduledValues(ctx.currentTime);
       this.g.gain.setTargetAtTime(this.on ? 0.22 : 0, ctx.currentTime, 0.2);
-      return this.on;
+      return changed(this.on);
     },
     /** Is the piano loop playing right now? */
     playing: () => piano.on,

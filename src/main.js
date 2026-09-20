@@ -188,12 +188,15 @@
   /* ── the wall lights: the neon and the strip ──────────────── */
   /** Every light on a wall, each { id, name, kind, geo, sw } — both are a line you can click. */
   const wallLights = () => [...scene.neons(), ...scene.strips()];
-  /** The neon sign or strip light under this css point, or null. A room's neon may be several lines — the booth's four tubes. */
+  /** The neon sign or strip light under this css point, or null. A room's neon may be several lines — the booth's four tubes —
+      plus lines of their own radius (`extra`) and filled shapes (`polys`): the ring round its stage, the badge on top. */
   function overNeon(cx, cy) {
     const [bx, by] = toBuf(cx, cy);
     for (const n of wallLights()) {
       if (!n.geo) continue;
       for (const line of n.geo.lines || [n.geo.line]) if (nearLine(line, n.geo.r, bx, by)) return n;
+      for (const x of n.geo.extra || []) if (nearLine(x.line, x.r, bx, by)) return n;
+      for (const q of n.geo.polys || []) if (inPoly(q, bx, by)) return n;
     }
     return null;
   }
@@ -305,9 +308,10 @@
     for (const r of scene.records()) if (inPoly(r.geo && r.geo.quad, bx, by)) return r;
     return null;
   }
-  /** Play the record in this room, or pause it — every room's, with no id. `at` is when (now). */
+  /** A click on the record in this room: open its popup. */
+  const openRecord = id => { for (const r of scene.records()) if (r.id === id) r.play(); };
+  /** The preview tool: the loops switched `at` — back-date every room's record slider to then. */
   const playRecord = (id, at) => { for (const r of scene.records()) if (!id || r.id === id) r.play(at); showState(); };
-  QH.sound.record.onchange = showState;              // and when it's stopped or started from outside — the media keys
 
   /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show', 'record' or null. */
   const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : overRecord(cx, cy) ? 'record' : null;
@@ -378,7 +382,7 @@
       const bt = id || n || b || dv || ch || s ? null : overTub(e.clientX, e.clientY);
       const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
       const rc = id || n || b || dv || ch || s || bt || sh ? null : overRecord(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else if (rc) playRecord(rc.id); else shake(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -404,18 +408,6 @@
   const hud = document.getElementById('hud');
   const acts = {
     home: () => goHome(1100),                        // focus all: back out to the whole house
-    lofi: () => {                                    // play / pause the 10s lofi synth loop
-      const on = QH.sound.lofi.toggle();
-      document.querySelector('[data-act="lofi"]').classList.toggle('on', on);
-    },
-    drums: () => {                                   // play / pause the 10s drum loop — locks to the lofi pad
-      const on = QH.sound.drums.toggle();
-      document.querySelector('[data-act="drums"]').classList.toggle('on', on);
-    },
-    piano: () => {                                   // play / pause the 10s piano arpeggio — locks to the lofi pad
-      const on = QH.sound.piano.toggle();
-      document.querySelector('[data-act="piano"]').classList.toggle('on', on);
-    },
   };
   hud.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
@@ -423,8 +415,46 @@
     view.focus({ preventScroll: true });             // the keys keep working after a click on the HUD
   });
 
+  /* ── the record popup ──────────────────────────────────────
+     Clicking the turntable in room one opens this; the three
+     buttons toggle the three synth loops, and the room's record
+     slider follows their OR — the turntable spins and the ripples
+     come up. ESC or click outside closes; the popup doesn't stop
+     anything, it just dismisses itself. */
+  const popup = document.getElementById('popup');
+  const popBtns = popup.querySelectorAll('.popup-btns button');
+  function refreshPopup() {
+    for (const b of popBtns) {
+      const k = b.dataset.pop, loop = QH.sound[k];
+      if (loop) b.classList.toggle('on', loop.playing());
+    }
+  }
+  function openPopup() {
+    refreshPopup();
+    popup.hidden = false;
+    popBtns[0].focus({ preventScroll: true });       // keyboard users land in the dialog, not behind it
+  }
+  function closePopup() {
+    popup.hidden = true;
+    view.focus({ preventScroll: true });
+  }
+  popup.addEventListener('click', e => {
+    const b = e.target.closest('[data-pop]');
+    if (b && QH.sound[b.dataset.pop]) {              // one of the three loop buttons
+      QH.sound[b.dataset.pop].toggle();
+      refreshPopup();
+      showState();
+      return;
+    }
+    closePopup();                                    // clicked the card or the foot text — dismiss
+  });
+  QH.sound.record.open = openPopup;                  // the sound engine asks us to open it on click
+  QH.sound.record.onchange = () => { refreshPopup(); showState(); };   // and refresh on any toggle, from the popup or the preview tool
+
   /* ── keys ─────────────────────────────────────────────────── */
   addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !popup.hidden) { closePopup(); e.preventDefault(); return; }
+    if (!popup.hidden) return;                      // popup is open — only Esc does anything
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase(), step = 120 * unitsPerCss();
     if (k === 'arrowleft' || k === 'a') { interrupt(); eye.x -= step; }
@@ -445,7 +475,7 @@
     else if (k === 'x') toggleMixerIn(roomInView().id);
     else if (k === 'f') strike(roomInView().id);
     else if (k === 'p') playShow(roomInView().id);
-    else if (k === 'r') playRecord(roomInView().id);
+    else if (k === 'r') openRecord(roomInView().id);
     else return;
     e.preventDefault();
   });
@@ -504,6 +534,6 @@
     strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
     fillTub: (id, ago = 0) => fillTub(id, performance.now() - ago * 1000), // run the bath in one room, or every room's; `ago` seconds since the shower went on
     playShow: (id, ago = 0) => playShow(id, performance.now() - ago * 1000), // switch the show in one room, or every room's; `ago` seconds since it was switched
-    playRecord: (id, ago = 0) => playRecord(id, performance.now() - ago * 1000), // play the record in one room, or every room's (or pause it); `ago` seconds since
+    playRecord: (id, ago = 0) => { QH.sound.lofi.toggle(); playRecord(id, performance.now() - ago * 1000); }, // switch a loop on (or off) so the record in one room, or every room's, plays; `ago` seconds since
   };
 })(QH);

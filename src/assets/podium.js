@@ -9,7 +9,8 @@
      its height. o.on is 0..1 (1), how lit the neon is; o.pulse
      0..1 swells the ring for the show.
    Returns the top's screen polygon for the click (also kept in
-   podium.last).
+   podium.last), with the ring's front arc as screen line pieces and
+   the badge's outline as a polygon — both switch the neon.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -49,9 +50,11 @@
     // the neon ring under the rim: the wash, the tube, the core; the top's own edge over it
     const zr = top - 0.12, rr = r + 0.03, k = on * (1 + 0.5 * pulse);
     const pt = i => { const a = i / n * TAU; return [x + rr * Math.cos(a), y + rr * Math.sin(a), zr]; };
+    const ring = [];
     for (let i = 0; i < n; i++) {
       const a = (i + 0.5) / n * TAU; if (Math.cos(a) + Math.sin(a) < 0.15) continue;    // the back of the ring is under the top; the side pieces would only show as loose bars past the rim
       const p = pt(i), q = pt(i + 1);
+      ring.push([P(...p), P(...q)]);                                                      // each piece its own screen line: the arc wraps round the loop's end
       if (k > 0.02) beam(p, q, 0.36, mix(M.navy, M.blueDk, Math.min(1, k)), 1);
       beam(p, q, 0.14, mix(M.greyDk, M.blueLt, Math.min(1, k)), 1);
       beam(p, q, 0.06, mix(M.grey, M.cyan, Math.min(1, k)), 1);
@@ -67,7 +70,7 @@
     poly([[x - 0.42, y + 0.1, top + 0.01], [x + 0.28, y - 0.2, top + 0.01], [x + 0.42, y - 0.1, top + 0.01], [x - 0.28, y + 0.2, top + 0.01]], rgb(tube));
     beam([x - 0.35, y + 0.15, top + 0.01], [x + 0.35, y - 0.15, top + 0.01], 0.05, core, 1);
 
-    return (podium.last = { top: topPts.map(p => P(...p)), centre: [x, y, top] });
+    return (podium.last = { top: topPts.map(p => P(...p)), centre: [x, y, top], ring, ringR: 0.3 * cam.s, badge: oct.map(p => P(...p)) });
   };
   podium.last = null;
   QH.assets.podium = podium;
