@@ -17,13 +17,12 @@
   const light = QH.light, sway = QH.sway;
   const A = QH.assets;
 
-  const clay = () => light.warm(M.rustLt, M.orange), clayLt = () => light.warm(M.orangeDk, M.orangeLt), clayDk = () => light.warm(M.rust, M.rustLt);
+  const clay = () => light.warm(M.rustLt, M.orange), clayDk = () => light.warm(M.rust, M.rustLt);
 
   A.tallPot = (x, y, z, o = {}) => {
     const r = o.r || 0.42, ph = o.ph || 1.05, size = o.size || 1.9, n = o.n || 11, R = rnd(o.seed || 121);
     cyl(x, y, z, r * 0.82, ph, clay(), { n: 14, rt: r, colTop: M.woodDk, topK: 1 });
     cyl(x, y, z + 0.08, r * 0.84, ph * 0.22, clayDk(), { n: 14, rt: r * 0.87, top: false, edge: false });      // the band low down
-    ring(x, y, z + ph + 0.005, r, rgb(clayLt()), 14);
     ring(x, y, z + ph - 0.08, r * 0.99, rgb(clayDk()), 14);
     const zb = z + ph - 0.05, leaves = [], S = sway.plant('tallPot', x, y, zb, size);
     for (let i = 0; i < n; i++) leaves.push({ i, a: R() * TAU, l: size * (0.5 + R() * 0.5), o: 0.04 + R() * r * 0.45, w: 0.08 + R() * 0.06, lt: R() > 0.5, bend: 0.2 + R() * 0.3 });
@@ -43,7 +42,6 @@
     const r = o.r || 0.5, ph = o.ph || 0.55, size = o.size || 1.1, n = o.n || 14, R = rnd(o.seed || 127);
     cyl(x, y, z, r * 0.88, ph, clay(), { n: 14, rt: r, colTop: M.woodDk, topK: 1 });
     cyl(x, y, z + ph - 0.16, r * 1.0, 0.16, M.navy, { n: 14, rt: r * 1.04, colTop: M.woodDk, topK: 1 });         // the dark rim
-    ring(x, y, z + ph + 0.005, r * 1.04, rgb(M.navyLt), 14);
     const zb = z + ph - 0.04, ls = [], S = sway.plant('bushPot', x, y, zb, size);
     for (let i = 0; i < n; i++) ls.push({ i, a: R() * TAU, l: size * (0.45 + R() * 0.55), lt: R() > 0.5, up: 0.5 + R() * 0.5 });
     ls.sort((p, q) => (Math.cos(p.a) + Math.sin(p.a)) - (Math.cos(q.a) + Math.sin(q.a)));
@@ -60,7 +58,6 @@
   A.cactusPot = (x, y, z, o = {}) => {
     const r = o.r || 0.28, ph = o.ph || 0.4, size = o.size || 0.7, R = rnd(o.seed || 131);
     cyl(x, y, z, r * 0.85, ph, clay(), { n: 10, rt: r, colTop: M.woodDk, topK: 1 });
-    ring(x, y, z + ph + 0.005, r, rgb(clayLt()), 10);
     const zb = z + ph - 0.05, S = sway.plant('cactusPot', x, y, zb, size, 0.5);
     const top = S.at(0, [x, y, zb + size], 1);
     beam([x, y, zb], top, 0.22, M.leaf, 1);                                                      // the column

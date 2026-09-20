@@ -7,8 +7,9 @@
 
    Every solid also gets a one-pixel dark contour round its
    silhouette — that is what makes a box read as pixel art instead
-   of a render — and can take a warm `rim` line along the top edges
-   that face the light.
+   of a render. Edges are only ever the face colour or that contour:
+   the old `rim` highlight along the lit top edges is gone, and a
+   `rim` option is ignored.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { TAU, clamp, lerp } = QH;
@@ -43,7 +44,7 @@
     g.stroke();
   }
 
-  /** Axis-aligned solid: +y face, +x face, top, contour, optional rim. */
+  /** Axis-aligned solid: +y face, +x face, top, contour. */
   function box(x, y, z, w, d, h, col, o = {}) {
     const cT = o.colTop || col, cL = o.colLeft || col, cR = o.colRight || col;
     const zt = z + h, S = QH.light.shade, zm = z + h / 2;
@@ -64,7 +65,6 @@
         stroke([[x + w, y, zt], [x + w, y, z]], c);
       }
     }
-    if (o.rim) stroke([[x, y, zt], [x + w, y, zt], [x + w, y + d, zt]], rgb(o.rim));
   }
 
   /** Rectangle flat against the left wall plane (x = const), facing +x. */

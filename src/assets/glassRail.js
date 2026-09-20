@@ -32,7 +32,6 @@
     }
     for (let i = 0; i <= n; i++) beam(pt(i * step, mid, 0.2), pt(i * step, mid, h), 0.08, M.ink, 1);
     beam(pt(0, mid, h), pt(len, mid, h), 0.07, M.greyDk, 1);
-    beam(pt(0, mid, h + 0.03), pt(len, mid, h + 0.03), 0.025, M.grey, 1);
     g.lineWidth = 1;
   };
 })(QH);

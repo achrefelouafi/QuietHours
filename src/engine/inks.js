@@ -19,6 +19,16 @@
   const PAL32 = new Uint32Array(INK.length);
   INK.forEach((c, i) => { PAL32[i] = (255 << 24) | (c[2] << 16) | (c[1] << 8) | c[0]; });
 
+  // The lounge's sages and the booth's olives only take pixels that
+  // are about as green as they are: green over red and over blue by
+  // at least 0.9 of the ink's own ratios. Without that, a navy face
+  // under the lamp's orange glow — a desk leg, the chair, the bed —
+  // lands nearest to sage and comes out khaki instead of dithering
+  // to grey and orange as it did before those inks came.
+  const M = QH.M;
+  const GREEN_ONLY = new Map([M.sageDk, M.sage, M.sageLt, M.olive, M.oliveLt]
+    .map(c => [c, { gr: 0.9 * c[1] / c[0], gb: 0.9 * c[1] / c[2] }]));
+
   const LUT = new Uint8Array(32768);
   for (let r = 0; r < 32; r++)
   for (let g = 0; g < 32; g++)
@@ -27,6 +37,8 @@
     let best = 0, bd = Infinity;
     for (let i = 0; i < INK.length; i++) {
       const c = INK[i];
+      const gate = GREEN_ONLY.get(c);
+      if (gate && (G < gate.gr * R || G < gate.gb * B)) continue;
       const dr = R - c[0], dg = G - c[1], db = B - c[2];
       const d = dr * dr + dg * dg + db * db;
       if (d < bd) { bd = d; best = i; }

@@ -23,6 +23,7 @@ QH.M = {
   // ── greys ──
   greyDk:   [38, 40, 46],
   grey:     [68, 70, 75],
+  greyMid:  [90, 97, 103],    // between grey and greyLt, so shaded porcelain dithers to grey rather than to the sage or the sky
   greyLt:   [111, 124, 131],
   silver:   [160, 167, 163],
   cream:    [231, 229, 203],

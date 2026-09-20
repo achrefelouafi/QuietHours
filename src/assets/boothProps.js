@@ -5,8 +5,6 @@
                              a controller in their hands, facing o.face ('+x' | '+y')
    orangeDrawers(x, y, o)  — a squat three-drawer unit in orange,
                              o.w (1.1), o.d (0.9), o.h (1.4), drawers on the +y face
-   edgeLight(wall, u0, u1, z, o) — an amber LED strip run along a
-                             wall's top edge, o.on 0..1
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -41,13 +39,5 @@
       rectY(y + d + 0.02, x + 0.1, z1 - 0.06, x + w - 0.1, z1, rgb(light.warm(M.orangeDk, M.orangeLt)));
       dot(x + w / 2 - 0.05, y + d + 0.03, (z0 + z1) / 2, 2, M.silver);
     }
-  };
-
-  A.edgeLight = (wall, u0, u1, z, o = {}) => {
-    const Wl = W[wall], on = o.on ?? 1, a = Wl.pt(u0, z, -0.18), b = Wl.pt(u1, z, -0.18);
-    beam(a, b, 0.12, M.navyDk, 1);
-    beam(a, b, 0.06, mix(M.greyDk, M.orangeLt, on), 1);
-    const n = Math.round((u1 - u0) / 0.4);
-    for (let i = 0; i <= n; i++) { const p = Wl.pt(u0 + (u1 - u0) * i / n, z + 0.02, -0.18); dot(p[0], p[1], p[2], 1, mix(M.grey, M.amber, on)); }
   };
 })(QH);

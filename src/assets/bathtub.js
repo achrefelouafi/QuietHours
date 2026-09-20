@@ -109,7 +109,7 @@
     }
     unclip();
 
-    // contours round the opening and the rim, and a light along the rim's near side
+    // contours round the opening and the rim
     stroke(inner.map(p => [p[0], p[1], RIM]), rgb(M.ink), 1, true);
     stroke(outer.map(p => [p[0], p[1], RIM]), rgb(M.ink), 1, true);
     // the run of the outline whose outward normal faces the camera: the near end and the +x flank
@@ -117,7 +117,6 @@
       const [u, v] = along === 'y' ? [p[1] - cy, p[0] - cx] : [p[0] - cx, p[1] - cy];
       return (u > 0 ? u - straight / 2 : u + straight / 2) + v > r * 0.15;
     });
-    stroke(near.map(p => [p[0], p[1], RIM - 0.06]), sh(M.greyLt, 1.15));
     stroke(near.map(p => [p[0], p[1], BELLY + 0.38]), sh(enamel, 0.55));           // the shadow line where the body overhangs the belly
 
     // the rain, over everything: drops out of the head straight down into the well, each a short streak on its own fall

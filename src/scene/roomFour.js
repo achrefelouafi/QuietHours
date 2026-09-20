@@ -116,7 +116,6 @@
     tubes[3] = A.neonTube('B', 10.2, 1.2, 5.0, { on: neonOn() });
     A.galleryFrame('B', 12.5, 4.4, 2.2, 1.4, { on: light.lamp });
     A.posterFrame('B', 12.9, 0.95, 1.6, 2.6);
-    A.edgeLight('B', 10.9, 14.9, H + 0.02, { on: light.lamp });
 
     /* ── the rig, over everything on the walls ── */
     lamp = A.truss(TRUSS, TZ, { on: light.lamp, led: neonOn(), ledSpan: 1, cans: CANS, heads: HEADS });
@@ -158,18 +157,18 @@
   const TEXT = 'YOUR SPONSOR';                                        // the name on the screen — change it here
 
   // the traces laid into the tiles: out from the ring toward the rails, each a few right-angled steps, mirrored across the
-  // room's diagonal — the right-hand rail being a unit further out than the left, the last legs that way run a unit longer
+  // room's diagonal — the right-hand rail being a unit further out than the left, the last legs that way run a unit longer.
+  // The one between the green chairs leaves from the ring itself (its near side is at 10.0; it starts just off the tube's core)
   const TRACES = (() => {
     const left = [
       [[1.6, 9.2], [1.6, 10.6], [0.7, 10.6]],
       [[3.2, 10.4], [3.2, 12.2], [1.9, 12.2], [1.9, 13.1]],
       [[5.6, 10.6], [5.6, 12.4], [6.8, 12.4], [6.8, 13.2]],
       [[2.0, 7.6], [0.9, 7.6], [0.9, 8.5]],
-      [[4.4, 11.0], [4.4, 11.9], [3.6, 11.9], [3.6, 13.1]],
-      [[1.2, 12.0], [1.2, 13.3]],
+      [[4.4, 10.1], [4.4, 11.9], [3.6, 11.9], [3.6, 13.1]],
     ];
     const out = v => (v > 11.5 ? v + (W - D) : v);
-    return [...left, ...left.map(T => T.map(([x, y]) => [out(y), x])), [[5.9, 10.9], [5.9, 13.2]], [[7.6, 9.7], [8.6, 9.7], [8.6, 10.6]], [[9.7, 7.6], [9.7, 8.6], [10.6, 8.6]]];
+    return [...left, ...left.map(T => T.map(([x, y]) => [out(y), x])), [[7.6, 9.7], [8.6, 9.7], [8.6, 10.6]], [[9.7, 7.6], [9.7, 8.6], [10.6, 8.6]]];
   })();
 
   /* The lighting pass: the lenses and where the beams land, the

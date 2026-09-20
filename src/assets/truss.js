@@ -38,7 +38,7 @@
 
   const truss = (path, z, o = {}) => {
     const depth = o.depth || 0.6, on = o.on ?? 1, zt = z + depth;
-    const steel = M.grey, dark = M.greyDk, lit = M.greyLt;
+    const steel = M.grey, dark = M.greyDk;
 
     for (let s = 0; s < path.length - 1; s++) {
       const a = path[s], b = path[s + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -50,10 +50,9 @@
       }
       beam([a[0], a[1], z], [a[0], a[1], zt], 0.1, steel, 0.85);
       beam([b[0], b[1], z], [b[0], b[1], zt], 0.1, steel, 0.85);
-      // the chords, the top one catching a little light
+      // the chords
       beam([a[0], a[1], z], [b[0], b[1], z], 0.16, dark, 1);
       beam([a[0], a[1], zt], [b[0], b[1], zt], 0.16, steel, 1);
-      beam([a[0], a[1], zt + 0.05], [b[0], b[1], zt + 0.05], 0.05, lit, 1);
     }
 
     // the LED strip under the middle span: a thin bar with a bead of light every so often
