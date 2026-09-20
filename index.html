@@ -14,9 +14,9 @@
     -webkit-font-smoothing:antialiased;
   }
   /* the page never scrolls — the canvas is the whole viewport and the camera does the moving */
-  #stage{ position:fixed; left:0; top:0; width:100%; height:100%; display:block; image-rendering:pixelated; touch-action:none; cursor:grab; outline:none; }
-  #stage.drag{cursor:grabbing}
-  #stage.hot{cursor:pointer}
+  #stage{ position:fixed; left:0; top:0; width:100%; height:100%; display:block; image-rendering:pixelated; touch-action:none; cursor:url('public/arrow.svg') 5 2, grab; outline:none; }
+  #stage.drag{cursor:url('public/arrow.svg') 5 2, grabbing}
+  #stage.hot{cursor:url('public/cursor.svg') 14 1, pointer}
   .slate{ position:fixed; left:18px; top:16px; pointer-events:none; letter-spacing:.06em; color:var(--dim); }
   .slate b{display:block; color:var(--ink); font-weight:400; font-size:13px}
   .slate span{white-space:pre-line}
