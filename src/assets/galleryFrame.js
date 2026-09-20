@@ -41,6 +41,5 @@
     dot(...Wl.pt(cu + r * 0.3, cz + r * 0.15, d), 1, edgeLt);
     dot(...Wl.pt(cu - 0.03, cz - r * 0.2, d), 1, edge);
     for (const s of [-1, 1]) for (const dz of [-0.05, 0.08]) stroke([Wl.pt(cu + s * r * 0.5, cz - r * 0.25 + dz, d), Wl.pt(cu + s * r * 1.5, cz - r * 0.3 + dz * 2, d)], ink);
-    dot(...Wl.pt(u + w * 0.2, z + h * 0.25, d), 1, edge);                                // a signature in the corner
   };
 })(QH);
