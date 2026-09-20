@@ -159,7 +159,7 @@
     A.frameChair(10.4, 5.3, { face: '+x', size: 0.65 });
     A.clubChair(8.8, 10.4, { face: '+x', size: 0.65, w: 2.9 });
     A.clubChair(10.4, 8.8, { face: '+y', size: 0.65, w: 2.9 });
-    A.waterCooler(13.5, 12.5, { face: '+y' });
+    A.waterCooler(12.6, 9.1, { face: '+y' });                          // beside the right cream chair, facing the way it does
 
     // the rails along the open edges, the corner post shared
     A.glassRail(0, 13.6, 14.9, { along: 'x' });
