@@ -56,7 +56,7 @@
      The amber picks up the booth's neon and the bedroom's bedside lamp, so
      the corner reads as part of the scene rather than a sticker on top of it. */
   .contact{
-    --contact-accent: var(--amber);
+    --contact-accent:#4ae671;
     position:fixed; right:18px; bottom:16px;
     width:268px; padding:11px 12px;
     border:1px solid var(--dim); border-radius:2px;
@@ -64,7 +64,7 @@
     color:var(--ink);
     font:400 11px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     letter-spacing:.06em;
-    box-shadow:0 0 26px -16px var(--amber);
+    box-shadow:0 0 26px -16px var(--contact-accent);
     z-index:5;
     opacity:0;
   }
@@ -89,7 +89,7 @@
     transition:border-color .2s ease, color .2s ease;
   }
   .contact__toggle:hover, .contact__toggle:focus-visible{
-    color:var(--amber); border-color:var(--dim); outline:none;
+    color:var(--contact-accent); border-color:var(--dim); outline:none;
   }
   .contact__toggle-bar{
     width:8px; height:1.5px; background:currentColor;
@@ -110,8 +110,8 @@
     background:conic-gradient(
       from 0deg,
       rgba(142,160,184,.10) 0 44%,
-      var(--amber) 62%,
-      #ffe7c2 72%,
+      var(--contact-accent) 62%,
+      #c2ffd1 72%,
       rgba(142,160,184,.10) 86% 100%
     );
     animation: contact-ring 8s linear infinite;
@@ -137,16 +137,16 @@
   .contact__status{
     display:inline-flex; align-items:center; gap:5px;
     font-size:9px; font-weight:600; letter-spacing:.14em;
-    text-transform:uppercase; color:var(--amber);
+    text-transform:uppercase; color:var(--contact-accent);
   }
   .contact__status i{
-    width:5px; height:5px; border-radius:50%; background:var(--amber);
+    width:5px; height:5px; border-radius:50%; background:var(--contact-accent);
     animation: contact-pulse 2.4s ease-out infinite;
   }
   @keyframes contact-pulse{
-    0%   { box-shadow:0 0 0 0 rgba(230,162,74,.55) }
-    70%  { box-shadow:0 0 0 6px rgba(230,162,74,0) }
-    100% { box-shadow:0 0 0 0 rgba(230,162,74,0) }
+    0%   { box-shadow:0 0 0 0 rgba(74,230,113,.55) }
+    70%  { box-shadow:0 0 0 6px rgba(74,230,113,0) }
+    100% { box-shadow:0 0 0 0 rgba(74,230,113,0) }
   }
   .contact__name{
     font-size:14px; font-weight:600; letter-spacing:.16em;
@@ -176,7 +176,7 @@
     transition:border-color .2s ease, background .2s ease, color .2s ease;
   }
   .contact__link:hover, .contact__link:focus-visible{
-    border-color:var(--amber); color:var(--amber); background:rgba(230,162,74,.08);
+    border-color:var(--contact-accent); color:var(--contact-accent); background:rgba(74,230,113,.08);
     outline:none;
   }
   .contact__icon{
@@ -220,7 +220,7 @@
     position:absolute; top:50%; right:calc(100% + 8px);
     transform:translate(6px,-50%);
     padding:5px 10px;
-    background:rgba(5,11,20,.85); color:var(--amber);
+    background:rgba(5,11,20,.85); color:var(--contact-accent);
     border:1px solid var(--dim); border-radius:2px;
     font-size:10px; letter-spacing:.14em; text-transform:uppercase;
     white-space:nowrap; opacity:0;
@@ -293,7 +293,7 @@ room four · lamp on · neon on · mixer on</span></div>
     </span>
     <span class="contact__who">
       <span class="contact__status"><i></i>Available for work</span>
-      <span class="contact__name">Chiro</span>
+      <span class="contact__name">Chiro Visuals</span>
       <span class="contact__role">Creative dev &mdash; 3D, motion, games</span>
     </span>
   </div>
