@@ -22,7 +22,7 @@
    spots is this room's lamp; the neon — the tubes, the ring, the
    traces and the strip under the truss, on one switch; and the
    stage, or the screen: a click runs the show, the beams
-   sweeping, the screen flashing, the traces racing, for a few
+   sweeping, the traces racing, for a few
    seconds, as often as you like.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
@@ -62,8 +62,8 @@
 
   /* ── the show ─────────────────────────────────────────────────
      A click on the stage or the screen starts it: for a few
-     seconds the beams swing across the screen, a band of light
-     sweeps the glass, the neon swells and the beads race along
+     seconds the beams swing across the screen, the neon swells
+     and the beads race along
      the traces. `u` is how far through it is, 0..1; `env` rises
      and falls with it so everything settles where it started.
      Under reduced motion there is no show. */
@@ -101,7 +101,7 @@
       const at = SCREEN.u + SCREEN.w * c.at + swing;
       A.truss.beam(lensOf(c), S.pt(at - c.half, SCREEN.z + 0.05, 0.1), S.pt(at + c.half, SCREEN.z + 0.05, 0.1), c.col, light.lamp * (1 + 0.25 * e), FACE);
     }
-    screenGeo = A.ledScreen.art('S', SCREEN.u, SCREEN.z, SCREEN.w, SCREEN.h, t, { text: TEXT, sweep: e, at: e > 0 ? (u * 2.6) % 1.3 - 0.15 : undefined });
+    screenGeo = A.ledScreen.art('S', SCREEN.u, SCREEN.z, SCREEN.w, SCREEN.h, t, { text: TEXT });
 
     /* ── left wall, far to near ── */
     tubes[0] = A.neonTube('L', 6.0, 1.2, 5.0, { on: neonOn() });

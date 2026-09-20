@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
    assets/arcadeCabinet.js — an upright arcade cabinet in blue:
    a plinth, the coin door, a control panel jutting out with a
-   stick and buttons, the screen under a hood, a lit marquee on
-   top, every section the same footprint. A pale stripe down
-   its side. Something is always scrolling on the screen.
+   stick and buttons, the screen set back under a hood, a lit
+   marquee on top flush with the panel's front. A pale stripe
+   down its side. Something is always scrolling on the screen.
 
    arcadeCabinet(x, y, t, o)
      (x, y) is the far corner of its footprint. o.face is '+x'
@@ -27,7 +27,7 @@
     const blue = M.blue, dk = M.blueDk, lt = M.blueLt;
     const opts = { colTop: lt, left: 0.9, right: 0.72 };
 
-    // one column, plinth to cap, every section the full footprint; only the control panel juts out
+    // one column, plinth to cap; the control panel and the marquee jut out, the screen sits back between them
     const fb = dp + 0.01, jut = 0.35;
     B(0, 0, 0, dp, wd, 0.35, dk, { colTop: dk });
     B(0, 0, 0.35, dp, wd, 1.35, blue, opts);
@@ -44,24 +44,25 @@
     disc(...fp(pb, wd * 0.3, pz + 0.3), 0.08, rgb(M.bright), 6);
     for (const [b, a, c] of [[0, 0.5, M.leafLt], [0, 0.62, M.bright], [0, 0.74, M.leafLt], [0.16, 0.56, M.bright]]) disc(...fp(pb + b, wd * a, pz + 0.01), 0.055, rgb(c), 6);
 
-    // the screen in its hood, over the panel
+    // the screen in its hood, over the panel, set back under the marquee
     B(0, 0, 2.0, dp, wd, 0.9, blue, opts);
-    front(fb, wd * 0.1, 2.1, wd * 0.9, 2.8, rgb(M.ink));
-    front(fb + 0.01, wd * 0.14, 2.16, wd * 0.86, 2.75, rgb(M.blueLt));
+    front(fb, wd * 0.1, 2.06, wd * 0.9, 2.72, rgb(M.ink));
+    front(fb + 0.01, wd * 0.14, 2.12, wd * 0.86, 2.67, rgb(M.blueLt));
     // rows of something scrolling up the screen
     const R = rnd(29), rows = 6, step = 0.11, scroll = (t * 0.4) % step;
     for (let i = 0; i < rows; i++) {
-      const zz = 2.22 + i * step + scroll; if (zz > 2.65) continue;
+      const zz = 2.18 + i * step + scroll; if (zz > 2.58) continue;
       const ind = (R() * 3 | 0) * 0.08, len = 0.25 + R() * 0.35;
       front(fb + 0.02, wd * 0.2 + ind, zz, wd * 0.2 + ind + len, zz + 0.05, rgb(R() > 0.75 ? M.cyan : M.blue));
     }
-    if (Math.floor(t * 2) % 2 === 0) front(fb + 0.02, wd * 0.66, 2.25, wd * 0.74, 2.32, rgb(M.ice));
+    if (Math.floor(t * 2) % 2 === 0) front(fb + 0.02, wd * 0.66, 2.21, wd * 0.74, 2.28, rgb(M.ice));
 
-    // the marquee, lit, its name a row of pale blocks; the cap over it
-    B(0, 0, 2.9, dp, wd, h - 2.98, blue, opts);
-    B(0, 0, h - 0.08, dp, wd, 0.08, dk, { colTop: dk });
-    front(fb, wd * 0.1, 3.0, wd * 0.9, h - 0.14, rgb(M.cyan));
-    for (let i = 0; i < 6; i++) front(fb + 0.01, wd * (0.16 + i * 0.12), 3.06, wd * (0.16 + i * 0.12) + wd * 0.07, h - 0.2, rgb(M.blueDk));
+    // the marquee, lit, its name a row of pale blocks, out as far as the panel below; the cap over it
+    const mb = fb + jut;
+    B(0, 0, 2.9, dp + jut, wd, h - 2.98, blue, opts);
+    B(0, 0, h - 0.08, dp + jut, wd, 0.08, dk, { colTop: dk });
+    front(mb, wd * 0.1, 3.0, wd * 0.9, h - 0.14, rgb(M.cyan));
+    for (let i = 0; i < 6; i++) front(mb + 0.01, wd * (0.16 + i * 0.12), 3.06, wd * (0.16 + i * 0.12) + wd * 0.07, h - 0.2, rgb(M.blueDk));
 
     // a pale stripe down the side
     const st = h - 0.12, sb = dp * 0.8;                                                      // up to just under the cap

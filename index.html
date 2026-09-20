@@ -22,7 +22,17 @@
   .slate b{display:block; color:var(--ink); font-weight:400; font-size:13px}
   .slate span{white-space:pre-line}
   .hint{ position:fixed; right:18px; bottom:14px; margin:0; color:var(--dim); letter-spacing:.04em; text-align:right; pointer-events:none; }
-  @media (max-width:640px){ .slate{left:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
+  /* the HUD: a column of buttons in the top-right, in the slate's ink */
+  .hud{ position:fixed; right:18px; top:16px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; letter-spacing:.06em; }
+  .hud button{
+    appearance:none; margin:0; padding:5px 10px; cursor:pointer;
+    background:rgba(5,11,20,.7); color:var(--ink); border:1px solid var(--dim); border-radius:2px;
+    font:inherit; letter-spacing:inherit; line-height:1.4;
+  }
+  .hud button:hover{ color:var(--amber); border-color:var(--amber) }
+  .hud button:active{ background:rgba(230,162,74,.12) }
+  .hud button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px }
+  @media (max-width:640px){ .slate{left:12px; top:12px} .hud{right:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
 </style>
 </head>
 <body>
@@ -32,7 +42,8 @@
 room two · lamp on · neon on
 room three · lamp on
 room four · lamp on · neon on</span></div>
-<p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 / 4 fly to a room · click a lamp · click the strip · click the neon · click the PC · click the blind · click the duvet · click the chair · click a window · click the tub · click the stage · brush the plants</p>
+<div class="hud" id="hud" aria-label="controls"><button type="button" data-act="home" title="back out to the whole house (0)">focus all</button></div>
+<p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 / 4 fly to a room · 0 focus all · click a lamp · click the strip · click the neon · click the PC · click the blind · click the duvet · click the chair · click a window · click the tub · click the stage · brush the plants</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>

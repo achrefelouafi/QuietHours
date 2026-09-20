@@ -364,12 +364,16 @@
     zoomAbout(eye.zoom * Math.exp(-clamp(d, -600, 600) * 0.0015), toScene(e.clientX, e.clientY), e.clientX, e.clientY);
   }, { passive: false });
 
-  /* ── double-click: lean in on that spot, or back out to the whole room ── */
-  view.addEventListener('dblclick', e => {
-    e.preventDefault();
-    if (eye.zoom > 1.5) return goHome(1100);
-    const a = toScene(e.clientX, e.clientY);
-    moveCamera({ x: a.x, y: a.y, zoom: 2.6 }, 1100);
+  /* ── HUD: the buttons in the corner. Each is wired by its data-act;
+     more will hang here later ────────────────────────────────── */
+  const hud = document.getElementById('hud');
+  const acts = {
+    home: () => goHome(1100),                        // focus all: back out to the whole house
+  };
+  hud.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = acts[b.dataset.act]; if (act) act();
+    view.focus({ preventScroll: true });             // the keys keep working after a click on the HUD
   });
 
   /* ── keys ─────────────────────────────────────────────────── */
