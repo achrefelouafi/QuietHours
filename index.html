@@ -32,6 +32,7 @@
   .hud button:hover{ color:var(--amber); border-color:var(--amber) }
   .hud button:active{ background:rgba(230,162,74,.12) }
   .hud button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px }
+  .hud button.on{ color:var(--amber); border-color:var(--amber) }
   @media (max-width:640px){ .slate{left:12px; top:12px} .hud{right:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
 </style>
 </head>
@@ -42,7 +43,7 @@
 room two · lamp on · neon on
 room three · lamp on
 room four · lamp on · neon on · mixer on</span></div>
-<div class="hud" id="hud" aria-label="controls"><button type="button" data-act="home" title="back out to the whole house (0)">focus all</button></div>
+<div class="hud" id="hud" aria-label="controls"><button type="button" data-act="lofi" title="play/pause the lofi synth loop (10s)">lofi</button><button type="button" data-act="drums" title="play/pause the drum loop (10s, locks to the lofi pad)">drums</button><button type="button" data-act="home" title="back out to the whole house (0)">focus all</button></div>
 <p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 / 4 fly to a room · 0 focus all · click a lamp · click the strip · click the neon · click the PC · click the mixer · click the blind · click the duvet · click the chair · click a window · click the tub · click the stage · click the record player · brush the plants</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->

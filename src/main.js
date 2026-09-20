@@ -404,6 +404,14 @@
   const hud = document.getElementById('hud');
   const acts = {
     home: () => goHome(1100),                        // focus all: back out to the whole house
+    lofi: () => {                                    // play / pause the 10s lofi synth loop
+      const on = QH.sound.lofi.toggle();
+      document.querySelector('[data-act="lofi"]').classList.toggle('on', on);
+    },
+    drums: () => {                                   // play / pause the 10s drum loop — locks to the lofi pad
+      const on = QH.sound.drums.toggle();
+      document.querySelector('[data-act="drums"]').classList.toggle('on', on);
+    },
   };
   hud.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
