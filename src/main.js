@@ -412,6 +412,10 @@
       const on = QH.sound.drums.toggle();
       document.querySelector('[data-act="drums"]').classList.toggle('on', on);
     },
+    piano: () => {                                   // play / pause the 10s piano arpeggio — locks to the lofi pad
+      const on = QH.sound.piano.toggle();
+      document.querySelector('[data-act="piano"]').classList.toggle('on', on);
+    },
   };
   hud.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;

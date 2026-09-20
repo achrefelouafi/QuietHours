@@ -191,7 +191,6 @@
     if (play > 0) A.turntable.ripples(cx, cy, z + h + 0.02, r, o.t || 0, spin, play);
     cyl(x + w - 0.2, y + 0.2, z + h, 0.06, 0.12, M.grey, { n: 8, edge: false });
     beam([x + w - 0.2, y + 0.2, z + h + 0.14], [x + w * 0.55, y + d * 0.45, z + h + 0.1], 0.035, M.greyLt, 1);
-    dot(x + 0.15, y + d - 0.15, z + h + 0.01, 1, M.orange);
     return { quad: [[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]].map(p => P(...p)) };
   };
   /** The sound off a playing record: three dashed white rings, each

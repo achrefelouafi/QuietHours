@@ -124,12 +124,12 @@
        Fmaj7   (7.5–10.0s) F3 A3 C4 E4
   */
   const LOFI = {
-    dur: 10,
+    dur: 12,
     chords: [
-      { at: 0.0, notes: [146.83, 174.61, 220.00, 261.63, 329.63] },      // Dm9
-      { at: 2.5, notes: [196.00, 233.08, 293.66, 349.23, 440.00] },      // Gm9
-      { at: 5.0, notes: [130.81, 164.81, 196.00, 246.94] },              // Cmaj7
-      { at: 7.5, notes: [174.61, 220.00, 261.63, 329.63] },              // Fmaj7
+      { at: 0.0, notes: [146.83, 174.61, 220.00, 261.63, 329.63] },      // Dm9:    D3 F3 A3 C4 E4
+      { at: 3.0, notes: [196.00, 233.08, 293.66, 349.23, 440.00] },      // Gm9:    G3 Bb3 D4 F4 A4
+      { at: 6.0, notes: [130.81, 164.81, 196.00, 246.94, 293.66] },      // Cmaj9:  C3 E3 G3 B3 D4
+      { at: 9.0, notes: [174.61, 220.00, 261.63, 329.63, 392.00] },      // Fmaj9:  F3 A3 C4 E4 G4
     ],
   };
   function makeLofiBuffer() {
@@ -249,8 +249,7 @@
     const sr = ctx.sampleRate, n = sr * LOFI.dur;
     const buf = ctx.createBuffer(1, n, sr);
     const d = buf.getChannelData(0);
-    const beat = 0.625;                                                // 96 BPM — 4 bars × 2.5 s = 10 s exactly
-    const step = beat / 4;                                             // 16th note
+    const beat = 0.75;                                                 // 80 BPM — 4 bars × 3 s = 12 s exactly, classic lofi tempo
     const swing = 0.012;                                               // 12 ms — the lofi shuffle on the off-beats
     for (let bar = 0; bar < 4; bar++) {
       const off = bar * 4 * beat;
@@ -258,8 +257,8 @@
       writeKick(d, sr, Math.round((off + 2 * beat) * sr), 0.95);
       writeSnare(d, sr, Math.round((off + 1 * beat) * sr), 1.0);
       writeSnare(d, sr, Math.round((off + 3 * beat) * sr), 0.95);
-      for (let i = 0; i < 8; i++) {                                    // closed hat on every 8th, swung
-        const t = off + i * step + (i % 2 ? swing : 0);
+      for (let i = 0; i < 4; i++) {                                    // closed hat on every quarter — sparser, less busy
+        const t = off + i * beat + (i % 2 ? swing : 0);
         const v = i % 2 === 0 ? 0.7 : 0.45;
         writeHat(d, sr, Math.round(t * sr), v);
       }
@@ -293,5 +292,95 @@
     playing: () => drums.on,
   };
 
-  QH.sound = { thunder, record, lofi, drums };
+  /* ── the piano loop ────────────────────────────────────────────
+     Same 10-second loop, locked to the pad and drums. Eight arpeggio
+     notes per bar (every 8th), four bars of 2.5s, following the chord
+     tones of LOFI.chords (which is why every chord there is a
+     chord now — the pattern needs a fifth tone).
+
+     Per note, additive synthesis with six inharmonic partials, each
+     with its own decay rate — the higher ones die faster, like a
+     real piano string. A 5 ms attack and a 3 ms hammer transient
+     sit on top.
+
+     Pattern within each bar (8 8th notes, off-beats swung):
+       i:    0  1  2  3  4  5  6  7
+       tone: 1  3  5  7  9  5  3  1
+       vel:  5  3  4  3  5  3  4  3  (×0.1)
+  */
+  const PARTIALS = [
+    { ratio: 1.0, gain: 0.5,  decay: 0.6 },                              // fundamental — longest ring
+    { ratio: 2.0, gain: 0.3,  decay: 0.4 },
+    { ratio: 3.0, gain: 0.18, decay: 0.25 },
+    { ratio: 4.0, gain: 0.1,  decay: 0.15 },
+    { ratio: 5.0, gain: 0.06, decay: 0.1 },
+    { ratio: 6.0, gain: 0.03, decay: 0.08 },                             // upper partials — die quick
+  ];
+  const STRETCH = [1.0, 1.003, 1.008, 1.015, 1.024, 1.035];             // inharmonic stretch — string stiffness
+  function writePianoNote(d, sr, start, freq, vel) {
+    const dur = 0.5;                                                    // each note rings ~3 16ths, so they overlap
+    const len = Math.min(Math.floor(dur * sr), d.length - start);
+    if (len <= 0) return;
+    const phases = PARTIALS.map(() => 0);
+    const hammerLen = Math.floor(0.003 * sr);
+    for (let i = 0; i < len; i++) {
+      const u = i / sr;
+      let s = 0;
+      for (let p = 0; p < PARTIALS.length; p++) {
+        const part = PARTIALS[p];
+        const f = freq * part.ratio * STRETCH[p];
+        phases[p] += 2 * Math.PI * f / sr;
+        const env = u < 0.005 ? u / 0.005 : Math.exp(-(u - 0.005) / part.decay);
+        s += Math.sin(phases[p]) * part.gain * env;
+      }
+      const hammer = i < hammerLen ? (Math.random() * 2 - 1) * 0.12 : 0;
+      d[start + i] += (s + hammer) * vel;
+    }
+  }
+  function makePianoBuffer() {
+    const sr = ctx.sampleRate, n = sr * LOFI.dur;
+    const buf = ctx.createBuffer(1, n, sr);
+    const d = buf.getChannelData(0);
+    const beat = 0.75;                                                 // 80 BPM — matches the drums
+    const step = beat / 2;                                             // 8th note — sparser, sits behind the pad
+    const swing = 0.012;
+    const PAT  = [0, 1, 2, 3, 4, 2, 1, 0];                             // which chord tone to play
+    const VELS = [0.5, 0.3, 0.4, 0.3, 0.5, 0.35, 0.4, 0.3];           // softer than the first cut — the downbeat still leads
+    for (let bar = 0; bar < 4; bar++) {
+      const off = bar * 4 * beat;
+      const chord = LOFI.chords[bar].notes;
+      for (let i = 0; i < 8; i++) {
+        const f = chord[PAT[i]];
+        const t = off + i * step + (i % 2 ? swing : 0);
+        writePianoNote(d, sr, Math.round(t * sr), f, VELS[i]);
+      }
+    }
+    for (let i = 0; i < n; i++) d[i] = Math.tanh(d[i] * 1.2) * 0.55;  // soft saturation, headroom
+    return buf;
+  }
+  const piano = {
+    src: null, g: null, on: false,
+    /** Play the piano loop if it's stopped, silence it if it's playing. Returns whether it's on now. */
+    toggle() {
+      if (!ready()) return false;
+      if (!this.src) {
+        const { when, offset } = getLoopStart();                       // join lofi / drums in phase
+        this.src = ctx.createBufferSource();
+        this.src.buffer = makePianoBuffer();
+        this.src.loop = true;
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3500; lp.Q.value = 0.6;
+        this.g = ctx.createGain(); this.g.gain.value = 0;
+        this.src.connect(lp); lp.connect(this.g); this.g.connect(out);
+        this.src.start(when, offset);
+      }
+      this.on = !this.on;
+      this.g.gain.cancelScheduledValues(ctx.currentTime);
+      this.g.gain.setTargetAtTime(this.on ? 0.22 : 0, ctx.currentTime, 0.2);
+      return this.on;
+    },
+    /** Is the piano loop playing right now? */
+    playing: () => piano.on,
+  };
+
+  QH.sound = { thunder, record, lofi, drums, piano };
 })(QH);
