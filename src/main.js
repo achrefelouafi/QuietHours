@@ -310,8 +310,9 @@
     for (const s of scene.shows()) for (const q of (s.geo && s.geo.polys) || []) if (inPoly(q, bx, by)) return s;
     return null;
   }
-  /** Switch the show in this room the other way — every room's, with no id. `at` is when (now). */
-  const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
+  /** Switch the show in this room the other way — every room's, with no id. The show goes with the room's rig, so this is its lamp
+      switching, sound and all. `at` is when (now). */
+  const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) { s.play(at); QH.sound.lights.playForLamp(s.id, light.isOn(s.id)); } showState(); };
 
   /* ── the site ─────────────────────────────────────────────── */
   /** Which room's screen with a web page behind it is under this css point, or null — { id, name, geo: { quad, url } }. */
@@ -405,7 +406,7 @@
       const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
       const st = id || n || b || dv || ch || s || bt || sh ? null : overSite(e.clientX, e.clientY);
       const rc = id || n || b || dv || ch || s || bt || sh || st ? null : overRecord(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) { dv.toggle(); QH.sound.lights.play('duvet', dv.turningDown()); } else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) sh.play(); else if (st) openSite(st); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) { dv.toggle(); QH.sound.lights.play('duvet', dv.turningDown()); } else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) playShow(sh.id, performance.now()); else if (st) openSite(st); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;

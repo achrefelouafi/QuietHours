@@ -25,8 +25,9 @@
    click switches the console off; the arcade cabinet — a click on
    its screen switches it on, the marquee lit and rows scrolling,
    until the next click switches it off again; and the stage, or
-   the screen: a click switches the show on, the beams sweeping,
-   the traces racing, until the next click switches it off again.
+   the screen: a click switches the rig, and the show goes with it
+   — while the spots are on the beams sweep and the traces race,
+   looping, and they stop when the spots go off.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -69,22 +70,32 @@
   const lensOf = c => A.truss.canAt(TRUSS, TZ, c);
 
   /* ── the show ─────────────────────────────────────────────────
-     A click on the stage or the screen switches it on, the next
-     switches it off: while it's on the beams swing across the
-     screen, the neon swells and the beads race along the traces.
-     `env` is the show's slider (core.js), 0..1, rising as it comes
-     on and falling as it goes off so everything settles where it
-     started; `u` is the beat the beams swing to, counted from the
-     moment it came on. Under reduced motion there is no show. */
+     The show follows the rig: while the spots are on the beams
+     swing across the screen, the neon swells and the beads race
+     along the traces, looping, and when the spots go off it stops.
+     `env` is the show's slider (core.js), 0..1, rising as the rig
+     comes on and falling as it goes off so everything settles
+     where it started; `u` is the beat the beams swing to, counted
+     from the moment it came on. Under reduced motion there is no
+     show. A click on the stage or the screen switches the rig. */
+  const RIG = { sw: 'four' };                                         // sw: the rig's switch — this room's lamp
   const SHOW = { rise: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1500, beat: 7000 };
   const show = slider(SHOW.rise);
   let began = -1e9;
   const now = () => performance.now();
-  /** Switch the show the other way. `at` is when (now) — in the past, it's been on (or off) that long already. */
+  /** Switch the rig the other way, the show with it. `at` is when (now) — in the past, it's been on (or off) that long already. */
   function play(at = now()) {
+    const on = !light.isOn(RIG.sw);
+    light.set(RIG.sw, on);
+    sync(at);
+  }
+  /** Bring the show into step with the rig: start it when the rig is switched on, stop it when it's switched off. */
+  function sync(at = now()) {
     if (!SHOW.rise) return;
+    const want = light.isOn(RIG.sw);
+    if (show.open() === want) return;
     show.toggle(); show.start = at;
-    if (show.open()) began = at;
+    if (want) began = at;
   }
   const showU = () => (now() - began) / SHOW.beat;
   const showBusy = () => show.open() || show.busy();
@@ -100,7 +111,7 @@
   let lamp = null, tubes = [], screenGeo = null, podiumGeo = null, mixerGeo = null, arcadeGeo = null;
 
   function draw(t) {
-    show.step();
+    sync(); show.step();
     const e = env(), u = showU();
     room.floor();
     A.neonFloor(5.7, 5.7, { a: 4.3, c: 1.4, on: neonOn(), t, chase: e, warm: light.lamp, traces: TRACES, clipTo: [[0, 0, 0], [W, 0, 0], [W, D, 0], [0, D, 0]] });
