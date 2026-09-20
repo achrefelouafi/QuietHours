@@ -38,9 +38,9 @@ Open `index.html`. No build step, no dependencies, no server.
 - click the bathtub, or the shower over it, to run the bath: rain falls from the
   shower head and the tub fills to the top over twelve seconds, then the shower stops.
   Once — it can't be run again or let out.
-- click the booth's stage, or its screen, for the show (`P` does the one in view): for
-  seven seconds the beams swing across the screen, a band of light sweeps the glass,
-  the neon swells and the beads race along the traces. As often as you like.
+- click the booth's stage, or its screen, to switch the show on (`P` does the one in
+  view): the beams swing across the screen, the neon swells and the beads race along
+  the traces, for as long as you like. Click again to switch it off.
 - brush a plant: the leaves under the pointer part around it, a swipe sweeps them
   along, and they spring back when you go. A tap shakes the whole plant.
 - that's it. Those are the only things in the rooms you can touch.
@@ -361,7 +361,7 @@ node tools/preview.js bolt.png 4.2 1100 760 1 1 0 0 three 1 1 0   # …at the pe
 node tools/preview.js storm.png 4.2 1100 760 1 1 0 0 "" 1 1 0.22  # every window struck, at the return stroke
 node tools/preview.js bath.png 4.2 1100 760 1 1 0 0 three 1 1 "" 6   # the shower running, the tub half full (last arg: seconds since it went on)
 node tools/preview.js four.png 4.2 1100 760 1 1 0 0 four   # framed on the booth
-node tools/preview.js show.png 4.2 1100 760 1 1 0 0 four 1 1 "" "" 2.5   # …two and a half seconds into the show
+node tools/preview.js show.png 4.2 1100 760 1 1 0 0 four 1 1 "" "" 2.5   # …the show on, switched on two and a half seconds ago
 node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the desk
 ```
 

@@ -7,7 +7,7 @@
    the desk chair in room one, which rolls in under the desk,
    the neon tubes in room four, every window for the lightning, the tub in room three
    (or the shower over it) to run the bath, once, the stage or
-   the screen in room four to run the show — and every plant,
+   the screen in room four to switch the show on and off — and every plant,
    whose leaves part and sway under the pointer and shake at a
    tap. Paints the scene into a
    small offscreen buffer, snaps it to the inks, and blits it up
@@ -274,7 +274,7 @@
     for (const s of scene.shows()) for (const q of (s.geo && s.geo.polys) || []) if (inPoly(q, bx, by)) return s;
     return null;
   }
-  /** Run the show in this room — every room's, with no id. `at` is when it began (now). */
+  /** Switch the show in this room the other way — every room's, with no id. `at` is when (now). */
   const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
 
   /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
@@ -445,6 +445,6 @@
     setChair: (v, id) => { for (const c of scene.chairs()) if (!id || c.id === id) c.set(v); },   // the chair rolled this far under the desk, 0..1, in one room or every room's
     strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
     fillTub: (id, ago = 0) => fillTub(id, performance.now() - ago * 1000), // run the bath in one room, or every room's; `ago` seconds since the shower went on
-    playShow: (id, ago = 0) => playShow(id, performance.now() - ago * 1000), // run the show in one room, or every room's; `ago` seconds since it began
+    playShow: (id, ago = 0) => playShow(id, performance.now() - ago * 1000), // switch the show in one room, or every room's; `ago` seconds since it was switched
   };
 })(QH);

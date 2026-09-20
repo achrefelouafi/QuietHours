@@ -9,8 +9,9 @@
  * window, or every window with no room (0 is the peak; leave it out for no
  * lightning). `bath` is how many seconds ago the bathroom shower went on
  * (the tub fills over twelve; leave it out for a dry tub). `show` is how
- * many seconds ago the booth's show began (it runs seven; leave it out
- * for the booth at rest).
+ * many seconds ago the booth's show was switched on (it comes up over a
+ * second and a half and runs until switched off; leave it out for the
+ * booth at rest).
  *
  * Reads the <script src> list out of index.html, runs those files in
  * order against a minimal DOM backed by node-canvas, and writes the

@@ -21,15 +21,15 @@
    Three things here you can touch: the rig — the truss with its
    spots is this room's lamp; the neon — the tubes, the ring, the
    traces and the strip under the truss, on one switch; and the
-   stage, or the screen: a click runs the show, the beams
-   sweeping, the traces racing, for a few
-   seconds, as often as you like.
+   stage, or the screen: a click switches the show on, the beams
+   sweeping, the traces racing, until the next click switches it
+   off again.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const A = QH.assets;
   const light = QH.light;
-  const { clamp } = QH;
+  const { slider } = QH;
 
   const room = QH.scenes.booth(15, 14, 7, 5.3, 0.4, 0.4);
   const { W, D, H, C, S } = room;
@@ -61,19 +61,26 @@
   const lensOf = c => A.truss.canAt(TRUSS, TZ, c);
 
   /* ── the show ─────────────────────────────────────────────────
-     A click on the stage or the screen starts it: for a few
-     seconds the beams swing across the screen, the neon swells
-     and the beads race along
-     the traces. `u` is how far through it is, 0..1; `env` rises
-     and falls with it so everything settles where it started.
-     Under reduced motion there is no show. */
-  const SHOW = { ms: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 7000 };
-  const show = { start: -1e9 };
+     A click on the stage or the screen switches it on, the next
+     switches it off: while it's on the beams swing across the
+     screen, the neon swells and the beads race along the traces.
+     `env` is the show's slider (core.js), 0..1, rising as it comes
+     on and falling as it goes off so everything settles where it
+     started; `u` is the beat the beams swing to, counted from the
+     moment it came on. Under reduced motion there is no show. */
+  const SHOW = { rise: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1500, beat: 7000 };
+  const show = slider(SHOW.rise);
+  let began = -1e9;
   const now = () => performance.now();
-  function play(at = now()) { if (SHOW.ms) show.start = at; }
-  const showU = () => (SHOW.ms ? clamp((now() - show.start) / SHOW.ms, 0, 1) : 1);
-  const showBusy = () => SHOW.ms > 0 && now() - show.start < SHOW.ms + 50;
-  const env = () => { const u = showU(); return u >= 1 ? 0 : Math.sin(u * Math.PI); };
+  /** Switch the show the other way. `at` is when (now) — in the past, it's been on (or off) that long already. */
+  function play(at = now()) {
+    if (!SHOW.rise) return;
+    show.toggle(); show.start = at;
+    if (show.open()) began = at;
+  }
+  const showU = () => (now() - began) / SHOW.beat;
+  const showBusy = () => show.open() || show.busy();
+  const env = () => show.v;
 
   // what shades the faces: the spots, the neon, the ring round the stage, the screen's own light
   const sources = [
@@ -85,6 +92,7 @@
   let lamp = null, tubes = [], screenGeo = null, podiumGeo = null;
 
   function draw(t) {
+    show.step();
     const e = env(), u = showU();
     room.floor();
     A.neonFloor(5.7, 5.7, { a: 4.3, c: 1.4, on: neonOn(), t, chase: e, warm: light.lamp, traces: TRACES, clipTo: [[0, 0, 0], [W, 0, 0], [W, D, 0], [0, D, 0]] });
