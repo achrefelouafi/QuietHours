@@ -175,6 +175,8 @@
   /** Clip everything until unclip() to a world polygon. */
   function clip(pts) { g.save(); path(pts, false); g.closePath(); g.clip(); }
   function unclip() { g.restore(); }
+  /** The opposite of clip: everything but the polygon. For keeping a glow off a surface that should stay flat. */
+  function mask(pts) { g.save(); g.beginPath(); g.rect(0, 0, g.canvas.width, g.canvas.height); path(pts, false); g.closePath(); g.clip('evenodd'); }
 
   /* ── walls ─────────────────────────────────────────────────────
      Anything hung on a wall takes a wall and a position `u` along
@@ -198,7 +200,7 @@
   QH.draw = {
     get g() { return g; }, use,
     rgb, sh, F, px,
-    poly, stroke, box, rectX, rectY, disc, discX, discY, ring, cyl, prism, beam, dot, grain, clip, unclip,
+    poly, stroke, box, rectX, rectY, disc, discX, discY, ring, cyl, prism, beam, dot, grain, clip, unclip, mask,
     wall,
   };
 })(QH);

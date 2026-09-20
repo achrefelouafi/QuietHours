@@ -92,7 +92,7 @@
     { x: 5.7, y: 5.7, z: 1.2, range: 6.5, k: 0.2, on: neonOn },
     { x: SCREEN_C[0], y: SCREEN_C[1], z: SCREEN_C[2], range: 10, k: 0.22, on: () => 1 },
   ];
-  let lamp = null, tubes = [], screenGeo = null, podiumGeo = null, mixerGeo = null;
+  let lamp = null, tubes = [], screenGeo = null, podiumGeo = null, mixerGeo = null, arcadeGeo = null;
 
   function draw(t) {
     show.step();
@@ -140,7 +140,7 @@
 
     // along the left wall
     A.roadCase(0.35, 6.9, { w: 1.5, d: 1.3, h: 1.4 });
-    A.arcadeCabinet(0.3, 8.5, t, { face: '+x', w: 1.2, d: 1.35 });
+    arcadeGeo = A.arcadeCabinet(0.3, 8.5, t, { face: '+x', w: 1.2, d: 1.35 });
     A.tallPot(0.85, 10.55, 0, { seed: 125, size: 1.7, r: 0.4 });
     A.cactusPot(0.8, 11.85, 0, { seed: 131 });
 
@@ -186,6 +186,7 @@
      screen's cast on the wall and the tiles, the tubes' halos,
      the ring's glow and the badge's — all swelling for the show. */
   function lights(t) {
+    if (arcadeGeo) QH.draw.mask(arcadeGeo.mask);                                                    // the arcade stays flat: no halo on it
     light.begin();
     const f = light.lamp * (0.95 + 0.05 * Math.sin(t * 6.1) * Math.sin(t * 2.3)), e = env();
     for (const c of CANS) {
@@ -204,6 +205,7 @@
     light.glow(5.7, 5.7, 1.2, 4.6, [70, 130, 255], 0.12 * n);                                       // the ring round the stage
     light.glow(5.7, 5.7, 1.3, 1.6, [120, 180, 255], 0.16 * n);                                      // the badge
     light.end();
+    if (arcadeGeo) QH.draw.unclip();
   }
 
   QH.scenes.roomFour = {

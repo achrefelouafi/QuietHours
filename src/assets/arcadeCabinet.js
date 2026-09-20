@@ -9,7 +9,9 @@
      (x, y) is the far corner of its footprint. o.face is '+x'
      (default) or '+y', the way the screen looks; o.w (1.2) is its
      width across the front, o.d (1.35) its depth, o.h (3.3) the
-     top of the marquee.
+     top of the marquee. Returns { mask }: the cabinet's outline,
+     for draw.mask in the lighting pass so the neon's halo stays
+     off it — a glow over the blue dithers into speckle.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -25,11 +27,14 @@
     const sp = (b, z) => X ? [x + b, y + wd + 0.012, z] : [x + wd + 0.012, y + b, z];   // a point on the side face
     const fp = (b, a, z) => X ? [x + b, y + a, z] : [x + a, y + b, z];                  // a point anywhere
     const blue = M.blue, dk = M.blueDk, lt = M.blueLt;
-    const opts = { colTop: lt, left: 0.9, right: 0.72 };
+    // every face pinned to its own ink: the neon tube is right over this cabinet, and a lit blueLt top lands
+    // between blueLt and ice and comes out as speckle, so no face takes the sources' shading
+    const opts = { colTop: lt, top: 1, left: 0.9, right: 0.72 };
+    const capOpts = { colTop: dk, top: 1, left: 0.9, right: 0.72 };
 
     // one column, plinth to cap; the control panel and the marquee jut out, the screen sits back between them
     const fb = dp + 0.01, jut = 0.35;
-    B(0, 0, 0, dp, wd, 0.35, dk, { colTop: dk });
+    B(0, 0, 0, dp, wd, 0.35, dk, capOpts);
     B(0, 0, 0.35, dp, wd, 1.35, blue, opts);
     front(fb, wd * 0.28, 0.55, wd * 0.72, 1.35, rgb(M.ink));                                  // the coin door
     front(fb + 0.01, wd * 0.36, 1.0, wd * 0.64, 1.2, rgb(M.greyDk));
@@ -38,7 +43,7 @@
     front(fb + 0.01, wd * 0.4, 0.68, wd * 0.6, 0.76, rgb(M.grey));
 
     // the control panel, a shelf out over the front: a stick and four buttons on top
-    B(0, 0, 1.7, dp + jut, wd, 0.3, blue, { ...opts, colTop: dk });
+    B(0, 0, 1.7, dp + jut, wd, 0.3, blue, capOpts);
     const pz = 2.0, pb = dp + 0.1;
     beam(fp(pb, wd * 0.3, pz), fp(pb, wd * 0.3, pz + 0.28), 0.06, M.ink, 1);
     disc(...fp(pb, wd * 0.3, pz + 0.3), 0.08, rgb(M.bright), 6);
@@ -60,12 +65,16 @@
     // the marquee, lit, its name a row of pale blocks, out as far as the panel below; the cap over it
     const mb = fb + jut;
     B(0, 0, 2.9, dp + jut, wd, h - 2.98, blue, opts);
-    B(0, 0, h - 0.08, dp + jut, wd, 0.08, dk, { colTop: dk });
+    B(0, 0, h - 0.08, dp + jut, wd, 0.08, dk, capOpts);
     front(mb, wd * 0.1, 3.0, wd * 0.9, h - 0.14, rgb(M.cyan));
     for (let i = 0; i < 6; i++) front(mb + 0.01, wd * (0.16 + i * 0.12), 3.06, wd * (0.16 + i * 0.12) + wd * 0.07, h - 0.2, rgb(M.blueDk));
 
     // a pale stripe down the side
     const st = h - 0.12, sb = dp * 0.8;                                                      // up to just under the cap
     poly([sp(0.12, 0.45), sp(0.38, 0.45), sp(sb, st), sp(sb - 0.26, st)], rgb(lt));
+
+    // its silhouette: the hexagon round its bounding box, panel and marquee included
+    const fd = dp + jut;
+    return { mask: [fp(0, 0, h), fp(fd, 0, h), fp(fd, 0, 0), fp(fd, wd, 0), fp(0, wd, 0), fp(0, wd, h)] };
   };
 })(QH);
