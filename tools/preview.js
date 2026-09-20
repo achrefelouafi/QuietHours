@@ -1,7 +1,7 @@
 /**
  * tools/preview.js — render a frame of the room to a PNG, no browser.
  *
- *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc] [mixer]
+ *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc] [mixer] [record]
  *
  * `lamp` 0 switches every lamp off; `room` (one | two | three | four)
  * frames that room instead of the whole house, before zoom and pan apply;
@@ -11,7 +11,9 @@
  * (the tub fills over twelve; leave it out for a dry tub). `show` is how
  * many seconds ago the booth's show was switched on (it comes up over a
  * second and a half and runs until switched off; leave it out for the
- * booth at rest).
+ * booth at rest). `record` is how many seconds ago the record downstairs
+ * was put on (its ripples and the speakers' bounce come up over six
+ * tenths; leave it out for the turntable at rest).
  *
  * Reads the <script src> list out of index.html, runs those files in
  * order against a minimal DOM backed by node-canvas, and writes the
@@ -41,6 +43,7 @@ const DUVET = process.argv[16];
 const CHAIR = process.argv[17];
 const PC = parseFloat(process.argv[18] || '1');
 const MIXER = parseFloat(process.argv[19] || '1');
+const RECORD = process.argv[20];
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
@@ -87,6 +90,7 @@ if (MIXER < 1) app.setMixer(false);
 if (FLASH !== undefined) app.strike(ROOM, parseFloat(FLASH));
 if (BATH !== undefined) app.fillTub('', parseFloat(BATH));
 if (SHOW !== undefined) app.playShow('', parseFloat(SHOW));
+if (RECORD !== undefined) app.playRecord('', parseFloat(RECORD));
 if (DUVET !== undefined) app.setDuvet(parseFloat(DUVET));
 if (CHAIR !== undefined) app.setChair(parseFloat(CHAIR));
 if (ROOM) { app.room(ROOM); app.look(); }

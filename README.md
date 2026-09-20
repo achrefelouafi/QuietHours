@@ -43,6 +43,10 @@ Open `index.html`. No build step, no dependencies, no server.
 - click the booth's stage, or its screen, to switch the show on (`P` does the one in
   view): the beams swing across the screen, the neon swells and the beads race along
   the traces, for as long as you like. Click again to switch it off.
+- click the turntable on the hi-fi console downstairs to play the record (`R`) — the one
+  track in `public/`, on a loop: white rings ripple out from the platter, the record
+  turns, and the cones of the two speakers by it bounce to the beat. Click again to
+  pause it, and again to play on.
 - brush a plant: the leaves under the pointer part around it, a swipe sweeps them
   along, and they spring back when you go. A tap shakes the whole plant.
 - that's it. Those are the only things in the rooms you can touch.
@@ -72,7 +76,7 @@ src/
     camera.js           2:1 isometric projection, and a movable world origin
     draw.js             primitives: box, cyl, beam, disc, wall helpers …
     light.js            per-face shading from point lights, screen-space glow, one switch per lamp
-    sound.js            thunder, shaped out of noise in Web Audio — the one sound
+    sound.js            thunder, shaped out of noise in Web Audio, and the record, an <audio> element on public/ambient-lofi.mp3
     storm.js            the lightning outside a window: a strike, its keyframed flash, the thunder after
     sway.js             every leaf a small spring: the pointer parts, sweeps and shakes them
   assets/               one file per thing in docs/assets.png, assets2.png, assets3.png, assets4.jpg and sofas.jpg
@@ -84,7 +88,7 @@ src/
     roomThree.js        the same for room three
     roomFour.js         the same for room four, plus its show
     house.js            the rooms in one scene: where each sits, its lamp switch, its lights
-  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, the mixer, windows, the tub, the stage — the pointer over the plants
+  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, the mixer, windows, the tub, the stage, the turntable — the pointer over the plants
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
@@ -115,8 +119,8 @@ Room one:
 | `coffeeTable.js` | low table with a journal and a mug | `coffeeTable(x, y, {w, d, bare})` |
 | `rug.js` | woven rug; `weave: true` for the plain herringbone one | `rug(x, y, w, d, {weave})` |
 | `bookshelf.js` | open shelf unit, books, radio, crate, plant and box on top | `bookshelf(x, y, {w, depth, h})` |
-| `hifiConsole.js` | console with records and a turntable | `hifiConsole(x, y, {w, d, bare})` |
-| `speaker.js` | box speaker, any size | `speaker(x, y, z, {w, d, h, face, rim})` |
+| `hifiConsole.js` | console with records and a turntable; `play`, `spin` and `t` go to the turntable. Returns its screen quad for the click | `hifiConsole(x, y, {w, d, bare, play, spin, t})` |
+| `speaker.js` | box speaker, any size; while `beat` is up the cones bounce — the big one on the beat, the small one twice as often | `speaker(x, y, z, {w, d, h, face, beat, t})` |
 | `nightstand.js` | two drawers, a book on top | `nightstand(x, y, {face: '+x'│'+y'})` |
 | `chest.js` | storage chest, books on top | `chest(x, y, {w, d, h})` |
 | `snakePlant.js` | the big spiky plant | `snakePlant(x, y, z, {r, size, n})` |
@@ -134,7 +138,7 @@ Room one:
 | `plantShelf.js` | narrow shelf with a trailing plant *(built, not placed)* | `plantShelf(x, y, {w, d, h})` |
 | `filingCabinet.js` | three drawers *(built, not placed)* | `filingCabinet(x, y, {w, d, h})` |
 | `lowBookcase.js` | low two-cubby unit *(built, not placed)* | `lowBookcase(x, y, {w, d, h})` |
-| `props.js` | the small stuff: `mug` `penCup` `photoFrame` `notepad` `book` `bookRow` `bookStack` `openBook` `ball` `smallBox` `crate` `lidBox` `vinyl` `radio` `laptop` `journal` `turntable` `pottedPlant` `spikes` `leaves` `vines` | each `(x, y, z, o)` |
+| `props.js` | the small stuff: `mug` `penCup` `photoFrame` `notepad` `book` `bookRow` `bookStack` `openBook` `ball` `smallBox` `crate` `lidBox` `vinyl` `radio` `laptop` `journal` `turntable` (the record turned `spin`; while `play` is up, white rings ripple out from it; returns the plinth top's quad for the click) `pottedPlant` `spikes` `leaves` `vines` | each `(x, y, z, o)` |
 
 Room two:
 
@@ -313,10 +317,19 @@ past half, draws a forked bolt in a dark halo (`lightning.js` — behind the cit
 lights the faces that look toward the window; three blue-white glows wash the wall,
 whatever stands under the window and the floor beyond. In the bedroom the room's share
 is scaled by how much glass the blind leaves clear. Half a second or so after the flash,
-`sound.js` plays thunder — there are no audio files; it's white noise through a
+`sound.js` plays thunder — no audio file; it's white noise through a
 low-pass filter whose cutoff sweeps down under a fast-attack, slow-decay envelope, a
 bright short roll for the crack, a long deep one for the body, a few quieter ones
 rolling off. Under reduced motion the flicker becomes one soft swell.
+
+The record is the other sound, and the one audio file: `public/ambient-lofi.mp3`, in an
+`<audio>` element `sound.js` makes on the first click on the turntable and loops from
+there; each click after plays or pauses it. The element is the truth about whether it's
+playing — the media keys can stop it too — and room one reads that off it every frame
+and eases its own slider after it, so the ripples off the platter and the bounce in the
+speakers come up and die away over six tenths of a second rather than snap. The record's
+spin gathers while that slider is up, at thirty-three and a third. Under reduced motion
+nothing turns or bounces, but the record still plays.
 
 ### 5. The plants
 
@@ -347,7 +360,7 @@ writes the frame at 2× nearest-neighbour.
 
 ```bash
 npm install
-node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc]
+node tools/preview.js out.png [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc] [mixer] [record]
 
 npm run preview            # docs/preview.png
 npm run preview:dark       # docs/lights-out.png — every lamp off
@@ -363,6 +376,7 @@ node tools/preview.js storm.png 4.2 1100 760 1 1 0 0 "" 1 1 0.22  # every window
 node tools/preview.js bath.png 4.2 1100 760 1 1 0 0 three 1 1 "" 6   # the shower running, the tub half full (last arg: seconds since it went on)
 node tools/preview.js four.png 4.2 1100 760 1 1 0 0 four   # framed on the booth
 node tools/preview.js show.png 4.2 1100 760 1 1 0 0 four 1 1 "" "" 2.5   # …the show on, switched on two and a half seconds ago
+node tools/preview.js record.png 4.2 1100 760 1 1 0 0 one 1 1 "" "" "" "" "" 1 1 2   # the record playing, put on two seconds ago (last arg)
 node tools/preview.js look.png 4.2 1100 760 1 2.4 -120 90   # zoomed in on the desk
 ```
 

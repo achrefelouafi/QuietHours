@@ -8,7 +8,8 @@
    the neon tubes in room four, the mixing desk there, whose console
    blinks until you switch it off, every window for the lightning, the tub in room three
    (or the shower over it) to run the bath, once, the stage or
-   the screen in room four to switch the show on and off — and every plant,
+   the screen in room four to switch the show on and off, the
+   turntable in room one to play the record and pause it — and every plant,
    whose leaves part and sway under the pointer and shake at a
    tap. Paints the scene into a
    small offscreen buffer, snaps it to the inks, and blits it up
@@ -175,10 +176,11 @@
     for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
     return null;
   }
-  /** The slate: each room's lamp, and the strip, neon, PC or mixer where there is one. */
+  /** The slate: each room's lamp, and the strip, neon, PC, mixer or record where there is one. */
   function showState() {
     stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')
-      + [...wallLights(), ...scene.pcs(), ...scene.mixers()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')).join(String.fromCharCode(10));
+      + [...wallLights(), ...scene.pcs(), ...scene.mixers()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')
+      + scene.records().filter(n => n.id === r.id).map(n => ' · record ' + (n.playing() ? 'playing' : 'stopped')).join('')).join(String.fromCharCode(10));
   }
   function setLamp(id, on) { light.set(id, on); showState(); }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
@@ -296,8 +298,19 @@
   /** Switch the show in this room the other way — every room's, with no id. `at` is when (now). */
   const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
+  /* ── the record ───────────────────────────────────────────── */
+  /** Which room's turntable is under this css point, or null — { id, name, geo, play, playing }. */
+  function overRecord(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const r of scene.records()) if (inPoly(r.geo && r.geo.quad, bx, by)) return r;
+    return null;
+  }
+  /** Play the record in this room, or pause it — every room's, with no id. `at` is when (now). */
+  const playRecord = (id, at) => { for (const r of scene.records()) if (!id || r.id === id) r.play(at); showState(); };
+  QH.sound.record.onchange = showState;              // and when it's stopped or started from outside — the media keys
+
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show', 'record' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : overRecord(cx, cy) ? 'record' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -364,7 +377,8 @@
       const s = id || n || b || dv || ch ? null : overStorm(e.clientX, e.clientY);
       const bt = id || n || b || dv || ch || s ? null : overTub(e.clientX, e.clientY);
       const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else shake(e.clientX, e.clientY);
+      const rc = id || n || b || dv || ch || s || bt || sh ? null : overRecord(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) b.toggle(); else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) bt.fill(); else if (sh) sh.play(); else if (rc) playRecord(rc.id); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
@@ -419,6 +433,7 @@
     else if (k === 'x') toggleMixerIn(roomInView().id);
     else if (k === 'f') strike(roomInView().id);
     else if (k === 'p') playShow(roomInView().id);
+    else if (k === 'r') playRecord(roomInView().id);
     else return;
     e.preventDefault();
   });
@@ -477,5 +492,6 @@
     strike: (id, ago = 0) => strike(id, performance.now() - ago * 1000),   // one room's window, or every window; `ago` seconds into the flash
     fillTub: (id, ago = 0) => fillTub(id, performance.now() - ago * 1000), // run the bath in one room, or every room's; `ago` seconds since the shower went on
     playShow: (id, ago = 0) => playShow(id, performance.now() - ago * 1000), // switch the show in one room, or every room's; `ago` seconds since it was switched
+    playRecord: (id, ago = 0) => playRecord(id, performance.now() - ago * 1000), // play the record in one room, or every room's (or pause it); `ago` seconds since
   };
 })(QH);

@@ -8,18 +8,19 @@
    Things are drawn back to front — the order below is the painter
    order, so keep it when moving furniture.
 
-   Six things here you can touch: the lamp, the strip light on
+   Seven things here you can touch: the lamp, the strip light on
    the back wall and the PC on the desk, each on its own switch,
    the window — a click brings lightning over the city, and
    thunder a beat after — the blanket on the daybed, turned down
-   toward the foot and back with a click, and the desk chair,
-   rolled in under the desk and back out.
+   toward the foot and back with a click, the desk chair,
+   rolled in under the desk and back out, and the turntable on
+   the hi-fi console: a click plays the record, the next pauses it.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
   const A = QH.assets;
   const light = QH.light;
-  const { slider, lerp } = QH;
+  const { slider, lerp, TAU } = QH;
 
   const room = QH.scenes.room(14, 14, 8);
   const T = A.desk.H;                                          // the desk top
@@ -56,9 +57,33 @@
   const chair = slider(still ? 0 : 700);
   let chairGeo = null;
 
+  /* ── the record ───────────────────────────────────────────────
+     A click on the turntable plays the record — the one track in
+     public/, on a loop — and the next pauses it, and so on. `rec`
+     is its slider (core.js), 0..1, so the ripples off the platter
+     and the bounce in the speakers by it come up and die away
+     rather than snap; `spin` is how far the record has turned,
+     gathering while it plays. The sound is the truth (sound.js):
+     the media keys can stop it too, and the room follows each
+     frame. Under reduced motion nothing turns or bounces, but the
+     record still plays, ripples and all, standing still. */
+  const RPM = 33.3;
+  const rec = slider(still ? 0 : 600);
+  let recGeo = null, spin = 0, lastT = null;
+  const now = () => performance.now();
+  /** Play the record, or pause it. `at` is when (now) — in the past, it's been going (or stopped) that long already. */
+  function playRecord(at = now()) {
+    if (QH.sound.record.toggle() !== rec.open()) { rec.toggle(); rec.start = at; }
+  }
+  const recordOn = () => rec.open();
+
   function draw(t) {
     lightning = storm.flash();
     duvet.step(); chair.step();
+    if (QH.sound.record.playing() !== rec.open()) rec.toggle();       // stopped, or started, from outside — the media keys — and the room follows
+    rec.step();
+    const dt = lastT === null ? 0 : Math.min(0.1, Math.max(0, t - lastT)); lastT = t;
+    spin += dt * rec.v * RPM / 60 * TAU;                                // the record turns while the play is up, slowing as it dies
     room.floor();
     A.rug(2.2, 3.9, 7.1, 4.0);
     room.walls();
@@ -100,9 +125,9 @@
     A.nightstand(0.15, 5.85, { face: '+x' });
     chairGeo = A.chair(CHAIR.x, lerp(CHAIR.out, CHAIR.in, chair.v));
 
-    A.speaker(9.75, 0.2, 0, { w: 0.85, d: 0.8, h: 2.9 });
-    A.hifiConsole(10.6, 0.4, { w: 3.0, d: 1.5 });
-    A.speaker(12.75, 0.55, A.hifiConsole.H, { w: 0.8, d: 0.8, h: 1.2 });
+    A.speaker(9.75, 0.2, 0, { w: 0.85, d: 0.8, h: 2.9, beat: rec.v, t });
+    recGeo = A.hifiConsole(10.6, 0.4, { w: 3.0, d: 1.5, play: rec.v, spin, t });
+    A.speaker(12.75, 0.55, A.hifiConsole.H, { w: 0.8, d: 0.8, h: 1.2, beat: rec.v, t });
     A.headphones(12.35, 1.25, A.hifiConsole.H, { size: 0.4 });
     A.snakePlant(9.6, 1.9, 0, { r: 0.45, size: 2.4 });
 
@@ -146,6 +171,7 @@
     duvet: () => duvetGeo, toggleDuvet: duvet.toggle, duvetOpen: duvet.open, setDuvet: duvet.set,
     chair: () => chairGeo, toggleChair: chair.toggle, chairIn: chair.open, setChair: chair.set,
     storm: () => windowGeo, strike: storm.strike,
-    busy: () => duvet.busy() || chair.busy() || storm.busy(),
+    record: () => recGeo, playRecord, recordOn,
+    busy: () => duvet.busy() || chair.busy() || storm.busy() || rec.open() || rec.busy(),
   };
 })(QH);

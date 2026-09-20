@@ -5,6 +5,9 @@
 
    hifiConsole(x, y, o)
      footprint x..x+w (3.0) by y..y+d (1.5); the open side faces +y.
+     o.play, o.spin and o.t go to the turntable (props.js): how far
+     the record's play is up, how far it has turned, the time.
+   Returns the turntable's screen quad for the click — null if bare.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -25,7 +28,7 @@
       A.bookRow(cx + 0.08, y + d - 0.5, 0.3, cw - 0.12, { along: 'x', depth: 0.45, seed: 71 + i, hMin: 0.68, hMax: 0.8, topK: 0.5,
                                                           cols: [M.orange, M.cream, M.slate, M.orangeDk, M.tan, M.navyLt, M.greyLt] });
     }
-    if (!o.bare) A.turntable(x + 0.15, y + 0.2, H, { w: 1.3, d: 1.05 });
+    return o.bare ? null : A.turntable(x + 0.15, y + 0.2, H, { w: 1.3, d: 1.05, play: o.play, spin: o.spin, t: o.t });
   };
   hifiConsole.H = H;
   QH.assets.hifiConsole = hifiConsole;

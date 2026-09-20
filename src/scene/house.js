@@ -15,7 +15,7 @@
    Under them all is the ground (scene/ground.js), drawn first in
    room one's coordinates.
 
-   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf }
+   QH.scenes.house → { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, blinds, duvets, chairs, storms, tubs, shows, records, busy, boundsOf }
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const { at } = QH.cam;
@@ -83,8 +83,10 @@
   const tubs   = () => rooms.filter(r => r.scene.tub).map(r => ({ id: r.id, name: r.name, geo: r.scene.tub(), fill: r.scene.fillTub }));
   /** The stages' screen geometry from the last draw, in the rooms where a click runs a show. */
   const shows  = () => rooms.filter(r => r.scene.show).map(r => ({ id: r.id, name: r.name, geo: r.scene.show(), play: r.scene.play }));
+  /** The turntables' screen geometry from the last draw, in the rooms with a record to play. */
+  const records = () => rooms.filter(r => r.scene.record).map(r => ({ id: r.id, name: r.name, geo: r.scene.record(), play: r.scene.playRecord, playing: r.scene.recordOn }));
   /** Is anything in a room mid-animation and wanting every frame? */
   const busy   = () => rooms.some(r => r.scene.busy && r.scene.busy());
 
-  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, blinds, duvets, chairs, storms, tubs, shows, busy, boundsOf };
+  QH.scenes.house = { rooms, bounds, draw, lights, lamps, neons, strips, pcs, mixers, blinds, duvets, chairs, storms, tubs, shows, records, busy, boundsOf };
 })(QH);
