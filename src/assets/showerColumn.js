@@ -44,7 +44,9 @@
     disc(head[0], head[1], head[2] + 0.01, 0.1, rgb(M.greyLt), 8);
     cyl(head[0], head[1], head[2], 0.15, 0.07, dark, { n: 10, colTop: lt, topK: 0.85 });           // the collar the stem screws into
     cyl(head[0], head[1], head[2] + 0.07, 0.1, 0.05, pipe, { n: 8, rt: 0.07, top: false, edge: false });   // tapering up to the stem
-    beam(armEnd, Wl.pt(u, z + h - 0.18, out), 0.11, pipe, 1);                                      // the stem, straight down into it — over the disc, since it stands above it
+    const stemEnd = Wl.pt(u, z + h - 0.18, out);                                                    // the stem, straight down into it — over the disc, since it stands above it
+    beam(armEnd, stemEnd, 0.11 + 2 / cam.s, M.ink);                                                 // an ink line down either side, so it reads as a rod against the disc
+    beam(armEnd, stemEnd, 0.11, pipe, 1);
     cyl(armEnd[0], armEnd[1], armEnd[2] - 0.06, 0.09, 0.12, dark, { n: 8, colTop: lt, topK: 0.9 }); // the elbow above the head
 
     // slide bar in front of the riser, the hand shower clipped part way up
