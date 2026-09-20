@@ -11,7 +11,7 @@
      (1.4) how much its top and bottom corners are cut. o.traces
      is a list of polylines [[x, y], …] on the floor; o.on is 0..1
      (1), how lit the neon is; o.t the time, for the beads; o.chase
-     0..1 hurries them along and brightens them, for the show.
+     0..1 brightens them and the ring, for the show.
      o.warm 0..1 (light.lamp) is how much the spots warm the ring's
      inside; o.clipTo the floor polygon the paint stays within.
    ═══════════════════════════════════════════════════════════════ */
@@ -66,8 +66,8 @@
       const e = T[T.length - 1];
       poly([[e[0] - 0.13, e[1] - 0.13, Z], [e[0] + 0.13, e[1] - 0.13, Z], [e[0] + 0.13, e[1] + 0.13, Z], [e[0] - 0.13, e[1] + 0.13, Z]], rgb(mix(M.navy, M.blueLt, on)));
       if (on > 0.05) {
-        // the bead: a short bright run, each trace on its own beat, quicker and hotter for the show
-        const speed = 1.6 + 2.6 * chase, span = len + 3, at = ((t * speed + i * 1.37) % span);
+        // the bead: a short bright run, each trace on its own beat, hotter for the show (never quicker — a changing speed makes it jump)
+        const speed = 1.6, span = len + 3, at = ((t * speed + i * 1.37) % span);
         if (at < len) {
           let d = at, seg = 1;
           while (seg < T.length - 1 && d > Math.hypot(T[seg][0] - T[seg - 1][0], T[seg][1] - T[seg - 1][1])) { d -= Math.hypot(T[seg][0] - T[seg - 1][0], T[seg][1] - T[seg - 1][1]); seg++; }
