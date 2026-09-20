@@ -279,6 +279,28 @@
       fabric(t0, 0.04, 0.52, 0.035, 1200);                                  // the cloth pull, a hair shorter and softer
     },
   };
+  /** Rooms one and two — the blanket on the daybed and the duvet on
+      the platform bed. The same recipe as the blind: filtered noise
+      only, but heavier cloth, so the rustle sits lower and softer.
+      Turning down is one long pull ending in the folded edge flumping
+      onto the mattress; making the bed is two quick flaps of the cloth
+      shaken out, then it settling flat. */
+  const duvet = {
+    on() {                                                                  // turning down — the cover pulled toward the foot
+      if (!ready()) return;
+      const t0 = ctx.currentTime;
+      fabric(t0, 0.03, 0.82, 0.034, 900);                                   // the cloth dragging over the sheet
+      click(t0 + 0.80,  140, 2,   0.070, 0.22);                             // the folded edge flumping onto the mattress
+      click(t0 + 0.83,   90, 1.5, 0.090, 0.14);                             // the mattress taking it
+    },
+    off() {                                                                 // making the bed — the cover shaken out and laid flat
+      if (!ready()) return;
+      const t0 = ctx.currentTime;
+      fabric(t0, 0.02, 0.30, 0.040, 1000);                                  // first flap
+      fabric(t0, 0.34, 0.62, 0.032, 1000);                                  // second flap
+      fabric(t0, 0.66, 0.96, 0.020, 800);                                   // the cloth settling flat, low and soft
+    },
+  };
   /** One slice of fabric rustle for the roller: noise through a highpass
       at `f`, fading in over 80 ms, holding, then fading out by `end`. */
   function fabric(t0, at, end, peak, f) {
@@ -310,7 +332,7 @@
     'four-mixer':   'mixerDesk',
     'four-arcade':  'monitor',                                          // the cabinet is a CRT, the same sound as the PC in room one
   };
-  const KINDS = { deskLamp, bedsideLamp, barLight, trussSpots, ledStrip, neonSign, neonRigs, monitor, mixerDesk, rollerBlind };
+  const KINDS = { deskLamp, bedsideLamp, barLight, trussSpots, ledStrip, neonSign, neonRigs, monitor, mixerDesk, rollerBlind, duvet };
 
   /** Play the sound for the lamp in room `id`, going on or off. */
   function playForLamp(id, on) { const k = LAMP_KIND[id]; if (k) KINDS[k][on ? 'on' : 'off'](); }

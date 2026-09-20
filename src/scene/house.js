@@ -75,8 +75,8 @@
   const arcades = () => rooms.filter(r => r.scene.arcade).map(r => ({ id: r.id, name: r.name, kind: 'arcade', geo: r.scene.arcade(), sw: r.scene.arcadeSwitch }));
   /** The blinds' screen geometry from the last draw, in the rooms that have one. `goingDown` reads the slider's current target so callers can play the direction-aware sound after a toggle. */
   const blinds = () => rooms.filter(r => r.scene.blind).map(r => ({ id: r.id, name: r.name, geo: r.scene.blind(), toggle: r.scene.toggleBlind, goingDown: r.scene.blindDown }));
-  /** The duvets' screen geometry from the last draw, in the rooms with a bed you can turn down. */
-  const duvets = () => rooms.filter(r => r.scene.duvet).map(r => ({ id: r.id, name: r.name, geo: r.scene.duvet(), toggle: r.scene.toggleDuvet, set: r.scene.setDuvet }));
+  /** The duvets' screen geometry from the last draw, in the rooms with a bed you can turn down. `turningDown` reads the slider's target after a toggle, for the direction-aware sound. */
+  const duvets = () => rooms.filter(r => r.scene.duvet).map(r => ({ id: r.id, name: r.name, geo: r.scene.duvet(), toggle: r.scene.toggleDuvet, set: r.scene.setDuvet, turningDown: r.scene.duvetOpen }));
   /** The desk chairs' screen geometry from the last draw, in the rooms with one you can roll under the desk. */
   const chairs = () => rooms.filter(r => r.scene.chair).map(r => ({ id: r.id, name: r.name, geo: r.scene.chair(), toggle: r.scene.toggleChair, set: r.scene.setChair }));
   /** The rain windows' screen geometry from the last draw, in the rooms where a click brings the lightning. */

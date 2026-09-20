@@ -265,7 +265,7 @@
     return null;
   }
   /** Turn the duvet down in this room, or make the bed again. */
-  const toggleDuvet = id => { const d = scene.duvets().find(d => d.id === id); if (d) d.toggle(); };
+  const toggleDuvet = id => { const d = scene.duvets().find(d => d.id === id); if (!d) return; d.toggle(); QH.sound.lights.play('duvet', d.turningDown()); };
 
   /* ── the chairs ───────────────────────────────────────────── */
   /** Which room's desk chair is under this css point, or null. Its seat and its back, each convex on screen. */
@@ -393,7 +393,7 @@
       const bt = id || n || b || dv || ch || s ? null : overTub(e.clientX, e.clientY);
       const sh = id || n || b || dv || ch || s || bt ? null : overShow(e.clientX, e.clientY);
       const rc = id || n || b || dv || ch || s || bt || sh ? null : overRecord(e.clientX, e.clientY);
-      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) dv.toggle(); else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) sh.play(); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
+      if (id) toggleLamp(id); else if (n) toggleNeon(n.sw); else if (b) { b.toggle(); QH.sound.lights.play('rollerBlind', b.goingDown()); } else if (dv) { dv.toggle(); QH.sound.lights.play('duvet', dv.turningDown()); } else if (ch) ch.toggle(); else if (s) s.strike(); else if (bt) fillTub(bt.id, performance.now()); else if (sh) sh.play(); else if (rc) openRecord(rc.id); else shake(e.clientX, e.clientY);
     }
     if (!drag || performance.now() - drag.t > 90) velocity = { x: 0, y: 0 };
     drag = null; pinch = null; press = null;
