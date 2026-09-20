@@ -168,7 +168,6 @@ Room three — nothing here is shared with the other rooms; every piece in `asse
 | `bathShelves.js` | two boards: tins, a hanging fern, a row of grey boxes | `bathShelves(wall, u, z, w, {gap, depth, bare})` |
 | `rainWindow.js` | two big panes in a deep steel frame, towers and spires, broken streaks of rain; with `flash` the sky whitens and a bolt forks down it. Returns the glass's screen quad for the click | `rainWindow(wall, u, z, w, h, t, {skyline, seed, flash, bolt})` |
 | `vanityMirror.js` | mirror in a teak frame with the bar light above it — this room's lamp. Returns the bar's screen geometry for the click | `vanityMirror(wall, u, z, w, h, {barUp, barOver})` |
-| `towelRing.js` | a hand towel draped over a charcoal double hook: a lit fold, two leaves with a dark crease between, a dobby band over the hem, terry flecks | `towelRing(wall, u, z)` |
 | `vanity.js` | teak cabinet, charcoal door and drawers, a tray of bottles, soap, a tumbler of toothbrushes on top | `vanity(x, y, {w, d, h, bare})` |
 | `sink.js` | wall-hung walnut box, stone slab with a square basin, a square tap, a pump bottle | `sink(x, y, z, {w, d, h, bare})` |
 | `sideTable.js` | dark four-legged table; with `shelf` a low rack holding folded towels | `sideTable(x, y, {w, d, h, shelf, towels, bare})` |

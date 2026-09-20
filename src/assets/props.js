@@ -129,12 +129,16 @@
     rectX(x + w + 0.01, y + d * 0.35, z + 0.15, y + d * 0.65, z + h - 0.2, rgb(light.warm(M.rustLt, M.orangeDk)));
   };
 
-  /** A record, lying flat. */
-  A.vinyl = (x, y, z, r) => {
+  /** A record, lying flat. With o.spin (radians) two marks on the label show which way round it is — how you see it turn. */
+  A.vinyl = (x, y, z, r, o = {}) => {
     disc(x, y, z, r, rgb(M.ink), 16);
     ring(x, y, z + 0.005, r * 0.7, rgb(M.navyDk), 16);
     disc(x, y, z + 0.01, r * 0.32, rgb(light.warm(M.rustLt, M.orange)), 10);
     disc(x, y, z + 0.015, r * 0.08, rgb(M.ink), 6);
+    if (o.spin !== undefined) for (const a of [o.spin, o.spin + Math.PI]) {
+      const c = Math.cos(a), s = Math.sin(a);
+      beam([x + c * r * 0.14, y + s * r * 0.14, z + 0.02], [x + c * r * 0.28, y + s * r * 0.28, z + 0.02], 0.025, M.ink, 1);
+    }
   };
 
   /** Small radio / receiver: a dial strip and a knob. Face toward o.face ('+y' | '+x'). */
@@ -174,14 +178,39 @@
     poly([[x + w * 0.62, y + d + 0.01, z], [x + w * 0.72, y + d + 0.01, z], [x + w * 0.72, y + d + 0.01, z + h], [x + w * 0.62, y + d + 0.01, z + h]], sh(s, 0.8));
   };
 
-  /** Turntable: plinth, platter with a record on it, tone arm. */
+  /** Turntable: plinth, platter with a record on it, tone arm. The
+      record has turned o.spin radians; while o.play (0..1) is up, white
+      rings ripple out from it — the sound coming off the platter —
+      o.t (seconds) moving them along. Returns the plinth top's screen
+      quad for the click. */
   A.turntable = (x, y, z, o = {}) => {
-    const w = o.w || 1.3, d = o.d || 1.0, h = 0.14;
+    const w = o.w || 1.3, d = o.d || 1.0, h = 0.14, play = o.play || 0, spin = o.spin || 0;
     box(x, y, z, w, d, h, M.navyDk, { colTop: M.navy, rim: o.rim });
-    A.vinyl(x + w * 0.42, y + d * 0.5, z + h + 0.01, Math.min(w, d) * 0.36);
+    const cx = x + w * 0.42, cy = y + d * 0.5, r = Math.min(w, d) * 0.36;
+    A.vinyl(cx, cy, z + h + 0.01, r, { spin });
+    if (play > 0) A.turntable.ripples(cx, cy, z + h + 0.02, r, o.t || 0, spin, play);
     cyl(x + w - 0.2, y + 0.2, z + h, 0.06, 0.12, M.grey, { n: 8, edge: false });
     beam([x + w - 0.2, y + 0.2, z + h + 0.14], [x + w * 0.55, y + d * 0.45, z + h + 0.1], 0.035, M.greyLt, 1);
     dot(x + 0.15, y + d - 0.15, z + h + 0.01, 1, M.orange);
+    return { quad: [[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]].map(p => P(...p)) };
+  };
+  /** The sound off a playing record: three dashed white rings, each
+      widening out from the record's rim and fading as it goes, one
+      after another round a loop, the dashes turning with the record.
+      `k` (0..1) is how strong they are — the play easing in and out. */
+  A.turntable.ripples = (cx, cy, z, r, t, spin, k) => {
+    const g = QH.draw.g, was = g.globalAlpha, N = 3, LOOP = 1.6, DASH = 8, col = rgb(M.ice);
+    for (let i = 0; i < N; i++) {
+      const u = (t / LOOP + i / N) % 1;                                    // how far out this ring is: 0 at the rim, 1 gone
+      const rr = r * (1.12 + u * 0.95);
+      g.globalAlpha = was * k * Math.min(1, u / 0.12) * (1 - u) ** 1.2;   // in fast at the rim, out slowly as it widens
+      for (let j = 0; j < DASH; j++) {                                     // dashes with gaps between, all turning with the record
+        const a0 = spin + j / DASH * TAU, a1 = a0 + TAU / DASH * 0.55, pts = [];
+        for (let s = 0; s <= 3; s++) { const a = a0 + (a1 - a0) * s / 3; pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a), z]); }
+        stroke(pts, col, 1);
+      }
+    }
+    g.globalAlpha = was;
   };
 
   /* ── plants ──────────────────────────────────────────────────── */

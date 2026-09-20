@@ -23,7 +23,7 @@
     const Wl = W[wall], F = 0.16, on = o.on ?? light.lamp;
     const wood = light.warm(M.rustLt, M.orange), woodLt = light.warm(M.orange, M.orangeLt), woodDk = light.warm(M.rust, M.rustLt);
 
-    // the glass: a slab of the room thrown back — wall above, a lit band, the floor below, the towel's blur
+    // the glass: a slab of the room thrown back — wall above, a lit band, the floor below
     Wl.rect(u + F, z + F, u + w - F, z + h - F, rgb(M.navyLt), 0.03);
     const pt = (fu, fz, off = 0.04) => Wl.pt(u + F + (w - 2 * F) * fu, z + F + (h - 2 * F) * fz, off);
     poly([pt(0, 0.62), pt(1, 0.86), pt(1, 1), pt(0, 1)], rgb(M.navy));                         // the far wall

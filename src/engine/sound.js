@@ -1,7 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════
-   engine/sound.js — the one sound in the house: thunder.
+   engine/sound.js — the two sounds in the house: thunder, and the
+   record on the turntable downstairs.
 
-   There are no audio files. Thunder is white noise shaped in the
+   Thunder has no audio file. It is white noise shaped in the
    Web Audio graph: a noise buffer made once, then, for each
    strike, a few rolls of it — a source through a low-pass filter
    whose cutoff sweeps down while a gain envelope rises fast and
@@ -13,6 +14,15 @@
    The context is made on the first strike — a click or a key, so
    the browser lets it play — and where there is no Web Audio (the
    preview tool) every call is a quiet no-op.
+
+   The record is the one audio file, public/ambient-lofi.mp3, in an
+   <audio> element made on the first click on the turntable and
+   looping from there; each click after plays or pauses it. The
+   element is the truth about whether it's playing — the media keys
+   can stop it too — and the room reads that off record.playing()
+   each frame. Where there is no <audio> (the preview tool) the
+   record keeps a flag instead, so a frame can still be drawn with
+   it on.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -59,5 +69,26 @@
     for (let i = 0; i < 3; i++) roll(t0 + 0.7 + R() * 2.2, 280, 60, 0.3 + R() * 0.4, 1.6 + R() * 1.6, 0.2 + R() * 0.2);   // rolling off
   }
 
-  QH.sound = { thunder };
+  /* ── the record ──────────────────────────────────────────── */
+  const TRACK = 'public/ambient-lofi.mp3';
+  let el = null, flag = false;
+  const record = {
+    /** Called when the record starts or stops, from a click or from outside — main.js hangs the slate on it. */
+    onchange: null,
+    /** Is the record playing right now? */
+    playing: () => (el ? !el.paused : flag),
+    /** Play the record if it's stopped, pause it if it's playing. Returns whether it's playing now. */
+    toggle() {
+      if (!el && window.Audio) {
+        el = new Audio(TRACK); el.loop = true; el.preload = 'auto';
+        for (const ev of ['play', 'pause']) el.addEventListener(ev, () => { if (record.onchange) record.onchange(); });
+      }
+      if (!el) return (flag = !flag);
+      if (el.paused) { const p = el.play(); if (p && p.catch) p.catch(() => {}); }   // refused, or the file's missing: it stays paused, and the room sees that
+      else el.pause();
+      return !el.paused;
+    },
+  };
+
+  QH.sound = { thunder, record };
 })(QH);

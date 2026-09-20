@@ -109,7 +109,6 @@
     A.paperHolder('B', 2.3, 2.45);
     windowGeo = A.rainWindow('B', WINDOW.u, WINDOW.z, WINDOW.w, WINDOW.h, t, { flash: lightning, bolt: storm.seed });
     lamp = A.vanityMirror('B', MIRROR.u, MIRROR.z, MIRROR.w, MIRROR.h);
-    A.towelRing('B', 8.15, 3.65);
     A.bathShelves('B', 11.5, 3.9, 2.0);
 
     /* ── the floor, far corner outward ── */
