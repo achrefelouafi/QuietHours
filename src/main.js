@@ -5,7 +5,8 @@
    truss), the strip light in room one, the neon sign, the
    blind over the window and the duvet on the bed in room two,
    the desk chair in room one, which rolls in under the desk,
-   the neon tubes in room four, every window for the lightning, the tub in room three
+   the neon tubes in room four, the mixing desk there, whose console
+   blinks until you switch it off, every window for the lightning, the tub in room three
    (or the shower over it) to run the bath, once, the stage or
    the screen in room four to switch the show on and off — and every plant,
    whose leaves part and sway under the pointer and shake at a
@@ -17,7 +18,8 @@
 
    The page never scrolls. The canvas is the whole viewport and
    the camera does the moving: drag to pan (with a fling), wheel
-   or pinch to zoom about the pointer, arrows / WASD / + - 0 on
+   or pinch to zoom about the pointer (the wheel and the keys
+   glide there; a pinch tracks the fingers), arrows / WASD / + - 0 on
    the keyboard, 1, 2, 3 and 4 to fly to a room, double-click to
    lean in and back out.
    ═══════════════════════════════════════════════════════════════ */
@@ -49,7 +51,7 @@
      scale `s0`. look() turns that into the engine's cam each frame. */
   const eye = { x: 0, y: 0, zoom: 1 };
   const home = { x: 0, y: 0 };
-  let s0 = 12, tween = null, velocity = { x: 0, y: 0 }, lastMove = -1e9, placed = false;
+  let s0 = 12, tween = null, aim = null, velocity = { x: 0, y: 0 }, lastMove = -1e9, placed = false;
 
   function look() {
     const p = pixelAt(eye.zoom);
@@ -82,14 +84,21 @@
     eye.x = a.x - (bx - iw / 2) / cam.s;
     eye.y = a.y - (by - ih / 2) / cam.s;
   }
+  /** Head for `zoom`, easing there over the next frames, with whatever
+      sits under css px (cx, cy) held still on the way — the wheel and
+      the + / - keys go through here so a notch glides instead of jumping. */
+  function zoomTo(zoom, cx, cy) {
+    aim = { zoom: clamp(zoom, MIN, MAX), cx, cy };
+  }
+  const zoomAim = () => (aim ? aim.zoom : eye.zoom);   // where the zoom is heading, if it is
   function moveCamera(to, ms) {
     to.zoom = clamp(to.zoom, MIN, MAX);
-    velocity = { x: 0, y: 0 };
+    velocity = { x: 0, y: 0 }; aim = null;
     if (ms <= 0) { Object.assign(eye, to); tween = null; look(); return; }
     tween = { from: { ...eye }, to, start: performance.now(), ms };
   }
   const interrupt = () => { tween = null; lastMove = performance.now(); };
-  const moving = now => tween !== null || pointers.size > 0 || now - lastMove < 200
+  const moving = now => tween !== null || aim !== null || pointers.size > 0 || now - lastMove < 200
     || Math.abs(velocity.x) + Math.abs(velocity.y) > 1e-5 || scene.busy() || sway.busy();
 
   function size() {
@@ -166,10 +175,10 @@
     for (const l of scene.lamps()) if (hits(l.geo, bx, by)) return l.id;
     return null;
   }
-  /** The slate: each room's lamp, and the strip, neon or PC where there is one. */
+  /** The slate: each room's lamp, and the strip, neon, PC or mixer where there is one. */
   function showState() {
     stateEl.textContent = scene.rooms.map(r => r.name + ' · lamp ' + (light.isOn(r.id) ? 'on' : 'off')
-      + [...wallLights(), ...scene.pcs()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')).join(String.fromCharCode(10));
+      + [...wallLights(), ...scene.pcs(), ...scene.mixers()].filter(n => n.id === r.id).map(n => ' · ' + n.kind + ' ' + (light.isOn(n.sw) ? 'on' : 'off')).join('')).join(String.fromCharCode(10));
   }
   function setLamp(id, on) { light.set(id, on); showState(); }
   const toggleLamp = id => setLamp(id, !light.isOn(id));
@@ -200,6 +209,16 @@
   }
   /** Switch the PC in this room, if it has one. */
   const togglePcIn = id => { const p = scene.pcs().find(p => p.id === id); if (p) toggleNeon(p.sw); };
+
+  /* ── the mixing desks ─────────────────────────────────────── */
+  /** Which room's mixing desk is under this css point, or null — { id, name, kind, geo, sw }, its console on a switch like the PC. */
+  function overMixer(cx, cy) {
+    const [bx, by] = toBuf(cx, cy);
+    for (const m of scene.mixers()) for (const q of (m.geo && m.geo.polys) || []) if (inPoly(q, bx, by)) return m;
+    return null;
+  }
+  /** Switch the mixing desk's console in this room, if it has one. */
+  const toggleMixerIn = id => { const m = scene.mixers().find(m => m.id === id); if (m) toggleNeon(m.sw); };
 
   /* ── the blinds ───────────────────────────────────────────── */
   /** Is (bx, by) inside this convex polygon of screen points? */
@@ -277,8 +296,8 @@
   /** Switch the show in this room the other way — every room's, with no id. `at` is when (now). */
   const playShow = (id, at) => { for (const s of scene.shows()) if (!id || s.id === id) s.play(at); };
 
-  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
-  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
+  /** What's under this css point that you can touch: 'lamp', 'neon', 'pc', 'mixer', 'blind', 'duvet', 'chair', 'storm', 'tub', 'show' or null. */
+  const overThing = (cx, cy) => overLamp(cx, cy) ? 'lamp' : overNeon(cx, cy) ? 'neon' : overPc(cx, cy) ? 'pc' : overMixer(cx, cy) ? 'mixer' : overBlind(cx, cy) ? 'blind' : overDuvet(cx, cy) ? 'duvet' : overChair(cx, cy) ? 'chair' : overStorm(cx, cy) ? 'storm' : overTub(cx, cy) ? 'tub' : overShow(cx, cy) ? 'show' : null;
 
   /* ── the plants ───────────────────────────────────────────────
      Nothing to hit-test here: sway.js knows where every leaf was
@@ -295,7 +314,7 @@
     interrupt(); e.preventDefault();
     view.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    velocity = { x: 0, y: 0 };
+    velocity = { x: 0, y: 0 }; aim = null;             // the fingers have the zoom now
     drag = { x: e.clientX, y: e.clientY, t: performance.now() };
     press = pointers.size === 1 ? { x: e.clientX, y: e.clientY, t: performance.now(), far: false } : null;
     if (pointers.size === 2) {
@@ -338,7 +357,7 @@
       return;
     }
     if (press && !press.far && performance.now() - press.t < 400) {
-      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY) || overPc(e.clientX, e.clientY);
+      const id = overLamp(e.clientX, e.clientY), n = id ? null : overNeon(e.clientX, e.clientY) || overPc(e.clientX, e.clientY) || overMixer(e.clientX, e.clientY);
       const b = id || n ? null : overBlind(e.clientX, e.clientY);
       const dv = id || n || b ? null : overDuvet(e.clientX, e.clientY);
       const ch = id || n || b || dv ? null : overChair(e.clientX, e.clientY);
@@ -356,12 +375,14 @@
   view.addEventListener('pointercancel', up);
   view.addEventListener('pointerleave', () => { hot = null; view.classList.remove('hot'); sway.leave(); });
 
-  /* ── wheel: zoom about the pointer ────────────────────────── */
+  /* ── wheel: zoom about the pointer. Each notch moves the target;
+     the loop eases the eye after it, so a spin of the wheel is one
+     smooth glide in or out ───────────────────────────────────── */
   view.addEventListener('wheel', e => {
     e.preventDefault(); interrupt();
     velocity = { x: 0, y: 0 };
     const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? h : 1);
-    zoomAbout(eye.zoom * Math.exp(-clamp(d, -600, 600) * 0.0015), toScene(e.clientX, e.clientY), e.clientX, e.clientY);
+    zoomTo(zoomAim() * Math.exp(-clamp(d, -600, 600) * 0.0015), e.clientX, e.clientY);
   }, { passive: false });
 
   /* ── HUD: the buttons in the corner. Each is wired by its data-act;
@@ -384,8 +405,8 @@
     else if (k === 'arrowright' || k === 'd') { interrupt(); eye.x += step; }
     else if (k === 'arrowup' || k === 'w') { interrupt(); eye.y -= step; }
     else if (k === 'arrowdown' || k === 's') { interrupt(); eye.y += step; }
-    else if (k === '+' || k === '=') { interrupt(); zoomAbout(eye.zoom * 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
-    else if (k === '-' || k === '_') { interrupt(); zoomAbout(eye.zoom / 1.2, toScene(w / 2, h / 2), w / 2, h / 2); }
+    else if (k === '+' || k === '=') { interrupt(); zoomTo(zoomAim() * 1.2, w / 2, h / 2); }
+    else if (k === '-' || k === '_') { interrupt(); zoomTo(zoomAim() / 1.2, w / 2, h / 2); }
     else if (k === '0') goHome(900);
     else if (k === '1' || k === '2' || k === '3' || k === '4') goRoom({ 1: 'one', 2: 'two', 3: 'three', 4: 'four' }[k], 1100);
     else if (k === 'enter' || k === ' ' || k === 'l') toggleLamp(roomInView().id);
@@ -395,6 +416,7 @@
     else if (k === 'n') toggleNeonIn(roomInView().id);
     else if (k === 't') toggleNeonIn(roomInView().id, 'strip');
     else if (k === 'm') togglePcIn(roomInView().id);
+    else if (k === 'x') toggleMixerIn(roomInView().id);
     else if (k === 'f') strike(roomInView().id);
     else if (k === 'p') playShow(roomInView().id);
     else return;
@@ -425,6 +447,14 @@
       velocity.x *= decay; velocity.y *= decay;
       if (Math.abs(velocity.x) + Math.abs(velocity.y) < 1e-5) velocity.x = velocity.y = 0;
     }
+    if (aim && !tween) {
+      // ease toward the aimed zoom in log space — the same feel in as out — about the
+      // css point it was asked for, so what was under the pointer stays under it
+      const gap = Math.log(aim.zoom / eye.zoom);
+      const z = Math.abs(gap) < 0.002 ? aim.zoom : eye.zoom * Math.exp(gap * (1 - Math.exp(-dt / 90)));
+      zoomAbout(z, toScene(aim.cx, aim.cy), aim.cx, aim.cy);
+      if (z === aim.zoom) aim = null;
+    }
     eye.zoom = clamp(eye.zoom, MIN, MAX);
     look();
     if (moving(now) || now - last > 33) { frame(still ? 4200 : now); last = now; }
@@ -440,6 +470,7 @@
     setNeon: (on, id) => { for (const n of scene.neons()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setStrip: (on, id) => { for (const n of scene.strips()) if (!id || n.id === id) { setNeon(n.sw, on); light.switch(n.sw).v = on ? 1 : 0; } },
     setPc: (on, id) => { for (const p of scene.pcs()) if (!id || p.id === id) { setNeon(p.sw, on); light.switch(p.sw).v = on ? 1 : 0; } },
+    setMixer: (on, id) => { for (const m of scene.mixers()) if (!id || m.id === id) { setNeon(m.sw, on); light.switch(m.sw).v = on ? 1 : 0; } },
     toggleBlind, toggleDuvet, toggleChair,
     setDuvet: (v, id) => { for (const d of scene.duvets()) if (!id || d.id === id) d.set(v); },   // the duvet turned down this far, 0..1, in one room or every room's
     setChair: (v, id) => { for (const c of scene.chairs()) if (!id || c.id === id) c.set(v); },   // the chair rolled this far under the desk, 0..1, in one room or every room's

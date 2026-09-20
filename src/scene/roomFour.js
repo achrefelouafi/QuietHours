@@ -18,12 +18,13 @@
    and the scene that holds the rooms puts it where it goes.
    Painter order, as in the other rooms.
 
-   Three things here you can touch: the rig — the truss with its
+   Four things here you can touch: the rig — the truss with its
    spots is this room's lamp; the neon — the tubes, the ring, the
-   traces and the strip under the truss, on one switch; and the
-   stage, or the screen: a click switches the show on, the beams
-   sweeping, the traces racing, until the next click switches it
-   off again.
+   traces and the strip under the truss, on one switch; the mixing
+   desk — its knobs blink and its buttons light in turn until a
+   click switches the console off; and the stage, or the screen: a
+   click switches the show on, the beams sweeping, the traces
+   racing, until the next click switches it off again.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -36,6 +37,8 @@
   const NEON = { sw: 'four-neon' };                                    // sw: the neon's switch in light.switches
   /** How lit the neon is right now, 0..1, easing after a click. */
   const neonOn = () => light.switch(NEON.sw).v;
+  const MIXER = { sw: 'four-mixer' };                                  // sw: the mixing desk's console, on its own switch
+  const mixerOn = () => light.switch(MIXER.sw).v;
 
   const SCREEN = { u: 0.4, z: 0.85, w: S.len - 0.8, h: H - 1.75 };
   const SCREEN_C = S.pt(SCREEN.u + SCREEN.w / 2, SCREEN.z + SCREEN.h / 2, 0.1);
@@ -89,7 +92,7 @@
     { x: 5.7, y: 5.7, z: 1.2, range: 6.5, k: 0.2, on: neonOn },
     { x: SCREEN_C[0], y: SCREEN_C[1], z: SCREEN_C[2], range: 10, k: 0.22, on: () => 1 },
   ];
-  let lamp = null, tubes = [], screenGeo = null, podiumGeo = null;
+  let lamp = null, tubes = [], screenGeo = null, podiumGeo = null, mixerGeo = null;
 
   function draw(t) {
     show.step();
@@ -144,7 +147,7 @@
     // along the back wall
     A.waterCooler(7.0, 0.3, { face: '+y' });
     A.orangeDrawers(8.05, 0.35, { w: 1.1, d: 0.9, h: 1.4 });
-    A.mixerDesk(9.35, 0.3, t, { w: 3.2, d: 1.5, h: 1.7 });
+    mixerGeo = A.mixerDesk(9.35, 0.3, t, { w: 3.2, d: 1.5, h: 1.7, on: mixerOn() });
     A.tallPot(14.0, 1.0, 0, { seed: 133, size: 1.6, r: 0.38 });
     A.cactusPot(13.7, 2.3, 0, { seed: 137 });
 
@@ -206,6 +209,7 @@
   QH.scenes.roomFour = {
     room, sources, draw, lights, lamp: () => lamp,
     neon: () => ({ lines: tubes.filter(g => g).map(g => g.line), r: tubes[0] ? tubes[0].r : 0 }), neonSwitch: NEON.sw,
+    mixer: () => mixerGeo, mixerSwitch: MIXER.sw,
     show: () => ({ polys: [podiumGeo && podiumGeo.top, screenGeo && screenGeo.quad].filter(p => p) }), play,
     busy: showBusy,
   };

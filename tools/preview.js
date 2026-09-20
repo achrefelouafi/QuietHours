@@ -1,7 +1,7 @@
 /**
  * tools/preview.js — render a frame of the room to a PNG, no browser.
  *
- *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc]
+ *   node tools/preview.js [outfile] [seconds] [width] [height] [lamp] [zoom] [panX] [panY] [room] [neon] [strip] [flash] [bath] [show] [duvet] [chair] [pc] [mixer]
  *
  * `lamp` 0 switches every lamp off; `room` (one | two | three | four)
  * frames that room instead of the whole house, before zoom and pan apply;
@@ -40,6 +40,7 @@ const SHOW = process.argv[15];
 const DUVET = process.argv[16];
 const CHAIR = process.argv[17];
 const PC = parseFloat(process.argv[18] || '1');
+const MIXER = parseFloat(process.argv[19] || '1');
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const files = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
@@ -82,6 +83,7 @@ if (LIT < 1) app.setLamp(false);
 if (NEON < 1) app.setNeon(false);
 if (STRIP < 1) app.setStrip(false);
 if (PC < 1) app.setPc(false);
+if (MIXER < 1) app.setMixer(false);
 if (FLASH !== undefined) app.strike(ROOM, parseFloat(FLASH));
 if (BATH !== undefined) app.fillTub('', parseFloat(BATH));
 if (SHOW !== undefined) app.playShow('', parseFloat(SHOW));

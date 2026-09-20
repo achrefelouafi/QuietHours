@@ -28,6 +28,8 @@ Open `index.html`. No build step, no dependencies, no server.
 - click the neon in the bedroom, or a neon tube in the booth, to switch it off and on
   (`N`) — in the booth that's the tubes, the ring round the stage, the traces in the
   floor and the strip under the truss, on one switch
+- click the mixing desk in the booth to switch its console off and on (`X`) — on, its
+  knobs blink and its buttons light in turn; off, they all sit at rest
 - click the bedroom blind to run it down over the window and back up (`B`)
 - click the duvet on the bedroom bed, or the blanket on the daybed downstairs, to turn it
   down toward the foot, ready for the night, and again to make the bed (`U`)
@@ -82,7 +84,7 @@ src/
     roomThree.js        the same for room three
     roomFour.js         the same for room four, plus its show
     house.js            the rooms in one scene: where each sits, its lamp switch, its lights
-  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, windows, the tub, the stage — the pointer over the plants
+  main.js               canvas, frame loop, the camera, the clicks — lamps, blind, duvet, the chair, the mixer, windows, the tub, the stage — the pointer over the plants
 tools/
   preview.js            render a frame to PNG without a browser
   dev.js                tiny static server, if you want one
@@ -166,7 +168,7 @@ Room three — nothing here is shared with the other rooms; every piece in `asse
 | `bathShelves.js` | two boards: tins, a hanging fern, a row of grey boxes | `bathShelves(wall, u, z, w, {gap, depth, bare})` |
 | `rainWindow.js` | two big panes in a deep steel frame, towers and spires, broken streaks of rain; with `flash` the sky whitens and a bolt forks down it. Returns the glass's screen quad for the click | `rainWindow(wall, u, z, w, h, t, {skyline, seed, flash, bolt})` |
 | `vanityMirror.js` | mirror in a teak frame with the bar light above it — this room's lamp. Returns the bar's screen geometry for the click | `vanityMirror(wall, u, z, w, h, {barUp, barOver})` |
-| `towelRing.js` | a hand towel folded over a ring | `towelRing(wall, u, z)` |
+| `towelRing.js` | a hand towel draped over a charcoal double hook: a lit fold, two leaves with a dark crease between, a dobby band over the hem, terry flecks | `towelRing(wall, u, z)` |
 | `vanity.js` | teak cabinet, charcoal door and drawers, a tray of bottles, soap, a tumbler of toothbrushes on top | `vanity(x, y, {w, d, h, bare})` |
 | `sink.js` | wall-hung walnut box, stone slab with a square basin, a square tap, a pump bottle | `sink(x, y, z, {w, d, h, bare})` |
 | `sideTable.js` | dark four-legged table; with `shelf` a low rack holding folded towels | `sideTable(x, y, {w, d, h, shelf, towels, bare})` |
@@ -195,7 +197,7 @@ far corner is cut off by a third wall that faces the camera square on:
 | `podium.js` | the round stage: a drum on an eight-sided step, panelled with two lit windows, blue neon under the rim, the badge on top. Returns the top's polygon for the click | `podium(x, y, {r, h, on, pulse})` |
 | `neonFloor.js` | laid into the tiles: the six-sided ring round the stage, its inside warmed by the spots, and circuit traces with a bead of light running along each | `neonFloor(cx, cy, {a, c, traces, on, t, chase, warm, clipTo})` |
 | `arcadeCabinet.js` | upright cabinet in blue: plinth, coin door, control panel, screen with something scrolling, lit marquee; a stripe and an orange creature down its side | `arcadeCabinet(x, y, t, {face: '+x'│'+y', w, d, h})` |
-| `mixerDesk.js` | teal cabinet on posts with frosted panels, a wood lip, knobs in rows, faders, orange buttons, a bottle, a boom arm; a few lights blink | `mixerDesk(x, y, t, {w, d, h})` |
+| `mixerDesk.js` | teal cabinet on posts with frosted panels, a wood lip, knobs in rows, faders, orange buttons, a bottle, a boom arm; a few lights blink while `on`. Returns the desk's screen polygons for the click | `mixerDesk(x, y, t, {w, d, h, on})` |
 | `waterCooler.js` | pale cabinet, tap panel, the blue bottle upended on top | `waterCooler(x, y, {face, w, h})` |
 | `beanbag.js` | slumped on the floor, drawn on screen like the ball: lumpy orange or rust, or the olive pear — no longer placed, the lounge took its floor | `beanbag(x, y, {kind: 'orange'│'rust'│'olive', size, seed})` |
 | `glassRail.js` | balustrade along an open edge: wood plinth, dark posts, see-through panes with a slant of light, a slim rail | `glassRail(x, y, len, {along: 'x'│'y', h, gap, base})` |
