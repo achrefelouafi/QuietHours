@@ -107,7 +107,7 @@
     A.snakePlant(9.6, 1.9, 0, { r: 0.45, size: 2.4 });
 
     A.bookshelf(0, 7.2, { w: 2.7, depth: 1.1, h: 4.8 });
-    A.coffeeTable(5.3, 5.7, { w: 2.5, d: 1.3 });
+    A.coffeeTable(5.3, 5.7, { w: 2.5, d: 1.3, t });
     A.chest(11.2, 7.0, { w: 2.2, d: 1.6, h: 1.1 });
     A.sofa(4.4, 9.2, { w: 5.8, d: 2.2, face: '-y' });
     A.pottedPlant(12.9, 10.1, 0, { r: 0.4, ph: 0.5, size: 1.6, n: 12, seed: 61 });

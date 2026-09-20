@@ -33,15 +33,19 @@
     beam(P(0.5, -0.24), P(0.5, -0.34), 0.07, pipe, 0.9);
     for (const dz of [0.9, 2.2, h - 0.15]) Wl.disc(u, z + dz, 0.09, rgb(dark), 8, riserOff * 0.6);   // wall brackets
 
-    // riser, arm, rain head
+    // riser up to an elbow fitting, a straight arm out over the tub, then a short stem down into a collar on the head — so the head visibly hangs off the arm
     beam(P(riserOff, 0.14), P(riserOff, h), 0.13, pipe, 1);
-    beam(P(riserOff, h), P(riserOff, h + 0.08, 0), 0.13, pipe, 1);
-    const elbow = P(riserOff, h + 0.08), head = Wl.pt(u, z + h - 0.28, out);
-    beam(elbow, Wl.pt(u, z + h - 0.02, out - 0.1), 0.09, pipe, 1.05);               // the arm, reaching out and dipping
-    beam(Wl.pt(u, z + h - 0.02, out - 0.1), head, 0.09, pipe, 1.05);
-    cyl(head[0], head[1], head[2] - 0.08, 0.36, 0.08, dark, { n: 14, colTop: lt, topK: 0.95 });   // the head: a flat disc, lit on top
+    const [ex, ey] = P(riserOff, 0);
+    cyl(ex, ey, z + h - 0.04, 0.11, 0.2, dark, { n: 10, colTop: lt, topK: 0.9 });                 // the elbow: a fatter knuckle on top of the riser
+    const elbow = P(riserOff, h + 0.1), armEnd = Wl.pt(u, z + h + 0.1, out), head = Wl.pt(u, z + h - 0.28, out);
+    beam(elbow, armEnd, 0.11, pipe, 1.05);                                                          // the arm, level out over the tub
+    cyl(head[0], head[1], head[2] - 0.08, 0.36, 0.08, dark, { n: 14, colTop: lt, topK: 0.95 });    // the head: a flat disc, lit on top
     disc(head[0], head[1], head[2] + 0.005, 0.3, rgb(M.steel), 14);
     disc(head[0], head[1], head[2] + 0.01, 0.1, rgb(M.greyLt), 8);
+    cyl(head[0], head[1], head[2], 0.15, 0.07, dark, { n: 10, colTop: lt, topK: 0.85 });           // the collar the stem screws into
+    cyl(head[0], head[1], head[2] + 0.07, 0.1, 0.05, pipe, { n: 8, rt: 0.07, top: false, edge: false });   // tapering up to the stem
+    beam(armEnd, Wl.pt(u, z + h - 0.18, out), 0.11, pipe, 1);                                      // the stem, straight down into it — over the disc, since it stands above it
+    cyl(armEnd[0], armEnd[1], armEnd[2] - 0.06, 0.09, 0.12, dark, { n: 8, colTop: lt, topK: 0.9 }); // the elbow above the head
 
     // slide bar in front of the riser, the hand shower clipped part way up
     const b0 = z + 0.5, b1 = z + 2.75;

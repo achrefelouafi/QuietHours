@@ -93,7 +93,7 @@
 
     duvetGeo = A.platformBed(0.3, 5.9, { w: 6.9, d: 6.3, open: duvet.v });
     A.dresser(11.2, 0.35, { w: 3.7, d: 1.4, h: 2.3 });
-    A.bedsideTable(0.3, 12.35, { kind: 'drawer', w: 1.4, d: 1.4, h: 1.7 });
+    A.bedsideTable(0.3, 12.35, { kind: 'drawer', w: 1.4, d: 1.4, h: 1.7, t });
 
     A.pottedPlant(7.3, 13.1, 0, { r: 0.3, ph: 0.45, kind: 'leafy', size: 1.0, n: 8, seed: 63, pot: M.rustLt, rim: M.orange });
     A.palm(14.15, 4.7, 0, { r: 0.42, size: 2.3, seed: 101 });

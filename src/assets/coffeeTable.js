@@ -3,7 +3,8 @@
    mug on it.
 
    coffeeTable(x, y, o)
-     footprint x..x+w (2.5) by y..y+d (1.3). o.bare leaves it empty.
+     footprint x..x+w (2.5) by y..y+d (1.3). o.bare leaves it empty;
+     o.t (seconds) steams the mug.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -20,7 +21,7 @@
     grain(Math.round(w * d * 5), light.warm(M.woodLt, M.orangeDk), 37, 1, R => [x + R() * w, y + R() * d, H + 0.01]);
     if (o.bare) return;
     A.journal(x + 0.55, y + 0.3, H, { w: 0.85, d: 0.6, col: M.navyDk });
-    A.mug(x + w - 0.5, y + d - 0.45, H, { col: M.navyDk });
+    A.mug(x + w - 0.5, y + d - 0.45, H, { col: M.navyDk, t: o.t });
   };
   coffeeTable.H = H;
   QH.assets.coffeeTable = coffeeTable;

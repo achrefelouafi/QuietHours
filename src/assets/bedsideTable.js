@@ -7,7 +7,7 @@
               a stack of books and a mug on top)
             | 'open'   (2.1 × 2.0 × 2.1: a thick top on end panels,
               open through the middle, a low shelf — the lamp table)
-     o.bare = true leaves the top empty.
+     o.bare = true leaves the top empty; o.t (seconds) steams the mug.
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
@@ -41,6 +41,6 @@
     beam([x + w + 0.03, y + d * 0.35, h - 0.95], [x + w + 0.03, y + d * 0.65, h - 0.95], 0.06, M.greyLt, 1);
     if (o.bare) return;
     A.bookStack(x + 0.15, y + 0.2, h, { w: 0.75, d: 0.55, seed: 19 });
-    A.mug(x + w - 0.4, y + d - 0.42, h, { r: 0.19, h: 0.42, col: M.silver });
+    A.mug(x + w - 0.4, y + d - 0.42, h, { r: 0.19, h: 0.42, col: M.silver, t: o.t });
   };
 })(QH);

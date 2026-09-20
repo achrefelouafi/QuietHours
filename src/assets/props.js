@@ -3,26 +3,50 @@
    and tables. Each takes the point it stands on (x, y) and the
    height z of the surface under it.
 
-   mug · penCup · photoFrame · notepad · book · bookRow · smallBox
+   mug (+ steam) · penCup · photoFrame · notepad · book · bookRow · smallBox
    crate · lidBox · vinyl · radio · laptop · journal · turntable
    openBook · bookStack · ball
    pottedPlant (+ spikes, leaves, vines)
    ═══════════════════════════════════════════════════════════════ */
 (QH => {
   const M = QH.M;
-  const { box, cyl, disc, discX, discY, ring, beam, dot, rectX, rectY, poly, stroke, rgb, sh } = QH.draw;
+  const { box, cyl, disc, discX, discY, ring, beam, dot, rectX, rectY, poly, stroke, rgb, sh, px } = QH.draw;
   const { TAU, rnd, mix } = QH;
   const { P, cam } = QH.cam;
   const light = QH.light, sway = QH.sway;
   const A = QH.assets;
 
-  /** Mug, handle on the +x side. */
+  /** Steam off something hot at (x, y, z): a few wisps of single
+      pixels drifting up and fading out, each on its own loop so
+      they never rise in step. `t` in seconds moves them; a fixed
+      t is one still frame. o.rise is how high they get, o.r how
+      wide the mouth they leave from. */
+  A.steam = (x, y, z, t, o = {}) => {
+    const g = QH.draw.g, rise = o.rise || 0.75, r = o.r || 0.1, R = rnd(o.seed || 5);
+    const n = o.n || 3, size = px(0.055), was = g.globalAlpha;
+    for (let i = 0; i < n; i++) {
+      const loop = 2.6 + R() * 1.2, ph = R() * loop, sx = (R() - 0.5) * r * 1.4, sy = (R() - 0.5) * r * 1.4;
+      const wob = 0.05 + R() * 0.04, wph = R() * TAU, u0 = ((t + ph) % loop) / loop;   // where this wisp is on its way up
+      // the wisp is a short trail of dots behind its head, each older one fainter and further blown
+      for (let k = 0; k < 7; k++) {
+        const u = u0 - k * 0.06; if (u < 0) continue;
+        const f = u < 0.1 ? u / 0.1 : 1 - (u - 0.1) / 0.9;                            // fades in fast, out slowly
+        const sway = Math.sin(u * 5.5 + wph + t * 0.6) * wob * (0.3 + u);           // widens as it thins out
+        g.globalAlpha = was * Math.min(1, f * 1.6) * (1 - k * 0.12) * 0.9;
+        dot(x + sx + sway, y + sy - sway * 0.6, z + u * rise, size, k < 2 ? M.cream : k < 5 ? M.greyLt : M.grey);
+      }
+    }
+    g.globalAlpha = was;
+  };
+
+  /** Mug, handle on the +x side. o.t (seconds) puts steam over it. */
   A.mug = (x, y, z, o = {}) => {
     const r = o.r || 0.14, h = o.h || 0.3, col = o.col || M.navy;
     cyl(x, y, z, r, h, col, { n: 10, colTop: M.ink, topK: 1 });
     beam([x + r, y, z + h * 0.35], [x + r + 0.1, y, z + h * 0.5], 0.05, col, 0.9);
     beam([x + r + 0.1, y, z + h * 0.5], [x + r, y, z + h * 0.8], 0.05, col, 0.9);
     dot(x - r * 0.3, y + r * 0.7, z + h * 0.5, 1, M.orangeDk);
+    if (o.t !== undefined) A.steam(x, y, z + h, o.t, { r: r * 0.6, rise: 0.6 + r * 1.2, seed: (x * 31 + y * 7) | 0 });
   };
 
   /** Pen cup with a few pens leaning out. */
