@@ -17,11 +17,9 @@
   #stage{ position:fixed; left:0; top:0; width:100%; height:100%; display:block; image-rendering:pixelated; touch-action:none; cursor:grab; outline:none; }
   #stage.drag{cursor:grabbing}
   #stage.hot{cursor:pointer}
-  #stage:focus-visible{outline:2px solid var(--amber); outline-offset:-4px}
   .slate{ position:fixed; left:18px; top:16px; pointer-events:none; letter-spacing:.06em; color:var(--dim); }
   .slate b{display:block; color:var(--ink); font-weight:400; font-size:13px}
   .slate span{white-space:pre-line}
-  .hint{ position:fixed; right:18px; bottom:14px; margin:0; color:var(--dim); letter-spacing:.04em; text-align:right; pointer-events:none; }
   /* the HUD: a column of buttons in the top-right, in the slate's ink */
   .hud{ position:fixed; right:18px; top:16px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; letter-spacing:.06em; }
   .hud button{
@@ -50,7 +48,7 @@
   .popup-btn-sub{ font-size:10px; color:var(--dim); letter-spacing:.06em }
   .popup-btns button.on .popup-btn-sub{ color:var(--amber); opacity:.7 }
   .popup-foot{ color:var(--dim); font-size:10px; letter-spacing:.06em }
-  @media (max-width:640px){ .slate{left:12px; top:12px} .hud{right:12px; top:12px} .hint{right:12px; bottom:10px; font-size:11px} }
+  @media (max-width:640px){ .slate{left:12px; top:12px} .hud{right:12px; top:12px} }
 </style>
 </head>
 <body>
@@ -76,7 +74,6 @@ room four · lamp on · neon on · mixer on</span></div>
     <div class="popup-foot">click outside or press esc to close</div>
   </div>
 </div>
-<p class="hint">drag to look around · scroll to zoom · 1 / 2 / 3 / 4 fly to a room · 0 focus all · click a lamp · click the strip · click the neon · click the PC · click the mixer · click the blind · click the duvet · click the chair · click a window · click the tub · click the stage · click the record player · brush the plants</p>
 
 <!-- engine: order matters, each file hangs off the QH global -->
 <script src="src/engine/core.js"></script>
