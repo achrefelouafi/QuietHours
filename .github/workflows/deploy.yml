@@ -30,4 +30,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # No npm install step, so the action can't detect the version from
+          # node_modules and would fall back to wrangler 3.x, which doesn't
+          # read wrangler.jsonc. Match the major pinned in package.json.
+          wranglerVersion: "4"
           command: deploy
