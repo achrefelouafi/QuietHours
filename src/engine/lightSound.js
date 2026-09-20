@@ -166,7 +166,6 @@
       click(t0 + 0.04, 1100, 3,   0.020, 0.35);                     // a contactor snapping
       warble(t0 + 0.06, 850, 0.30, 0.10, 18);                       // the stepper motor swinging the rig into place
       for (let i = 0; i < 4; i++) click(t0 + 0.18 + i * 0.08, 2200, 5, 0.012, 0.30);   // the four cans firing, one after another
-      hum  (t0 + 0.40,  140, 0.30, 0.05);                            // the cooling fans on the cans
     },
     off() {
       if (!ready()) return;
